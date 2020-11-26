@@ -1,6 +1,6 @@
-{-# OPTIONS --allow-unsolved-metas #-}
 open import Prelude.Init
 open import Prelude.DecEq
+open import Prelude.Decidable
 open import Prelude.Set'
 
 module CSL (Part : Set) {{_ : DecEq Part}} where
@@ -15,16 +15,49 @@ open import Data.List.Relation.Ternary.Interleaving
 _∥_≡_ : L → L → L → Set
 l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
 
+postulate
+  ♯-skipˡ : ∀ {A : Set} {{_ : DecEq A}} {xs ys zs : Set⟨ A ⟩} → (xs ∪ ys) ♯ zs → ys ♯ zs
+  ♯-skipʳ : ∀ {A : Set} {{_ : DecEq A}} {xs ys zs : Set⟨ A ⟩} → (xs ∪ ys) ♯ zs → xs ♯ zs
+
 [INTERLEAVE] :
     l₁ ∥ l₂ ≡ l
   → ⟨ P₁ ⟩ l₁ ⟨ Q₁ ⟩
   → ⟨ P₂ ⟩ l₂ ⟨ Q₂ ⟩
   → mods l₁ ♯ mods l₂
-  -- → fv P₁ ∪ fv Q₁ S.♯ mod l₂
-  -- → fv P₂ ∪ fv Q₂ S.♯ mod l₁
     ---------------------------
   → ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
-[INTERLEAVE] = {!!}
+[INTERLEAVE] {.[]} {.[]} {.[]} {P₁}{Q₁}{P₂}{Q₂} [] Pl₁Q Pl₂Q mods♯ = {!!}
+[INTERLEAVE] {t ∷ l₁} {l₂} {.t ∷ l} {P₁}{Q₁}{P₂}{Q₂} (refl ∷ˡ inter) Pl₁Q Pl₂Q mods♯
+  = {!!}
+  where
+    postulate P₁′ : Assertion
+
+    PtX : ⟨ P₁ ⟩ [ t ] ⟨ P₁′ ⟩
+    PtX = {!!}
+
+    Pl₁Q′ : ⟨ P₁′ ⟩ l₁ ⟨ Q₁ ⟩
+    Pl₁Q′ = {!!}
+
+    mods♯′ : mods l₁ ♯ mods l₂
+    mods♯′ = ♯-skipˡ {xs = fromList (sender t ∷ receiver t ∷ [])}{mods l₁}{mods l₂} mods♯
+
+    rec : ⟨ P₁′ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
+    rec = [INTERLEAVE] inter Pl₁Q′ Pl₂Q mods♯′
+
+    postulate P⇒l₂ : addr A P₂ → A ∈′ mods l₂
+
+    open import Data.List.Membership.Propositional.Properties
+
+    t♯P₂ : [ t ] ♯♯ P₂
+    t♯P₂ A (here A∈) A∈′ = ♯→♯′ {xs = mods (t ∷ l₁)} {ys = mods l₂} mods♯ A (∈-++⁺ˡ $ ∈-nub⁺ A∈) (P⇒l₂ A∈′)
+
+    PtX′ : ⟨ P₁ `∗ P₂ ⟩ [ t ] ⟨ P₁′ `∗ P₂ ⟩
+    PtX′ = fr P₂ t♯P₂ PtX
+
+    qed : ⟨ P₁ `∗ P₂ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
+    qed = step′ PtX′ rec
+
+[INTERLEAVE] {l₁} {t ∷ l₂} {.t ∷ l} {P₁}{Q₁}{P₂}{Q₂} (refl ∷ʳ inter) Pl₁Q Pl₂Q mods♯ = {!!}
 
 -- h :
 --     s₁ ♯ s₂ ← s
