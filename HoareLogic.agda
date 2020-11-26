@@ -121,19 +121,28 @@ axiom-base⋆ {P = P} {l = []}    = weaken-strengthen {P = P} id id base
 axiom-base⋆ {P = P} {l = t ∷ l} = weaken-strengthen {P = (P `∘ ⟦ l ⟧ₗ) `∘ ⟦ t ⟧ₜ} {Q = P} id id (step axiom-base⋆)
 
 -- equivalences
-axiom⇔denot : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (P `⊢ Q `∘ ⟦ l ⟧ₗ)
-axiom⇔denot = axiom→denot , denot→axiom
-  where
-    axiom→denot : ⟨ P ⟩ l ⟨ Q ⟩ → (P `⊢ Q `∘ ⟦ l ⟧ₗ)
-    axiom→denot base                              Ps = Ps
-    axiom→denot (step PlQ)                        = axiom→denot PlQ
-    axiom→denot (weaken-strengthen P⊢P′ Q′⊢Q PlQ) = Q′⊢Q ∘ axiom→denot PlQ ∘ P⊢P′
+axiom⇒denot : ⟨ P ⟩ l ⟨ Q ⟩ → (P `⊢ Q `∘ ⟦ l ⟧ₗ)
+axiom⇒denot base                              Ps = Ps
+axiom⇒denot (step PlQ)                        = axiom⇒denot PlQ
+axiom⇒denot (weaken-strengthen P⊢P′ Q′⊢Q PlQ) = Q′⊢Q ∘ axiom⇒denot PlQ ∘ P⊢P′
 
-    denot→axiom : (P `⊢ Q `∘ ⟦ l ⟧ₗ) → ⟨ P ⟩ l ⟨ Q ⟩
-    denot→axiom {P = P} {Q = Q} {l = []}    H
-      = weaken-strengthen {P = P} {Q = P} {Q′ = Q} id H base
-    denot→axiom {P = P} {Q = Q} {l = t ∷ l} H
-      = weaken-strengthen {P′ = P} {P = Q `∘ ⟦ t ∷ l ⟧ₗ} {Q = Q} {Q′ = Q} H id (axiom-base⋆ {P = Q} {l = t ∷ l})
+denot⇒axiom : (P `⊢ Q `∘ ⟦ l ⟧ₗ) → ⟨ P ⟩ l ⟨ Q ⟩
+denot⇒axiom {P = P} {Q = Q} {l = []} H =
+  weaken-strengthen {P = P} {Q = P} {Q′ = Q} id H base
+denot⇒axiom {P = P} {Q = Q} {l = t ∷ l} H =
+  weaken-strengthen {P′ = P} {P = Q `∘ ⟦ t ∷ l ⟧ₗ} {Q = Q} {Q′ = Q} H id (axiom-base⋆ {P = Q} {l = t ∷ l})
+
+axiom⇔denot : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (P `⊢ Q `∘ ⟦ l ⟧ₗ)
+axiom⇔denot = axiom⇒denot , denot⇒axiom
+
+axiom⇒oper : ⟨ P ⟩ l ⟨ Q ⟩ → (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′)
+axiom⇒oper = (λ{ P⊢ Ps s→s′ → subst _ (proj₂ denot⇔oper s→s′) (P⊢ Ps)}) ∘ axiom⇒denot
+
+oper⇒axiom : (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′) → ⟨ P ⟩ l ⟨ Q ⟩
+oper⇒axiom = λ H → denot⇒axiom λ Ps → H Ps oper-base⋆
+
+axiom⇔oper : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′)
+axiom⇔oper = axiom⇒oper , oper⇒axiom
 
 --
 
@@ -152,28 +161,10 @@ module HoareReasoning where
   _ ~⟨ H ⟩ PlR = weaken-strengthen H (λ x → x) PlR
 
   _~⟨_∶-_⟩_ : ∀ P′ → (t : Tx) → ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
-  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟨ (proj₁ axiom⇔denot H) ⟩ step {t = t} PlR
+  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟨ (axiom⇒denot H) ⟩ step {t = t} PlR
 
   _~⟨_∶-_⟩′_ : ∀ P′ → (l : L) → ⟨ P′ ⟩ l ⟨ P ⟩ → ⟨ P ⟩ l′ ⟨ R ⟩ → ⟨ P′ ⟩ l ++ l′ ⟨ R ⟩
   P′ ~⟨ l ∶- H ⟩′ PlR = step′ H PlR
 
   _∎ : ∀ P → ⟨ P ⟩ [] ⟨ P ⟩
   p ∎ = base {P = p}
-
-axiom⇔oper : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′)
-axiom⇔oper
-  {- ** 1. proving from scratch -}
-  -- = axiom→oper , oper→axiom
-  -- where
-  --   axiom→oper : ⟨ P ⟩ l ⟨ Q ⟩ → (∀ {s s′} → P s → l , s —→⋆′ s′ → Q s′)
-  --   axiom→oper base                              Ps base                   = Ps
-  --   axiom→oper (step PlQ)                        Ps (step singleStep s→s′) = axiom→oper PlQ Ps s→s′
-  --   axiom→oper (weaken-strengthen P⊢P′ Q′⊢Q PlQ) Ps s→s′                   = Q′⊢Q $ axiom→oper PlQ (P⊢P′ Ps) s→s′
-
-  --   oper→axiom : (∀ {s s′} → P s → l , s —→⋆′ s′ → Q s′) → ⟨ P ⟩ l ⟨ Q ⟩
-  --   oper→axiom {l = []}    H = weaken-strengthen id (flip H base) base
-  --   oper→axiom {l = _ ∷ _} H = weaken-strengthen (λ Ps → H Ps oper-base⋆) id axiom-base⋆
-
-  {- ** 2. composing axiom⇔denot ∘ denot⇔oper -}
-  = (λ{ P⊢ Ps s→s′ → subst _ (proj₂ denot⇔oper s→s′) (P⊢ Ps)}) ∘ proj₁ axiom⇔denot
-  , λ H → proj₂ axiom⇔denot λ Ps → H Ps oper-base⋆

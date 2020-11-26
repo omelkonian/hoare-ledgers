@@ -3,6 +3,9 @@ open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Set'
 
+open import Data.List.Membership.Propositional.Properties
+open import Data.List.Relation.Ternary.Interleaving
+
 module CSL (Part : Set) {{_ : DecEq Part}} where
 
 open import Ledger Part
@@ -11,13 +14,12 @@ open import SL Part
 open import Dec Part
 
 -- ** Concurrent separation logic
-open import Data.List.Relation.Ternary.Interleaving
 _∥_≡_ : L → L → L → Set
 l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
 
 postulate
   ♯-skipˡ : ∀ {A : Set} {{_ : DecEq A}} {xs ys zs : Set⟨ A ⟩} → (xs ∪ ys) ♯ zs → ys ♯ zs
-  ♯-skipʳ : ∀ {A : Set} {{_ : DecEq A}} {xs ys zs : Set⟨ A ⟩} → (xs ∪ ys) ♯ zs → xs ♯ zs
+  ♯-skipʳ : ∀ {A : Set} {{_ : DecEq A}} {xs ys zs : Set⟨ A ⟩} → xs ♯ (ys ∪ zs) → xs ♯ zs
 
 [INTERLEAVE] :
     l₁ ∥ l₂ ≡ l
@@ -26,80 +28,89 @@ postulate
   → mods l₁ ♯ mods l₂
     ---------------------------
   → ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
-[INTERLEAVE] {.[]} {.[]} {.[]} {P₁}{Q₁}{P₂}{Q₂} [] Pl₁Q Pl₂Q mods♯ = {!!}
-[INTERLEAVE] {t ∷ l₁} {l₂} {.t ∷ l} {P₁}{Q₁}{P₂}{Q₂} (refl ∷ˡ inter) Pl₁Q Pl₂Q mods♯
-  = {!!}
+[INTERLEAVE] {.[]} {.[]} {.[]} {P₁}{Q₁}{P₂}{Q₂} [] Pl₁Q Pl₂Q mods♯
+  = denot⇒axiom P⊢Q
   where
-    postulate P₁′ : Assertion
+    P⊢Q : P₁ `∗ P₂ `⊢ Q₁ `∗ Q₂
+    P⊢Q (s₁ , s₂ , s≡ , Ps₁ , Ps₂) = s₁ , s₂ , s≡ , axiom⇒denot Pl₁Q Ps₁ , axiom⇒denot Pl₂Q Ps₂
 
-    PtX : ⟨ P₁ ⟩ [ t ] ⟨ P₁′ ⟩
-    PtX = {!!}
-
-    Pl₁Q′ : ⟨ P₁′ ⟩ l₁ ⟨ Q₁ ⟩
-    Pl₁Q′ = {!!}
+[INTERLEAVE] {t ∷ l₁} {l₂} {.t ∷ l} {P₁ `∘ .(⟦ t ⟧ₜ)} {Q₁} {P₂} {Q₂} (refl ∷ˡ inter) (step Pl₁Q) Pl₂Q mods♯
+  = qed
+  where
+    PtX : ⟨ P₁ `∘ ⟦ t ⟧ₜ ⟩ [ t ] ⟨ P₁ ⟩
+    PtX = step base
 
     mods♯′ : mods l₁ ♯ mods l₂
     mods♯′ = ♯-skipˡ {xs = fromList (sender t ∷ receiver t ∷ [])}{mods l₁}{mods l₂} mods♯
 
-    rec : ⟨ P₁′ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
-    rec = [INTERLEAVE] inter Pl₁Q′ Pl₂Q mods♯′
+    rec : ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
+    rec = [INTERLEAVE] inter Pl₁Q Pl₂Q mods♯′
 
     postulate P⇒l₂ : addr A P₂ → A ∈′ mods l₂
-
-    open import Data.List.Membership.Propositional.Properties
 
     t♯P₂ : [ t ] ♯♯ P₂
     t♯P₂ A (here A∈) A∈′ = ♯→♯′ {xs = mods (t ∷ l₁)} {ys = mods l₂} mods♯ A (∈-++⁺ˡ $ ∈-nub⁺ A∈) (P⇒l₂ A∈′)
 
-    PtX′ : ⟨ P₁ `∗ P₂ ⟩ [ t ] ⟨ P₁′ `∗ P₂ ⟩
+    PtX′ : ⟨ (P₁ `∘ ⟦ t ⟧ₜ) `∗ P₂ ⟩ [ t ] ⟨ P₁ `∗ P₂ ⟩
     PtX′ = fr P₂ t♯P₂ PtX
 
+    qed : ⟨ (P₁ `∘ ⟦ t ⟧ₜ) `∗ P₂ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
+    qed = step′ PtX′ rec
+[INTERLEAVE] {t ∷ l₁} {l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (refl ∷ˡ inter)
+             (weaken-strengthen {P₁}{P₁′}{Q₁′}{Q₁} pre post Pl₁Q) Pl₂Q mods♯
+  = qed
+  where
+    h : ⟨ P₁′ `∗ P₂ ⟩ t ∷ l ⟨ Q₁′ `∗ Q₂ ⟩
+    h = [INTERLEAVE] (refl ∷ˡ inter) Pl₁Q Pl₂Q mods♯
+
+    pre′ : P₁ `∗ P₂ `⊢ P₁′ `∗ P₂
+    pre′ (s₁ , s₂ , s≡ , Ps₁ , Ps₂) = (s₁ , s₂ , s≡ , pre Ps₁ , Ps₂)
+
+    post′ : Q₁′ `∗ Q₂ `⊢ Q₁ `∗ Q₂
+    post′ (s₁ , s₂ , s≡ , Qs₁ , Qs₂) = (s₁ , s₂ , s≡ , post Qs₁ , Qs₂)
+
     qed : ⟨ P₁ `∗ P₂ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
+    qed = weaken-strengthen pre′ post′ h
+
+[INTERLEAVE] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂ `∘ .(⟦ t ⟧ₜ)} {Q₂} (refl ∷ʳ inter) Pl₁Q (step Pl₂Q) mods♯
+  = qed
+  where
+    PtX : ⟨ P₂ `∘ ⟦ t ⟧ₜ ⟩ [ t ] ⟨ P₂ ⟩
+    PtX = step base
+
+    mods♯′ : mods l₁ ♯ mods l₂
+    mods♯′ = ♯-skipʳ {xs = mods l₁}{fromList (sender t ∷ receiver t ∷ [])}{mods l₂} mods♯
+
+    rec : ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
+    rec = [INTERLEAVE] inter Pl₁Q Pl₂Q mods♯′
+
+    postulate P⇒l₁ : addr A P₁ → A ∈′ mods l₁
+
+    t♯P₁ : [ t ] ♯♯ P₁
+    t♯P₁ A (here A∈) A∈′ = ♯→♯′ {xs = mods l₁} {ys = mods (t ∷ l₂)} mods♯ A (P⇒l₁ A∈′) (∈-++⁺ˡ $ ∈-nub⁺ A∈)
+
+    PtX′ : ⟨ P₁ `∗ (P₂ `∘ ⟦ t ⟧ₜ) ⟩ [ t ] ⟨ P₁ `∗ P₂ ⟩
+    PtX′ = begin P₁ `∗ (P₂ `∘ ⟦ t ⟧ₜ) ~⟨ ∗↔ {P₁} {P₂ `∘ ⟦ t ⟧ₜ} ⟩
+                 (P₂ `∘ ⟦ t ⟧ₜ) `∗ P₁ ~⟨ t ∶- fr P₁ t♯P₁ PtX    ⟩
+                 P₂ `∗ P₁             ~⟨ ∗↔ {P₂} {P₁}           ⟩
+                 P₁ `∗ P₂             ∎
+                 where open HoareReasoning
+
+    qed : ⟨ P₁ `∗ (P₂ `∘ ⟦ t ⟧ₜ) ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
     qed = step′ PtX′ rec
 
-[INTERLEAVE] {l₁} {t ∷ l₂} {.t ∷ l} {P₁}{Q₁}{P₂}{Q₂} (refl ∷ʳ inter) Pl₁Q Pl₂Q mods♯ = {!!}
+[INTERLEAVE] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (refl ∷ʳ inter) Pl₁Q
+             (weaken-strengthen {P₂}{P₂′}{Q₂′}{Q₂} pre post Pl₂Q) mods♯
+  = qed
+  where
+    h : ⟨ P₁ `∗ P₂′ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂′ ⟩
+    h = [INTERLEAVE] (refl ∷ʳ inter) Pl₁Q Pl₂Q mods♯
 
--- h :
---     s₁ ♯ s₂ ← s
---   → l₁ ∥ l₂ ← l
---   → mod l₁ S.♯ mod l₂
---     -------------------------------
---   → ⟦ l₁ ⟧ s₁ ♯ ⟦ l₂ ⟧ s₂ ← ⟦ l ⟧ s
--- h {s₁}{s₂}{s}{l₁}{l₂}{l} s₁♯s₂ l₁∥l₂ l₁♯l₂ = h₁ , h₂
---   where
---     ps₁ = proj₁ (⟦ l₁ ⟧ s₁)
---     ps₂ = proj₁ (⟦ l₂ ⟧ s₂)
+    pre′ : P₁ `∗ P₂ `⊢ P₁ `∗ P₂′
+    pre′ (s₁ , s₂ , s≡ , Ps₁ , Ps₂) = (s₁ , s₂ , s≡ , Ps₁ , pre Ps₂)
 
---     All∉ : All (_∉′ ps₂) (list ps₁)
---     All∉ = {!!}
+    post′ : Q₁ `∗ Q₂′ `⊢ Q₁ `∗ Q₂
+    post′ (s₁ , s₂ , s≡ , Qs₁ , Qs₂) = (s₁ , s₂ , s≡ , Qs₁ , post Qs₂)
 
---     h₁ : ⟦ l₁ ⟧ s₁ ♯ ⟦ l₂ ⟧ s₂
---     h₁ = let p = L.filter-none (_∈′? ps₂) {xs = list ps₁} All∉ in {!!} -- subst _ p refl
-
---     h₂ : ⟦ l ⟧ s ≡ᵐ union (⟦ l₁ ⟧ s₁) (⟦ l₂ ⟧ s₂)
---     h₂ = {!!}
-
--- [INTERLEAVE] :
---     l₁ ∥ l₂ ← l
---   → ⟨ P₁ ⟩ l₁ ⟨ Q₁ ⟩
---   → ⟨ P₂ ⟩ l₂ ⟨ Q₂ ⟩
---   → mod l₁ S.♯ mod l₂
---   -- → fv P₁ ∪ fv Q₁ S.♯ mod l₂
---   -- → fv P₂ ∪ fv Q₂ S.♯ mod l₁
---     ---------------------------
---   → ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
-
--- [INTERLEAVE] {l₁}{l₂}{l}{P₁}{Q₁}{P₂}{Q₂} l₁∥l₂ PlQ PlQ′ l₁♯l₂ = proj₂ axiom⇔denot d
---   where
---     d : (P₁ `∗ P₂) `⊢ (Q₁ `∗ Q₂) `∘ ⟦ l ⟧
---     d {s} (s₁ , s₂ , s₁♯s₂ , Ps₁ , Ps₂) = _ , _ , q , q₁ , q₂
---       where
---         q₁ : Q₁ ∙ ⟦ l₁ ⟧ s₁
---         q₁ = proj₁ axiom⇔denot PlQ Ps₁
-
---         q₂ : Q₂ ∙ ⟦ l₂ ⟧ s₂
---         q₂ = proj₁ axiom⇔denot PlQ′ Ps₂
-
---         q : ⟦ l₁ ⟧ s₁ ♯ ⟦ l₂ ⟧ s₂ ← ⟦ l ⟧ s
---         q = {!!} -- h s₁♯s₂ l₁∥l₂ l₁♯l₂
--- -}
+    qed : ⟨ P₁ `∗ P₂ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
+    qed = weaken-strengthen pre′ post′ h

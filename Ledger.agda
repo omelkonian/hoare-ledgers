@@ -131,14 +131,13 @@ oper-base⋆ {l = []}    = base
 oper-base⋆ {l = _ ∷ _} = step singleStep oper-base⋆
 
 -- ** Relating denotational and operational semantics
+denot⇒oper : (⟦ l ⟧ s ≡ s′) → (l , s —→⋆′ s′)
+denot⇒oper {l = []}    refl = base
+denot⇒oper {l = _ ∷ _} refl = step singleStep (denot⇒oper refl)
+
+oper⇒denot : (l , s —→⋆′ s′) → (⟦ l ⟧ s ≡ s′)
+oper⇒denot {l = .[]}   base                = refl
+oper⇒denot {l = _ ∷ _} (step singleStep p) = oper⇒denot p
 
 denot⇔oper : (⟦ l ⟧ s ≡ s′) ⇔ (l , s —→⋆′ s′)
-denot⇔oper = denot→oper , oper→denot
-  where
-    denot→oper : (⟦ l ⟧ s ≡ s′) → (l , s —→⋆′ s′)
-    denot→oper {l = []}    refl = base
-    denot→oper {l = _ ∷ _} refl = step singleStep (denot→oper refl)
-
-    oper→denot : (l , s —→⋆′ s′) → (⟦ l ⟧ s ≡ s′)
-    oper→denot {l = .[]}   base                = refl
-    oper→denot {l = _ ∷ _} (step singleStep p) = oper→denot p
+denot⇔oper = denot⇒oper , oper⇒denot
