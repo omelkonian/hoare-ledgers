@@ -33,6 +33,23 @@ _♯♯′_ : L → S → Set
 l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
 
 -- Lemmas about separation
+singleton′ : Part × ℕ → S
+singleton′ (A , v) k with k ≟ A
+... | yes _ = just v
+... | no  _ = nothing
+
+singleton≡ : ⟦ A `↦ v ⟧ᵖ $ singleton′ (A , v)
+singleton≡ {A}{v} = p₁ , p₂
+  where
+    p₁ : singleton′ (A , v) [ A ↦ v ]
+    p₁ with A ≟ A
+    ... | yes refl = refl
+    ... | no  A≢A  = ⊥-elim $ A≢A refl
+
+    p₂ : ∀ A′ → A′ ≢ A → A′ ∉ᵈ singleton′ (A , v)
+    p₂ A′ A′≢ with A′ ≟ A
+    ... | yes refl = ⊥-elim $ A′≢ refl
+    ... | no  _    = M.All.nothing
 
 MAll⇒¬MAny : ∀ {A : Set} {m : Maybe A} → M.All.All (const ⊥) m → ¬ M.Any.Any (const ⊤) m
 MAll⇒¬MAny {m = nothing} M.All.nothing = λ ()
@@ -245,3 +262,29 @@ postulate
   ∗↝ : P `∗ Q `∗ R `⊢ (P `∗ Q) `∗ R
   ↜∗ : (P `∗ Q) `∗ R `⊢ P `∗ Q `∗ R
   ∗↔ : P `∗ Q `⊢ Q `∗ P
+
+  ⊢⇒addr : P `⊢ P′ → addr A P′ → addr A P
+{-
+⊢⇒addr {`emp} {A `↦ v} P⊢P′ refl with () ← P⊢P′ {∅′} λ k → M.All.nothing
+⊢⇒addr {A′ `↦ v′} {A `↦ v} P⊢P′ refl
+  with A ≟ A′ | proj₁ (P⊢P′ {singleton′ (A′ , v′)} singleton≡)
+... | no _     | ()
+... | yes refl | _  = refl
+
+⊢⇒addr {P `∗ P₁} {A `↦ v} P⊢P′ refl = {!!}
+⊢⇒addr {P `∘ x} {A `↦ v} P⊢P′ refl = {!!}
+  -- where
+  --   h : P `⊢ A `↦ v → addr A P
+
+⊢⇒addr {P}{P′ `∗ _} P⊢P′ (inj₁ A∈) = {!!}
+  -- where
+  --   h : P `⊢ P′ `∗ _ → addr A P
+
+⊢⇒addr {P}{_ `∗ P′} P⊢P′ (inj₂ A∈) = {!!}
+  -- where
+  --   h : P `⊢ _ `∗ P′ → addr A P
+
+⊢⇒addr {P}{P′ `∘ f} P⊢P′ A∈ = {!!}
+  -- where
+  --   h : P `⊢ P′ `∗ _ → addr A P
+-}

@@ -54,11 +54,10 @@ h→ {l}{P} p A A∈mod A∈addr =
     p
 
 h← : l ♯♯ P → mods l ♯ addrs P
-h← {l}{P} l♯P = ♯′→♯ {xs = mods l}{addrs P} λ A A∈mod A∈addr →
-  l♯P A (mods⇒mod A∈mod) (addrs⇒addr {P = P} A∈addr)
+h← {l}{P} l♯P {A} (A∈mod , A∈addr) = l♯P A (mods⇒mod A∈mod) (addrs⇒addr {P = P} A∈addr)
 
 instance
   Dec-♯♯ : (l ♯♯ P) ⁇
-  Dec-♯♯ {l = l}{P} .dec with ¿ mods l ♯ addrs P ¿
+  Dec-♯♯ {l = l}{P} .dec with mods l ♯? addrs P
   ... | yes p = yes $ h→ {P = P} p
   ... | no ¬p = no  $ ¬p ∘ h← {P = P}

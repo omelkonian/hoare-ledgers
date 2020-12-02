@@ -1,9 +1,12 @@
+-- {-# OPTIONS -v try:100 #-}
 module Example where
 
 open import Prelude.Init
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Set'
+-- open import Prelude.Generics
+-- open import Prelude.Try
 
 import SL as SL
 
@@ -47,6 +50,7 @@ h = begin A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ~⟨ ∗↝ {A `�
           A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ∎
   where
     p₁ : [ t₁ ] ♯♯ (C `↦ 0 `∗ D `↦ 1)
+    -- p₁ = try auto ∶- [ quote Dec-♯♯ ∙ ]
     p₁ = auto {{Dec-♯♯ {P = C `↦ 0 `∗ D `↦ 1}}}
 
     p₂ : [ t₂ ] ♯♯ (A `↦ 0 `∗ B `↦ 1)
@@ -76,10 +80,16 @@ h′ : ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
      t₁-₄
      ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
 h′ = begin A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1  ~⟨ ∗↝ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} ⟩
-          (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟨ t₁-₄ ∶- [INTERLEAVE] inter h₁ h₂ auto ⟩′
+          (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟨ t₁-₄ ∶- [INTERLEAVE] inter h₁ h₂ p₁ p₂ ⟩′
           (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟨ ↜∗ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} ⟩
           A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ∎
      where
+       p₁ : (t₁ ∷ t₃ ∷ []) ♯♯ (C `↦ 0 `∗ D `↦ 1)
+       p₁ = auto {{Dec-♯♯ {P = C `↦ 0 `∗ D `↦ 1}}}
+
+       p₂ : (t₂ ∷ t₄ ∷ []) ♯♯ (A `↦ 1 `∗ B `↦ 0)
+       p₂ = auto {{Dec-♯♯ {P = A `↦ 1 `∗ B `↦ 0}}}
+
        -- this is decidable (i.e. s/inter/auto), but stdlib-1.3 still doesn't have that
        open import Data.List.Relation.Ternary.Interleaving
        inter : (t₁ ∷ t₃ ∷ []) ∥ (t₂ ∷ t₄ ∷ []) ≡ t₁-₄

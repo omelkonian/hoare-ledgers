@@ -11,8 +11,6 @@ module HoareLogic (Part : Set) {{_ : DecEq Part}} where
 
 open import Ledger Part
 
-Predˢ = Pred S 0ℓ
-
 record Transformerˢ : Set where
   field
     transform : S → S
@@ -47,13 +45,13 @@ infixr 10 _`∗_
 infix 11 _`↦_
 
 private
-  emp : Predˢ
+  emp : Pred₀ S
   emp m = ∀ k → k ∉ᵈ m
 
-  _∗_ : Predˢ → Predˢ → Predˢ
+  _∗_ : Pred₀ S → Pred₀ S → Pred₀ S
   (P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → (s₁ ∪ s₂ ≡ s) × P s₁ × Q s₂
 
-⟦_⟧ᵖ : Assertion → Predˢ
+⟦_⟧ᵖ : Assertion → Pred₀ S
 ⟦ `emp    ⟧ᵖ = emp
 ⟦ p `↦ n  ⟧ᵖ s = (s [ p ↦ n ]) × (∀ p′ → p′ ≢ p → p′ ∉ᵈ s)
 ⟦ P `∗ Q  ⟧ᵖ = ⟦ P ⟧ᵖ ∗ ⟦ Q ⟧ᵖ
@@ -106,15 +104,6 @@ data ⟨_⟩_⟨_⟩′ : Assertion → L → Assertion → Set₁ where
       ----------------
     → ⟨ P′ ⟩ l ⟨ Q′ ⟩′
 
-postulate
-  step′ :
-      ⟨ P ⟩ l  ⟨ Q ⟩
-    → ⟨ Q ⟩ l′ ⟨ R ⟩
-      -------------------
-    → ⟨ P ⟩ l ++ l′ ⟨ R ⟩
--- step′ {P} {[]} {Q} {l′} {R} PlQ QlR = {!weaken-strengthen QlR!}
--- step′ {P} {x ∷ l} {Q} {l′} {R} PlQ QlR = {!step!}
-
 -- utilities
 axiom-base⋆ : ⟨ P `∘ ⟦ l ⟧ₗ ⟩ l ⟨ P ⟩
 axiom-base⋆ {P = P} {l = []}    = weaken-strengthen {P = P} id id base
@@ -144,7 +133,19 @@ oper⇒axiom = λ H → denot⇒axiom λ Ps → H Ps oper-base⋆
 axiom⇔oper : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′)
 axiom⇔oper = axiom⇒oper , oper⇒axiom
 
---
+-- equational reasoning
+
+step′ :
+    ⟨ P ⟩ l  ⟨ Q ⟩
+  → ⟨ Q ⟩ l′ ⟨ R ⟩
+    -------------------
+  → ⟨ P ⟩ l ++ l′ ⟨ R ⟩
+step′ {P} {[]} {Q} {l′} {R} PlQ QlR = weaken-strengthen (axiom⇒denot PlQ) id QlR
+step′ {.(_ `∘ ⟦ x ⟧ₜ)} {x ∷ l} {Q} {l′} {R} (step PlQ) QlR = step (step′ PlQ QlR)
+step′ {P} {x ∷ l} {Q} {l′} {R} (weaken-strengthen {P = P′}{Q = Q′} pre post PlQ) QlR = weaken-strengthen pre id p
+  where
+    p : ⟨ P′ ⟩ x ∷ l ++ l′ ⟨ R ⟩
+    p = step′ PlQ (weaken-strengthen post id QlR)
 
 module HoareReasoning where
 
@@ -158,7 +159,10 @@ module HoareReasoning where
   begin p = p
 
   _~⟨_⟩_ : ∀ P′ → P′ `⊢ P  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ l ⟨ R ⟩
-  _ ~⟨ H ⟩ PlR = weaken-strengthen H (λ x → x) PlR
+  _ ~⟨ H ⟩ PlR = weaken-strengthen H id PlR
+
+  _~⟨_⟩′_ : ∀ R′ → R `⊢ R′  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
+  _ ~⟨ H ⟩′ PlR = weaken-strengthen id H PlR
 
   _~⟨_∶-_⟩_ : ∀ P′ → (t : Tx) → ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
   P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟨ (axiom⇒denot H) ⟩ step {t = t} PlR
