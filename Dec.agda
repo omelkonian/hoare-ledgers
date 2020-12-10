@@ -17,20 +17,20 @@ addrs : Assertion → Set⟨ Part ⟩
 addrs `emp     = ∅
 addrs (A `↦ _) = singleton A
 addrs (P `∗ Q) = addrs P ∪ addrs Q
-addrs (P `∘ _) = addrs P
+addrs (P `∘⟦ _ ⟧) = addrs P
 
 addr⇒addrs : addr A P → A ∈′ addrs P
 addr⇒addrs {P = A `↦ v} refl = here refl
 addr⇒addrs {P = P `∗ Q} (inj₁ A∈) = ∈-∪⁺ˡ {xs = addrs P}{addrs Q} $ addr⇒addrs {P = P} A∈
 addr⇒addrs {P = P `∗ Q} (inj₂ A∈) = ∈-∪⁺ʳ {xs = addrs P}{addrs Q} $ addr⇒addrs {P = Q} A∈
-addr⇒addrs {P = P `∘ _} A∈ = addr⇒addrs {P = P} A∈
+addr⇒addrs {P = P `∘⟦ _ ⟧} A∈ = addr⇒addrs {P = P} A∈
 
 addrs⇒addr : A ∈′ addrs P → addr A P
 addrs⇒addr {P = A `↦ v} (here refl) = refl
 addrs⇒addr {P = P `∗ Q} A∈ with ∈-∪⁻ {xs = addrs P}{addrs Q} A∈
 ... | inj₁ A∈ˡ = inj₁ $ addrs⇒addr {P = P} A∈ˡ
 ... | inj₂ A∈ʳ = inj₂ $ addrs⇒addr {P = Q} A∈ʳ
-addrs⇒addr {P = P `∘ _} A∈ = addrs⇒addr {P = P} A∈
+addrs⇒addr {P = P `∘⟦ _ ⟧} A∈ = addrs⇒addr {P = P} A∈
 
 mod⇒mods : mod A l → A ∈′ mods l
 mod⇒mods {A}{l = (.A —→⟨ _ ⟩ P)  ∷ l} (here (here refl)) =

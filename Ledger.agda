@@ -63,19 +63,23 @@ record Denotable (A : Set) : Set where
 open Denotable {{...}} public
 
 -- transfer
-transfer : S → (Part × ℕ) → ℕ → Part → S
-transfer s (A , vᵃ) v B k with k ≟ A
+transfer : S → (Part × ℕ) → ℕ → (Part × ℕ) → S
+transfer s (A , vᵃ) v (B , vᵇ) k with k ≟ A
 ... | yes _ = just (vᵃ ∸ v)
 ... | no  _ with k ≟ B
-... | yes _ = just (M.fromMaybe 0 (s B) + v)
+... | yes _ = just (vᵇ + v)
 ... | no  _ = s k
 
+-- NB: a transaction goes through only when:
+--   1. both participants are present in the domain
+--   2. the sender holds sufficient funds
 _[_∣_↦_] : S → Part → ℕ → Part → S
-s [ A ∣ v ↦ B ] with s A
-... | nothing = s
-... | just vᵃ with v Nat.≤? vᵃ
+s [ A ∣ v ↦ B ] with s A | s B
+... | nothing | _       = s
+... | just _  | nothing = s
+... | just vᵃ | just vᵇ with v Nat.≤? vᵃ
 ... | no _  = s
-... | yes _ = transfer s (A , vᵃ) v B
+... | yes _ = transfer s (A , vᵃ) v (B , vᵇ)
 
 --
 
