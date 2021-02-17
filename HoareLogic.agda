@@ -5,30 +5,15 @@ open import Prelude.Init hiding (_⇔_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.PartialMaps
+open import Prelude.Maps
 
-module HoareLogic (Part : Set) {{_ : DecEq Part}} where
+module HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger Part {{it}}
+open import Ledger Part ⦃ it ⦄
 
-Monotone : Pred₀ (S → S)
-Monotone f = ∀ s → s ⊆ᵈ f s
-
-⟦⟧ₜ-mono : Monotone ⟦ t ⟧
-⟦⟧ₜ-mono {A —→⟨ v ⟩ B} s p p∈ with s A | s B
-... | nothing | _       = p∈
-... | just _  | nothing = p∈
-... | just vᵃ | just _  with v Nat.≤? vᵃ
-... | no  _ = p∈
-... | yes _ with p ≟ A
-... | yes _ = auto
-... | no  _ with p ≟ B
-... | yes _ = auto
-... | no  _ = p∈
-
-⟦⟧ₗ-mono : Monotone ⟦ l ⟧
+⟦⟧ₗ-mono : KeyMonotonic ⟦ l ⟧
 ⟦⟧ₗ-mono {[]} _ _ = id
-⟦⟧ₗ-mono {t ∷ l} s p = ⟦⟧ₗ-mono {l} (⟦ t ⟧ s) p ∘ ⟦⟧ₜ-mono {t} s p
+⟦⟧ₗ-mono {t ∷ l} s p = ⟦⟧ₗ-mono {l} (⟦ t ⟧ s) p ∘ cmd-mon [ sender t ∣ value t ↦ receiver t ] s p
 
 data Assertion : Set₁ where
   `emp : Assertion
@@ -45,11 +30,11 @@ private
   emp m = ∀ k → k ∉ᵈ m
 
   _∗_ : Pred₀ S → Pred₀ S → Pred₀ S
-  (P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → (s₁ ∪ s₂ ≡ s) × P s₁ × Q s₂
+  (P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → (⟨ s₁ ⊎ s₂ ⟩≡ s) × P s₁ × Q s₂
 
 ⟦_⟧ᵖ : Assertion → Pred₀ S
 ⟦ `emp    ⟧ᵖ = emp
-⟦ p `↦ n  ⟧ᵖ s = (s [ p ↦ n ]) × (∀ p′ → p′ ≢ p → p′ ∉ᵈ s)
+⟦ p `↦ n  ⟧ᵖ s = s [ p ↦ n ]∅
 ⟦ P `∗ Q  ⟧ᵖ = ⟦ P ⟧ᵖ ∗ ⟦ Q ⟧ᵖ
 ⟦ P `∘⟦ l ⟧  ⟧ᵖ s = ⟦ P ⟧ᵖ $ ⟦ l ⟧ s
 
@@ -66,22 +51,6 @@ P ∙ s = ⟦ P ⟧ᵖ s
 
 variable
   P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
-
-singleton′ : Part × ℕ → S
-singleton′ (A , v) k with k ≟ A
-... | yes refl = just v
-... | no  k≢A  = nothing
-
-singleton≡ : ⟦ A `↦ v ⟧ᵖ $ singleton′ (A , v)
-singleton≡ {A}{v} = p₁ , p₂
-  where
-    p₁ : singleton′ (A , v) [ A ↦ v ]
-    p₁ rewrite ≟-refl _≟_ A = refl
-
-    p₂ : ∀ A′ → A′ ≢ A → A′ ∉ᵈ singleton′ (A , v)
-    p₂ A′ A′≢ with A′ ≟ A
-    ... | yes refl = ⊥-elim $ A′≢ refl
-    ... | no  _    = M.All.nothing
 
 data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set₁ where
 
@@ -194,3 +163,81 @@ module HoareReasoning where
 
   _∎ : ∀ P → ⟨ P ⟩ [] ⟨ P ⟩
   p ∎ = base {P = p}
+
+-- ** lemmas
+
+-- commutativity
+∗↔ : P `∗ Q `⊢ Q `∗ P
+∗↔ (s₁ , s₂ , ≡s , Ps₁ , Qs₂) = s₂ , s₁ , ∪≡-comm ≡s , Qs₂ , Ps₁
+
+-- associativity
+∗↝ : P `∗ Q `∗ R `⊢ (P `∗ Q) `∗ R
+∗↝ {x = s} (s₁ , s₂₃ , ≡s , Ps₁ , (s₂ , s₃ , ≡s₂₃ , Qs₂ , Rs₃)) =
+  let ≡s′ , s₁♯s₂ = ⊎≈-assocʳ ≡s ≡s₂₃
+  in (s₁ ∪ s₂) , s₃ , ≡s′ , (s₁ , s₂ , (s₁♯s₂ , ≈-refl) , Ps₁ , Qs₂) , Rs₃
+
+↜∗ : (P `∗ Q) `∗ R `⊢ P `∗ Q `∗ R
+↜∗ {x = s} (s₁₂ , s₃ , ≡s , (s₁ , s₂ , ≡s₁₂ , Ps₁ , Qs₂) , Rs₃) =
+  let ≡s′ , s₂♯s₃ = ⊎≈-assocˡ ≡s ≡s₁₂
+  in s₁ , (s₂ ∪ s₃) , ≡s′ , Ps₁ , (s₂ , s₃ , (s₂♯s₃ , ≈-refl) , Qs₂ , Rs₃)
+
+_↝_∶-_ : ∀ A B → A ≢ B → ⟨ A `↦ v `∗ B `↦ v′ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A `↦ 0 `∗ B `↦ (v′ + v) ⟩
+_↝_∶-_ {v}{v′} A B A≢B = denot⇒axiom d
+  where
+    tx = A —→⟨ v ⟩ B
+
+    d : A `↦ v `∗ B `↦ v′ `⊢ A `↦ 0 `∗ B `↦ (v′ + v) `∘⟦ [ tx ] ⟧
+    d {s} (s₁ , s₂ , ≡s , As₁ , Bs₂) = s₁′ , s₂′ , ≡s′ , As₁′ , Bs₂′
+      where
+        s₁′ s₂′ ⟦t⟧s : S
+        s₁′ = singleton (A , 0)
+        s₂′ = singleton (B , v′ + v)
+        ⟦t⟧s = ⟦ tx ⟧ s
+
+        As₁′ : (A `↦ 0) ∙ s₁′
+        As₁′ = singleton-law
+
+        Bs₂′ : (B `↦ (v′ + v)) ∙ s₂′
+        Bs₂′ = singleton-law
+
+        s₁♯s₂ : s₁′ ♯ s₂′
+        s₁♯s₂ = singleton♯ A≢B
+
+        s₁₂ = s₁ ∪ s₂
+
+        ≈s″ : (s₁′ ∪ s₂′) ≈ ⟦ tx ⟧ (s₁ ∪ s₂)
+        ≈s″ =
+          begin
+            s₁′ ∪ s₂′
+          ≡⟨⟩
+            singleton (A , 0) ∪ singleton (B , v′ + v)
+          ≈⟨ ≈-sym (transfer A≢B) ⟩
+            run [ A ∣ v ↦ B ] (singleton (A , v) ∪ singleton (B , v′))
+          ≈⟨ ≈-cong-cmd [ A ∣ v ↦ B ] s₁∪s₂≡ ⟩
+            run [ A ∣ v ↦ B ] (s₁ ∪ s₂)
+          ≡⟨⟩
+            ⟦ tx ⟧ (s₁ ∪ s₂)
+          ∎
+          where
+            open ≈-Reasoning
+
+            s₁∪s₂≡ : (singleton (A , v) ∪ singleton (B , v′)) ≈ (s₁ ∪ s₂)
+            s₁∪s₂≡ = ≈-sym $
+              begin
+                s₁ ∪ s₂
+              ≈⟨ ∪-cong (singleton≈ As₁) ⟩
+                singleton (A , v) ∪ s₂
+              ≈⟨ ∪-congʳ (♯-comm (♯-cong (≈-sym $ singleton≈ Bs₂) (singleton♯ (≢-sym A≢B)))) (singleton≈ Bs₂) ⟩
+                singleton (A , v) ∪ singleton (B , v′)
+              ∎
+
+        ≈s′ : (s₁′ ∪ s₂′) ≈ ⟦t⟧s
+        ≈s′ = ≈-trans ≈s″ $ ≈-cong-cmd [ A ∣ v ↦ B ] (proj₂ ≡s)
+
+        ≡s′ : ⟨ s₁′ ⊎ s₂′ ⟩≡ ⟦t⟧s
+        ≡s′ = s₁♯s₂ , ≈s′
+
+_↜_∶-_ : ∀ A B → A ≢ B → ⟨ A `↦ v′ `∗ B `↦ v ⟩ [ B —→⟨ v ⟩ A ] ⟨ A `↦ (v′ + v) `∗ B `↦ 0 ⟩
+_↜_∶-_ {v}{v′} A B A≢B = denot⇒axiom λ{ (s₁ , s₂ , ≡s , As₁ , Bs₂) →
+  let (s₁′ , s₂′ , ≡s′ , As₁′ , Bs₂′) = axiom⇒denot (B ↝ A ∶- (A≢B ∘ sym)) (s₂ , s₁ , ∪≡-comm ≡s , Bs₂ , As₁)
+  in (s₂′ , s₁′ , ∪≡-comm ≡s′ , Bs₂′ , As₁′) }

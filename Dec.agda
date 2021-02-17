@@ -1,13 +1,13 @@
 open import Prelude.Init
-open import Prelude.Set'
+open import Prelude.Sets
 open import Prelude.DecEq
 open import Prelude.Decidable
 
-module Dec (Part : Set) {{_ : DecEq Part}} where
+module Dec (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger Part {{it}}
-open import HoareLogic Part {{it}}
-open import SL Part {{it}}
+open import Ledger Part ⦃ it ⦄
+open import HoareLogic Part ⦃ it ⦄
+open import SL Part ⦃ it ⦄
 
 mods : L → Set⟨ Part ⟩
 mods [] = ∅
@@ -19,38 +19,40 @@ addrs (A `↦ _) = singleton A
 addrs (P `∗ Q) = addrs P ∪ addrs Q
 addrs (P `∘⟦ _ ⟧) = addrs P
 
-addr⇒addrs : addr A P → A ∈′ addrs P
-addr⇒addrs {P = A `↦ v} refl = here refl
-addr⇒addrs {P = P `∗ Q} (inj₁ A∈) = ∈-∪⁺ˡ {xs = addrs P}{addrs Q} $ addr⇒addrs {P = P} A∈
-addr⇒addrs {P = P `∗ Q} (inj₂ A∈) = ∈-∪⁺ʳ {xs = addrs P}{addrs Q} $ addr⇒addrs {P = Q} A∈
+addr⇒addrs : addr A P → A ∈ˢ addrs P
+addr⇒addrs {P = A `↦ v} refl = proj₂ singleton∈ˢ refl
+addr⇒addrs {P = P `∗ Q} (inj₁ A∈) = ∈-∪⁺ˡ _ (addrs P) (addrs Q) $ addr⇒addrs {P = P} A∈
+addr⇒addrs {P = P `∗ Q} (inj₂ A∈) = ∈-∪⁺ʳ _ (addrs P) (addrs Q) $ addr⇒addrs {P = Q} A∈
 addr⇒addrs {P = P `∘⟦ _ ⟧} A∈ = addr⇒addrs {P = P} A∈
 
-addrs⇒addr : A ∈′ addrs P → addr A P
-addrs⇒addr {P = A `↦ v} (here refl) = refl
-addrs⇒addr {P = P `∗ Q} A∈ with ∈-∪⁻ {xs = addrs P}{addrs Q} A∈
+addrs⇒addr : A ∈ˢ addrs P → addr A P
+addrs⇒addr {P = `emp} p = ⊥-elim $ ∉∅ _ p
+addrs⇒addr {P = A `↦ v} p rewrite proj₁ singleton∈ˢ p = refl
+addrs⇒addr {P = P `∗ Q} A∈ with ∈-∪⁻ _ (addrs P) (addrs Q) A∈
 ... | inj₁ A∈ˡ = inj₁ $ addrs⇒addr {P = P} A∈ˡ
 ... | inj₂ A∈ʳ = inj₂ $ addrs⇒addr {P = Q} A∈ʳ
 addrs⇒addr {P = P `∘⟦ _ ⟧} A∈ = addrs⇒addr {P = P} A∈
 
-mod⇒mods : mod A l → A ∈′ mods l
+mod⇒mods : mod A l → A ∈ˢ mods l
 mod⇒mods {A}{l = (.A —→⟨ _ ⟩ P)  ∷ l} (here (here refl)) =
   let xs = A ∷ P ∷ []
-  in ∈-∪⁺ˡ {xs = fromList xs}{mods l} (∈-nub⁺ {xs = xs} $ here refl)
+  in ∈-∪⁺ˡ _ (fromList xs) (mods l) (∈ˢ-fromList⁺ (here refl))
 mod⇒mods {A}{l = (P —→⟨ _ ⟩ .A) ∷ l} (here (there (here refl))) =
   let xs = P ∷ A ∷ []
-  in ∈-∪⁺ˡ {xs = fromList xs}{mods l} (∈-nub⁺ {xs = xs} $ there (here refl))
+  in ∈-∪⁺ˡ _ (fromList xs) (mods l) (∈ˢ-fromList⁺ (there (here refl)))
 mod⇒mods {A}{l = (P —→⟨ _ ⟩ P′) ∷ l} (there A∈) =
-  ∈-∪⁺ʳ {xs = fromList (P ∷ P′ ∷ [])}{mods l} (mod⇒mods {l = l} A∈)
+  ∈-∪⁺ʳ _ (fromList (P ∷ P′ ∷ [])) (mods l) (mod⇒mods {l = l} A∈)
 
-mods⇒mod : A ∈′ mods l → mod A l
-mods⇒mod {A} {B —→⟨ _ ⟩ C ∷ l} A∈ with ∈-∪⁻ {xs = fromList (B ∷ C ∷ [])}{mods l} A∈
-... | inj₁ A∈ˡ = here (∈-nub⁻ A∈ˡ)
+mods⇒mod : A ∈ˢ mods l → mod A l
+mods⇒mod {A} {[]} A∈ = ⊥-elim $ ∉∅ _ A∈
+mods⇒mod {A} {B —→⟨ _ ⟩ C ∷ l} A∈ with ∈-∪⁻ _ (fromList (B ∷ C ∷ [])) (mods l) A∈
+... | inj₁ A∈ˡ = here (∈ˢ-fromList⁻ A∈ˡ)
 ... | inj₂ A∈ʳ = there (mods⇒mod A∈ʳ)
 
 h→ : mods l ♯ addrs P → l ♯♯ P
 h→ {l}{P} p A A∈mod A∈addr =
-  ∈-∩⇒¬♯ {xs = mods l}{addrs P}
-    (∈-∩⁺ {xs = mods l}{addrs P} (mod⇒mods A∈mod) (addr⇒addrs {P = P} A∈addr))
+  ∈-∩⇒¬♯ _ (mods l) (addrs P)
+    (∈-∩⁺ _ (mods l) (addrs P) (mod⇒mods A∈mod) (addr⇒addrs {P = P} A∈addr))
     p
 
 h← : l ♯♯ P → mods l ♯ addrs P

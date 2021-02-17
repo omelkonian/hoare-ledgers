@@ -4,12 +4,12 @@
 open import Prelude.Init hiding (_⇔_)
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.PartialMaps
+open import Prelude.Maps
 
-module SL (Part : Set) {{_ : DecEq Part}} where
+module SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger Part {{it}}
-open import HoareLogic Part {{it}}
+open import Ledger Part ⦃ it ⦄
+open import HoareLogic Part ⦃ it ⦄
 
 mod : Part → L → Set
 mod A = Any λ t → A ∈ (sender t ∷ receiver t ∷ [])
@@ -36,62 +36,51 @@ l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
 MAll⇒¬MAny : ∀ {A : Set} {m : Maybe A} → M.All.All (const ⊥) m → ¬ M.Any.Any (const ⊤) m
 MAll⇒¬MAny {m = nothing} M.All.nothing ()
 
-∉¬ : A ∉ᵈ s → ¬ A ∈ᵈ s
-∉¬ {A}{s} A∉ A∈ with s A | A∉ | A∈
-... | just _  | M.All.just () | _
+∈ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∈ᵈ s → A ∈ᵈ s₁ ⊎ A ∈ᵈ s₂
+∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈ = ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
 
-¬∉ : ¬ A ∈ᵈ s → A ∉ᵈ s
-¬∉ {A}{s} ¬A∈ with s A
-... | nothing = M.All.nothing
-... | just _  = ⊥-elim $ ¬A∈ (M.Any.just tt)
-
-∈ᵈ-∪ : s₁ ∪ s₂ ≡ s → A ∈ᵈ s → A ∈ᵈ s₁ ⊎ A ∈ᵈ s₂
-∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈
-  with s A | A∈ | s₁ A | s₂ A | inspect s₂ A | p A
-... | nothing | () | _       | _       | _        | _
-... | just _  | _  | just _  | _       | _        | _  = inj₁ $ M.Any.just tt
-... | just _  | _  | _       | just _  | _        | _  = inj₂ $ M.Any.just tt
-... | just v  | _  | nothing | nothing | ≡[ s₂≡ ] | pA = case subst (_≡ just v) s₂≡ pA of λ ()
-
-∉ᵈ-∪ : s₁ ∪ s₂ ≡ s → A ∉ᵈ s → A ∉ᵈ s₁ × A ∉ᵈ s₂
-∉ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉
-  with s A | A∉ | s₁ A | s₂ A | inspect s₂ A | p A
-... | just _  | M.All.just () | _       | _       | _        | _
-... | nothing | _             | nothing | just _  | ≡[ s₂≡ ] | pA = case subst (_≡ nothing) s₂≡ pA of λ ()
-... | nothing | _             | nothing | nothing | _        | _  = M.All.nothing , M.All.nothing
+∉ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s → A ∉ᵈ s₁ × A ∉ᵈ s₂
+∉ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉ = A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ˡ _ _ _ , A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ʳ _ _ _
 
 ∈⇒addr : A ∈ᵈ s → P ∙ s → addr A P
-∈⇒addr {A}{s}{P = `emp} A∈ Ps = ⊥-elim $ ∉¬ {A}{s} (Ps A) A∈
+∈⇒addr {A}{s}{P = `emp} A∈ Ps = ⊥-elim $ Ps A A∈
 ∈⇒addr {A}{s}{P = B `↦ v} A∈ Ps with A ≟ B
 ... | yes A≡B = A≡B
-... | no  A≢B = ⊥-elim $ ∉¬ {A}{s} (proj₂ Ps A A≢B) A∈
+... | no  A≢B = ⊥-elim $ proj₂ Ps A A≢B A∈
 ∈⇒addr {A}{s}{P = P `∗ Q} A∈ (s₁ , s₂ , ≡s , Ps₁ , Qs₂)
   with ∈ᵈ-∪ ≡s A∈
 ... | inj₁ A∈₁ = inj₁ $ ∈⇒addr {P = P} A∈₁ Ps₁
 ... | inj₂ A∈₂ = inj₂ $ ∈⇒addr {P = Q} A∈₂ Qs₂
 ∈⇒addr {A}{s}{P = P `∘⟦ l ⟧} A∈ Ps = ∈⇒addr {P = P} (⟦⟧ₗ-mono {l} s A A∈) Ps
 
+[∣↦]-pre : ∀ {t : Tx} → KeyPreserving ⟦ t ⟧
+[∣↦]-pre {t = A —→⟨ v ⟩ B} s k k∈
+  with s ⁉ A | ⁉⇒∈ᵈ {s = s} {k = A}
+... | nothing | _ = k∈
+... | just vᵃ | A∈
+  with s ⁉ B | ⁉⇒∈ᵈ {s = s} {k = B}
+... | nothing | _ = k∈
+... | just vᵇ | B∈
+  with v ≤? vᵃ
+... | no  _ = k∈
+... | yes _
+  with ∈ᵈ-∪⁻ _ _ _ k∈
+... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = B∈ auto
+... | inj₂ k∈ʳ
+  with ∈ᵈ-∪⁻ _ _ _ k∈ʳ
+... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = A∈ auto
+... | inj₂ k∈ʳ′ = k∈ʳ′
+
 ∉-⟦⟧ₜ : A ∉ᵈ s → A ∉ᵈ ⟦ t ⟧ s
-∉-⟦⟧ₜ {A}{s}{B —→⟨ v ⟩ C} A∉ with s B | inspect s B | s C | inspect s C
-... | nothing | _        | _       | _        = A∉
-... | just _  | _        | nothing | _        = A∉
-... | just vᵇ | ≡[ sB≡ ] | just vᶜ | ≡[ sC≡ ] with v ≤? vᵇ
-... | no _ = A∉
-... | yes _ with A ≟ B
-... | yes refl = case subst Is-nothing sB≡ A∉ of λ{ (M.All.just ()) }
-... | no A≢B with A ≟ C
-... | yes refl = case subst Is-nothing sC≡ A∉ of λ{ (M.All.just ()) }
-... | no A≢C = A∉
+∉-⟦⟧ₜ A∉s = ⊥-elim ∘ A∉s ∘ [∣↦]-pre _ _
 
 ∉-⟦⟧ₗ : A ∉ᵈ s → A ∉ᵈ ⟦ l ⟧ s
 ∉-⟦⟧ₗ {A}{s}{[]} A∉ = A∉
 ∉-⟦⟧ₗ {A}{s}{t ∷ l} A∉ = ∉-⟦⟧ₗ {l = l} (∉-⟦⟧ₜ {s = s}{t = t} A∉)
 
 ∉⇒¬addr : A ∉ᵈ s → P ∙ s → ¬ addr A P
-∉⇒¬addr {A}{s}{P = `emp} A∉ Ps = λ ()
-∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ Ps refl with s A | A∉ | Ps
-... | just v  | M.All.just () | _
-... | nothing | _ | () , _
+∉⇒¬addr {A}{s}{P = `emp} A∉ Ps ()
+∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ (Ps , _) refl = A∉ $ ⁉⇒∈ᵈ (subst Is-just (sym Ps) auto)
 ∉⇒¬addr {A}{s}{P = P `∗ Q} A∉ (s₁ , s₂ , ≡s , Ps₁ , Qs₂) A∈
   with A∉ˡ , A∉ʳ ← ∉ᵈ-∪ ≡s A∉
   with A∈
@@ -103,104 +92,80 @@ MAll⇒¬MAny {m = nothing} M.All.nothing ()
 ♯♯-skip p A = p A ∘ there
 
 ˡ♯⇒♯ˡ : l ˡ♯ s → s ♯ˡ l
-ˡ♯⇒♯ˡ {s = s} p A A∈s A∈l with s A | p A A∈l | A∈s
-... | nothing | _             | ()
-... | just _  | M.All.just () | _
+ˡ♯⇒♯ˡ {s = s} p A A∈ A∈l = p _ A∈l A∈
 
-∉-splits : s₁ ∪ s₂ ≡ s → A ∉ᵈ s₁ → A ∉ᵈ s₂ → A ∉ᵈ s
-∉-splits {s₁ = s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉₁ A∉₂
-  with s₁ A | s₂ A | inspect s₂ A | A∉₁ | A∉₂ | s A | p A
-... | just _  | _       | _        | M.All.just () | _             | _       | _
-... | _       | just _  | _        | _             | M.All.just () | _       | _
-... | nothing | nothing | _        | _             | _             | nothing | _
-    = M.All.nothing
-... | nothing | nothing | ≡[ s₂≡ ] | _             | _             | just v  | pA
-    = case subst (_≡ just v) s₂≡ pA of λ ()
+∉-splits : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s₁ → A ∉ᵈ s₂ → A ∉ᵈ s
+∉-splits {s₁ = s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉₁ A∉₂ A∈
+  with ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
+... | inj₁ A∈₁ = ⊥-elim $ A∉₁ A∈₁
+... | inj₂ A∈₂ = ⊥-elim $ A∉₂ A∈₂
 
 ♯♯⇒ˡ♯ : l ♯♯ R → R ∙ s → l ˡ♯ s
 ♯♯⇒ˡ♯ {l}{`emp}{s} l♯R s∅ A A∈ = s∅ A
-♯♯⇒ˡ♯ {l}{B `↦ v}{s} l♯R B↦ A A∈
+♯♯⇒ˡ♯ {l}{B `↦ v}{s} l♯R (_ , B↦) A A∈ A∈′
   with A ≟ B
-... | yes refl = ⊥-elim $ l♯R A A∈ refl
-... | no  A≢B  = proj₂ B↦ A A≢B
+... | yes refl = l♯R A A∈ refl
+... | no  A≢B  = B↦ A A≢B A∈′
 ♯♯⇒ˡ♯ {l}{R `∗ Q}{s} l♯R (s₁ , s₂ , ≡s , Rs₁ , Qs₂) A A∈
-  with s₁ A | inspect s₁ A | s₂ A | inspect s₂ A
+  with s₁ ⁉ A | inspect (s₁ ⁉_) A | s₂ ⁉ A | inspect (s₂ ⁉_) A
 ... | just _  | ≡[ s₁≡ ] | _       | _
-    = ⊥-elim $ l♯R A A∈ $ inj₁ $ ∈⇒addr {A}{s₁}{R} (subst M.Is-just (sym s₁≡) auto) Rs₁
+    = ⊥-elim $ l♯R A A∈ $ inj₁ $ ∈⇒addr {A}{s₁}{R} (⁉⇒∈ᵈ $ subst Is-just (sym s₁≡) auto) Rs₁
 ... | _       | _        | just _  | ≡[ s₂≡ ]
-    = ⊥-elim $ l♯R A A∈ $ inj₂ $ ∈⇒addr {A}{s₂}{Q} (subst M.Is-just (sym s₂≡) auto) Qs₂
+    = ⊥-elim $ l♯R A A∈ $ inj₂ $ ∈⇒addr {A}{s₂}{Q} (⁉⇒∈ᵈ $ subst M.Is-just (sym s₂≡) auto) Qs₂
 ... | nothing | ≡[ s₁≡ ] | nothing | ≡[ s₂≡ ]
-    = ∉-splits ≡s (subst M.Is-nothing (sym s₁≡) auto) (subst M.Is-nothing (sym s₂≡) auto)
-
-♯♯⇒ˡ♯ {_}{R `∘⟦ l ⟧}{s} l♯R Rs A A∈ = ¬∉ {A}{s} ¬A∈
+  = ∉-splits ≡s (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁≡) auto))
+                (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₂≡) auto))
+♯♯⇒ˡ♯ {_}{R `∘⟦ l ⟧}{s} l♯R Rs A A∈ = ¬A∈
   where
     A∉ : A ∉ᵈ ⟦ l ⟧ s
     A∉ = ♯♯⇒ˡ♯ {R = R} {s = ⟦ l ⟧ s} l♯R Rs A A∈
 
-    ¬A∈ : ¬ A ∈ᵈ s
-    ¬A∈ = ∉¬ {A}{⟦ l ⟧ s} A∉ ∘ ⟦⟧ₗ-mono {l} s A
+    ¬A∈ : A ∉ᵈ s
+    ¬A∈ = A∉ ∘ ⟦⟧ₗ-mono {l} s A
 
 -- Helper lemmas for [FRAME]
 
-transfer-helper :
-    s₁ ♯ s₂
-  → B ∉ᵈ s₂
-    ---------------------
-  → (s₁ [ A ∣ v ↦ B ]) ♯ s₂
-transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉
-  with s₁ A | inspect s₁ A | s₁ B
-... | nothing | _       | _ = s₁♯s₂
-... | just _ | _       | nothing = s₁♯s₂
-... | just vᵃ | ≡[ A∈ ] | just vᵇ
-  with v Nat.≤? vᵃ
-... | no  _ = s₁♯s₂
-... | yes _ = λ k → go k
-  where
-    go : transfer s₁ (A , vᵃ) v (B , vᵇ) ♯ s₂
-    go k with k ≟ A
-    ... | yes refl =
-      let (p , p′) = s₁♯s₂ A
-      in  (λ _ → p (subst (M.Any.Any (const ⊤)) (sym A∈) auto))
-        , λ A∈′ → case (subst (M.All.All (const ⊥)) A∈ (p′ A∈′)) of λ{ (M.All.just ()) }
-    ... | no _ with k ≟ B
-    ... | yes refl =
-      let (p , p′) = s₁♯s₂ B
-      in  (λ _ → B∉) , ⊥-elim ∘ MAll⇒¬MAny B∉
-    ... | no _ = s₁♯s₂ k
+transfer-helper : s₁ ♯ s₂ → B ∉ᵈ s₂ → (run [ A ∣ v ↦ B ] s₁) ♯ s₂
+transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre [∣↦]-pre s₁♯s₂
 
-drop-[∣↦] : ∀ k → k ≢ A → k ≢ B → (s [ A ∣ v ↦ B ]) k ≡ s k
-drop-[∣↦] {A = A}{B}{s}{v} k k≢A k≢B with s A | s B
-... | nothing | _       = refl
-... | just _  | nothing = refl
-... | just vᵃ | just _  with v Nat.≤? vᵃ
-... | no _  = refl
-... | yes _ with k ≟ A
+drop-[∣↦] : ∀ k → k ≢ A → k ≢ B → (run [ A ∣ v ↦ B ] s) ⁉ k ≡ s ⁉ k
+drop-[∣↦] {A}{B}{v}{s} k k≢A k≢B
+  with s ⁉ A | inspect (s ⁉_) A
+... | nothing | _ = refl
+... | just vᵃ | ≡[ sᵃ ]
+  with s ⁉ B | inspect (s ⁉_) B
+... | nothing | _ = refl
+... | just vᵇ | ≡[ sᵇ ]
+  with v ≤? vᵃ
+... | no _ = refl
+... | yes _
+  with k ≟ A
 ... | yes eq = ⊥-elim $ k≢A eq
 ... | no  _ with k ≟ B
 ... | yes eq = ⊥-elim $ k≢B eq
-... | no  _ = refl
+... | no  _  = trans (singleton-reject k≢B) (singleton-reject k≢A)
 
 frame-helper :
     l ♯♯ R
   → R ∙ s₂
-  → s₁ ∪ s₂ ≡ s
+  → ⟨ s₁ ⊎ s₂ ⟩≡ s
     -----------------------
-  → ⟦ l ⟧ s₁ ∪ s₂ ≡ ⟦ l ⟧ s
+  → ⟨ ⟦ l ⟧ s₁ ⊎ s₂ ⟩≡ ⟦ l ⟧ s
 frame-helper {l = []} _ _ p = p
 frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs₂ (s₁♯s₂ , ≡s) =
-  frame-helper {l}{R}{s₂}{s₁ [ A ∣ v ↦ B ]} {s [ A ∣ v ↦ B ]} (♯♯-skip {P = R} l♯R) Rs₂ p′
+  frame-helper {l}{R}{s₂}{run [ A ∣ v ↦ B ] s₁} {run [ A ∣ v ↦ B ] s} (♯♯-skip {P = R} l♯R) Rs₂ p′
   where
     l♯s₂ : l₀ ˡ♯ s₂
     l♯s₂ = ♯♯⇒ˡ♯ {R = R} l♯R Rs₂
 
-    A∉ : A ∉ᵈ s₂
-    A∉ = l♯s₂ A $ here (here refl)
+    A∉₂ : A ∉ᵈ s₂
+    A∉₂ = l♯s₂ A $ here (here refl)
 
-    B∉ : B ∉ᵈ s₂
-    B∉ = l♯s₂ B $ here (there (here refl))
+    B∉₂ : B ∉ᵈ s₂
+    B∉₂ = l♯s₂ B $ here (there (here refl))
 
-    p₁ : (s₁ [ A ∣ v ↦ B ]) ♯ s₂
-    p₁ = transfer-helper s₁♯s₂ B∉
+    p₁ : (run [ A ∣ v ↦ B ] s₁) ♯ s₂
+    p₁ = transfer-helper s₁♯s₂ B∉₂
 
     ∉⇒≢ : ∀ k → k ∈ᵈ s₂ → (k ≢ A) × (k ≢ B)
     ∉⇒≢ k k∈ = k≢A , k≢B
@@ -214,47 +179,53 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
         k≢B : k ≢ B
         k≢B refl = ⊥-elim $ k∉ (here (there (here refl)))
 
-    p₂ : ∀ k → ((s₁ [ A ∣ v ↦ B ]) ∪ s₂ ∶- p₁) k ≡ (s [ A ∣ v ↦ B ]) k
+    p₂ : (run [ A ∣ v ↦ B ] s₁) ∪ s₂ ≈ run [ A ∣ v ↦ B ] s
     p₂ k
       with eq ← ≡s k
       with eqᵃ ← ≡s A
       with eqᵇ ← ≡s B
-      with Dec (k ∈ᵈ s₂) ∋ dec
+      with ¿ k ∈ᵈ s₂ ¿
     ... | yes k∈
       with k≢A , k≢B ← ∉⇒≢ k k∈
       rewrite ∪-chooseᵣ p₁ k∈
             | ∪-chooseᵣ s₁♯s₂ k∈
-            | drop-[∣↦] {s = s} {v = v} k k≢A k≢B
+            | drop-[∣↦] {v = v} {s = s} k k≢A k≢B
             = eq
-    ... | no ¬k∈
-      with k∉ ← ¬∉ {k}{s₂} ¬k∈
+    ... | no k∉
       rewrite ∪-chooseₗ p₁ k∉
             | ∪-chooseₗ s₁♯s₂ k∉
-      with s₁ A | s₂ A | A∉ | inspect s₂ A | s A | eqᵃ
-    ... | nothing | just _  | M.All.just () | _          | _          | _
-    ... | nothing | nothing | _             | ≡[ s₂≡ ]   | just _     | eqᵃ′
-        = case trans (sym s₂≡) eqᵃ′ of λ ()
-    ... | nothing | nothing | _             | _          | nothing    | _
+      with s₁ ⁉ A | inspect (s₁ ⁉_) A
+         | s  ⁉ A | inspect (s  ⁉_) A
+         | eqᵃ
+    ... | nothing | _ | nothing | _ | _ = eq
+    ... | nothing | ≡[ s₁A≡ ] | just _  | ≡[ sA≡ ] | _
+        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁A≡) auto)
+          in ⊥-elim $ A∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵃ sA≡)) auto
+    ... | just vᵃ | ≡[ s₁A≡ ] | nothing | _ | eqᵃ′
+        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁A≡)) eqᵃ′ of λ ()
+    ... | just vᵃ  | ≡[ s₁A≡ ] | just vᵃ′ | _ | eqᵃ′
+      with vᵃ ≟ vᵃ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁A≡) eqᵃ′
+    ... | yes refl
+      with s₁ ⁉ B | inspect (s₁ ⁉_) B
+         | s  ⁉ B | inspect (s  ⁉_) B
+         | eqᵇ
+    ... | nothing | _ | nothing | _ | _
         = eq
-    ... | just vᵃ | _       | _             | _          | .(just vᵃ) | refl
-      with s₁ B | s₂ B | B∉ | inspect s₂ B | s B | eqᵇ
-    ... | nothing | just _  | M.All.just () | _          | _          | _
-    ... | nothing | nothing | _             | ≡[ s₂≡ ]   | just _     | eqᵇ′
-        = case trans (sym s₂≡) eqᵇ′ of λ ()
-    ... | nothing | nothing | _             | _          | nothing    | _
-        = eq
-    ... | just vᵇ | _       | _             | _          | .(just vᵇ) | refl
+    ... | nothing | ≡[ s₁B≡ ] | just _  | ≡[ sB≡ ] | _
+        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁B≡) auto)
+          in ⊥-elim $ B∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵇ sB≡)) auto
+    ... | just vᵇ | ≡[ s₁B≡ ] | nothing | _ | eqᵇ′
+        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁B≡)) eqᵇ′ of λ ()
+    ... | just vᵇ  | ≡[ s₁B≡ ] | just vᵇ′ | _ | eqᵇ′
+      with vᵇ ≟ vᵇ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁B≡) eqᵇ′
+    ... | yes refl
       with v ≤? vᵃ
     ... | no  _ = eq
-    ... | yes _
-      with k ≟ A
-    ... | yes k≡A = refl
-    ... | no  k≢A
-      with k ≟ B
-    ... | no  k≢b = eq
-    ... | yes k≡B = refl
+    ... | yes _ = ≡-cong-update $ ≡-cong-update eq
 
-    p′ : (s₁ [ A ∣ v ↦ B ]) ∪ s₂ ≡ (s [ A ∣ v ↦ B ])
+    p′ : ⟨ run [ A ∣ v ↦ B ] s₁ ⊎ s₂ ⟩≡ run [ A ∣ v ↦ B ] s
     p′ = p₁ , p₂
 
 [FRAME] : ∀ R
@@ -270,12 +241,5 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
         Qs₁′ : Q ∙ ⟦ l ⟧ s₁
         Qs₁′ = axiom⇒denot PlQ Ps₁
 
-        p : ⟦ l ⟧ s₁ ∪ s₂ ≡ ⟦ l ⟧ s
+        p : ⟨ ⟦ l ⟧ s₁ ⊎ s₂ ⟩≡ ⟦ l ⟧ s
         p = frame-helper {R = R} l♯R Rs₂ s₁♯s₂
-
-postulate
-  _↝_ : ∀ A B → ⟨ A `↦ v `∗ B `↦ v′ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A `↦ 0 `∗ B `↦ (v′ + v) ⟩
-  _↜_ : ∀ A B → ⟨ A `↦ v′ `∗ B `↦ v ⟩ [ B —→⟨ v ⟩ A ] ⟨ A `↦ (v′ + v) `∗ B `↦ 0 ⟩
-  ∗↝ : P `∗ Q `∗ R `⊢ (P `∗ Q) `∗ R
-  ↜∗ : (P `∗ Q) `∗ R `⊢ P `∗ Q `∗ R
-  ∗↔ : P `∗ Q `⊢ Q `∗ P

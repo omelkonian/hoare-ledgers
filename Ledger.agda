@@ -2,11 +2,11 @@ open import Function using (id)
 open import Prelude.Init hiding (_⇔_)
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.PartialMaps as M
+open import Prelude.Maps
 
 module Ledger
   (Part : Set) -- a fixed set of participants
-  {{_ : DecEq Part}}
+  ⦃ _ : DecEq Part ⦄
   where
 
 --
@@ -60,32 +60,23 @@ Domain = S → S
 record Denotable (A : Set) : Set where
   field
     ⟦_⟧ : A → Domain
-open Denotable {{...}} public
-
--- transfer
-transfer : S → (Part × ℕ) → ℕ → (Part × ℕ) → S
-transfer s (A , vᵃ) v (B , vᵇ) k with k ≟ A
-... | yes _ = just (vᵃ ∸ v)
-... | no  _ with k ≟ B
-... | yes _ = just (vᵇ + v)
-... | no  _ = s k
+open Denotable ⦃...⦄ public
 
 -- NB: a transaction goes through only when:
 --   1. both participants are present in the domain
 --   2. the sender holds sufficient funds
-_[_∣_↦_] : S → Part → ℕ → Part → S
-s [ A ∣ v ↦ B ] with s A | s B
-... | nothing | _       = s
-... | just _  | nothing = s
-... | just vᵃ | just vᵇ with v Nat.≤? vᵃ
-... | no _  = s
-... | yes _ = transfer s (A , vᵃ) v (B , vᵇ)
+[_∣_↦_] : Part → ℕ → Part → Cmd
+[ A ∣ v ↦ B ] =
+  just? A λ vᵃ →
+  just? B λ vᵇ →
+  iff (v ≤? vᵃ)
+  ((A ≔ vᵃ ∸ v) ∶ (B ≔ vᵇ + v))
 
 --
 
 instance
   ⟦Tx⟧ : Denotable Tx
-  ⟦Tx⟧ .⟦_⟧ (A —→⟨ v ⟩ B) = _[ A ∣ v ↦ B ]
+  ⟦Tx⟧ .⟦_⟧ (A —→⟨ v ⟩ B) = run [ A ∣ v ↦ B ]
 
   ⟦L⟧ : Denotable L
   ⟦L⟧ .⟦_⟧ []      s = s
@@ -94,6 +85,37 @@ instance
 comp : ∀ x → ⟦ l ++ l′ ⟧ x ≡ (⟦ l′ ⟧ ∘ ⟦ l ⟧) x
 comp {l = []}    {l′} x = refl
 comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
+
+transfer : ∀ {A B v v′}
+  → A ≢ B
+  → run [ A ∣ v ↦ B ] (singleton (A , v) ∪ singleton (B , v′))
+  ≈ (singleton (A , 0) ∪ singleton (B , v′ + v))
+transfer {A}{B}{v}{v′} A≢B =
+  let
+    m = singleton (A , v) ∪ singleton (B , v′)
+  in
+  begin
+    run [ A ∣ v ↦ B ] m
+  ≡⟨⟩
+    run (just? A λ vᵃ → just? B λ vᵇ → iff (v ≤? vᵃ) ((A ≔ vᵃ ∸ v) ∶ (B ≔ vᵇ + v))) m
+  ≈⟨ just?-accept (↦-∪⁺ˡ singleton-law′) ⟩
+    run (just? B λ vᵇ → iff (v ≤? v) ((A ≔ v ∸ v) ∶ (B ≔ vᵇ + v))) m
+  ≈⟨ just?-accept (↦-∪⁺ʳ′ (⊥-elim ∘ A≢B ∘ sym ∘ singleton∈) singleton-law′) ⟩
+    run (iff (v ≤? v) ((A ≔ v ∸ v) ∶ (B ≔ v′ + v))) m
+  ≈⟨ iff-accept {b = v ≤? v} (fromWitness Nat.≤-refl) ⟩
+    run ((A ≔ v ∸ v) ∶ (B ≔ v′ + v)) m
+  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) update-update ⟩
+    run (B ≔ (v′ + v)) (singleton (A , v ∸ v) ∪ singleton (B , v′))
+  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) (∪-comm $ singleton♯ A≢B) ⟩
+    run (B ≔ (v′ + v)) (singleton (B , v′) ∪ singleton (A , v ∸ v))
+  ≈⟨ update-update ⟩
+    singleton (B , v′ + v) ∪ singleton (A , v ∸ v)
+  ≈⟨ ∪-comm $ singleton♯ (≢-sym A≢B) ⟩
+    singleton (A , v ∸ v) ∪ singleton (B , v′ + v)
+  ≡⟨ cong (λ x → (singleton (A , x) ∪ singleton (B , v′ + v))) (Nat.n∸n≡0 v) ⟩
+    singleton (A , 0) ∪ singleton (B , v′ + v)
+  ∎ where
+    open ≈-Reasoning
 
 -- ** Operational semantics
 

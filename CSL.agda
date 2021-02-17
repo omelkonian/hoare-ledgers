@@ -2,18 +2,17 @@ open import Prelude.Init
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
-open import Prelude.Set'
-open import Prelude.PartialMaps renaming (_♯_ to _♯′_)
+open import Prelude.Sets
+open import Prelude.Maps renaming (_♯_ to _♯′_)
 
 open import Data.List.Membership.Propositional.Properties
 open import Data.List.Relation.Ternary.Interleaving
 
-module CSL (Part : Set) {{_ : DecEq Part}} where
+module CSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
 open import Ledger Part
 open import HoareLogic Part
 open import SL Part
-open import Dec Part
 
 -- ** Concurrent separation logic
 _∥_≡_ : L → L → L → Set
@@ -66,7 +65,7 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
          l₂♯P₁′ : l₂ ♯♯ P₁′
          l₂♯P₁′ A A∈l A∈P with ¿ A ∈ᵈ s ¿
          ... | yes A∈ = l₂♯P₁ A A∈l (∈⇒addr {P = P₁} A∈ Ps)
-         ... | no  A∉ = ∉⇒¬addr {P = P₁′} (¬∉ {A}{s} A∉) (pre Ps) A∈P
+         ... | no  A∉ = ∉⇒¬addr {P = P₁′} A∉ (pre Ps) A∈P
 
          h : ⟨ P₁′ `∗ P₂ ⟩ t ∷ l ⟨ Q₁′ `∗ Q₂ ⟩
          h = [INTERLEAVE] (refl ∷ˡ inter) Pl₁Q Pl₂Q l₁♯P₂ l₂♯P₁′
@@ -109,7 +108,7 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
          l₁♯P₂′ : l₁ ♯♯ P₂′
          l₁♯P₂′ A A∈l A∈P with ¿ A ∈ᵈ s ¿
          ... | yes A∈ = l₁♯P₂ A A∈l (∈⇒addr {P = P₂} A∈ Ps)
-         ... | no  A∉ = ∉⇒¬addr {P = P₂′} (¬∉ {A}{s} A∉) (pre Ps) A∈P
+         ... | no  A∉ = ∉⇒¬addr {P = P₂′} A∉ (pre Ps) A∈P
 
          h : ⟨ P₁ `∗ P₂′ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂′ ⟩
          h = [INTERLEAVE] (refl ∷ʳ inter) Pl₁Q Pl₂Q l₁♯P₂′ l₂♯P₁
