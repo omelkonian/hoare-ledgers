@@ -1,25 +1,28 @@
-----------------------
--- ** Separation logic
+---------------------------
+-- ** Separation logic (SL)
 
-open import Prelude.Init hiding (_⇔_)
+open import Prelude.Init
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Maps
 
 module SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger Part ⦃ it ⦄
+open import Ledger     Part ⦃ it ⦄
 open import HoareLogic Part ⦃ it ⦄
 
+-- Which participants does a ledger modify?
 mod : Part → L → Set
 mod A = Any λ t → A ∈ (sender t ∷ receiver t ∷ [])
 
+-- Which participants does an assertion refer to?
 addr : Part → Assertion → Set
 addr A `emp     = ⊥
 addr A (B `↦ _) = A ≡ B
 addr A (P `∗ Q) = addr A P ⊎ addr A Q
 addr A (P `∘⟦ _ ⟧) = addr A P
 
+-- Define disjointness between ledgers/states/formulas as disjointness of the participant set they refer to.
 _ˡ♯_ : L → S → Set
 l ˡ♯ s = ∀ A → mod A l → A ∉ᵈ s
 
@@ -32,9 +35,7 @@ l ♯♯ P = ∀ A → mod A l → ¬ addr A P
 _♯♯′_ : L → S → Set
 l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
 
--- Lemmas about separation
-MAll⇒¬MAny : ∀ {A : Set} {m : Maybe A} → M.All.All (const ⊥) m → ¬ M.Any.Any (const ⊤) m
-MAll⇒¬MAny {m = nothing} M.All.nothing ()
+-- ** Utility lemmas about separation.
 
 ∈ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∈ᵈ s → A ∈ᵈ s₁ ⊎ A ∈ᵈ s₂
 ∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈ = ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
@@ -53,31 +54,6 @@ MAll⇒¬MAny {m = nothing} M.All.nothing ()
 ... | inj₂ A∈₂ = inj₂ $ ∈⇒addr {P = Q} A∈₂ Qs₂
 ∈⇒addr {A}{s}{P = P `∘⟦ l ⟧} A∈ Ps = ∈⇒addr {P = P} (⟦⟧ₗ-mono {l} s A A∈) Ps
 
-[∣↦]-pre : ∀ {t : Tx} → KeyPreserving ⟦ t ⟧
-[∣↦]-pre {t = A —→⟨ v ⟩ B} s k k∈
-  with s ⁉ A | ⁉⇒∈ᵈ {s = s} {k = A}
-... | nothing | _ = k∈
-... | just vᵃ | A∈
-  with s ⁉ B | ⁉⇒∈ᵈ {s = s} {k = B}
-... | nothing | _ = k∈
-... | just vᵇ | B∈
-  with v ≤? vᵃ
-... | no  _ = k∈
-... | yes _
-  with ∈ᵈ-∪⁻ _ _ _ k∈
-... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = B∈ auto
-... | inj₂ k∈ʳ
-  with ∈ᵈ-∪⁻ _ _ _ k∈ʳ
-... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = A∈ auto
-... | inj₂ k∈ʳ′ = k∈ʳ′
-
-∉-⟦⟧ₜ : A ∉ᵈ s → A ∉ᵈ ⟦ t ⟧ s
-∉-⟦⟧ₜ A∉s = ⊥-elim ∘ A∉s ∘ [∣↦]-pre _ _
-
-∉-⟦⟧ₗ : A ∉ᵈ s → A ∉ᵈ ⟦ l ⟧ s
-∉-⟦⟧ₗ {A}{s}{[]} A∉ = A∉
-∉-⟦⟧ₗ {A}{s}{t ∷ l} A∉ = ∉-⟦⟧ₗ {l = l} (∉-⟦⟧ₜ {s = s}{t = t} A∉)
-
 ∉⇒¬addr : A ∉ᵈ s → P ∙ s → ¬ addr A P
 ∉⇒¬addr {A}{s}{P = `emp} A∉ Ps ()
 ∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ (Ps , _) refl = A∉ $ ⁉⇒∈ᵈ (subst Is-just (sym Ps) auto)
@@ -93,12 +69,6 @@ MAll⇒¬MAny {m = nothing} M.All.nothing ()
 
 ˡ♯⇒♯ˡ : l ˡ♯ s → s ♯ˡ l
 ˡ♯⇒♯ˡ {s = s} p A A∈ A∈l = p _ A∈l A∈
-
-∉-splits : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s₁ → A ∉ᵈ s₂ → A ∉ᵈ s
-∉-splits {s₁ = s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉₁ A∉₂ A∈
-  with ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
-... | inj₁ A∈₁ = ⊥-elim $ A∉₁ A∈₁
-... | inj₂ A∈₂ = ⊥-elim $ A∉₂ A∈₂
 
 ♯♯⇒ˡ♯ : l ♯♯ R → R ∙ s → l ˡ♯ s
 ♯♯⇒ˡ♯ {l}{`emp}{s} l♯R s∅ A A∈ = s∅ A
@@ -123,28 +93,8 @@ MAll⇒¬MAny {m = nothing} M.All.nothing ()
     ¬A∈ : A ∉ᵈ s
     ¬A∈ = A∉ ∘ ⟦⟧ₗ-mono {l} s A
 
--- Helper lemmas for [FRAME]
 
-transfer-helper : s₁ ♯ s₂ → B ∉ᵈ s₂ → (run [ A ∣ v ↦ B ] s₁) ♯ s₂
-transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre [∣↦]-pre s₁♯s₂
-
-drop-[∣↦] : ∀ k → k ≢ A → k ≢ B → (run [ A ∣ v ↦ B ] s) ⁉ k ≡ s ⁉ k
-drop-[∣↦] {A}{B}{v}{s} k k≢A k≢B
-  with s ⁉ A | inspect (s ⁉_) A
-... | nothing | _ = refl
-... | just vᵃ | ≡[ sᵃ ]
-  with s ⁉ B | inspect (s ⁉_) B
-... | nothing | _ = refl
-... | just vᵇ | ≡[ sᵇ ]
-  with v ≤? vᵃ
-... | no _ = refl
-... | yes _
-  with k ≟ A
-... | yes eq = ⊥-elim $ k≢A eq
-... | no  _ with k ≟ B
-... | yes eq = ⊥-elim $ k≢B eq
-... | no  _  = trans (singleton-reject k≢B) (singleton-reject k≢A)
-
+-- Helper lemma for [FRAME]: pushing ⟦ l ⟧ inside the partition.
 frame-helper :
     l ♯♯ R
   → R ∙ s₂
@@ -228,6 +178,8 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
     p′ : ⟨ run [ A ∣ v ↦ B ] s₁ ⊎ s₂ ⟩≡ run [ A ∣ v ↦ B ] s
     p′ = p₁ , p₂
 
+-- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts
+-- and then weaken our results to the desired context (assuming the rest of the context is disjoint).
 [FRAME] : ∀ R
   → l ♯♯ R
   → ⟨ P ⟩ l ⟨ Q ⟩

@@ -5,10 +5,11 @@ open import Prelude.Decidable
 
 module Dec (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger Part ⦃ it ⦄
+open import Ledger     Part ⦃ it ⦄
 open import HoareLogic Part ⦃ it ⦄
-open import SL Part ⦃ it ⦄
+open import SL         Part ⦃ it ⦄
 
+-- ** Alternative formulation of `mod`/`addr` using finite sets...
 mods : L → Set⟨ Part ⟩
 mods [] = ∅
 mods (t ∷ l) = fromList (sender t ∷ receiver t ∷ []) ∪ mods l
@@ -19,6 +20,7 @@ addrs (A `↦ _) = singleton A
 addrs (P `∗ Q) = addrs P ∪ addrs Q
 addrs (P `∘⟦ _ ⟧) = addrs P
 
+-- ... which is equivalent to our previous predicate-based definition.
 addr⇒addrs : addr A P → A ∈ˢ addrs P
 addr⇒addrs {P = A `↦ v} refl = proj₂ singleton∈ˢ refl
 addr⇒addrs {P = P `∗ Q} (inj₁ A∈) = ∈-∪⁺ˡ _ (addrs P) (addrs Q) $ addr⇒addrs {P = P} A∈
@@ -49,17 +51,17 @@ mods⇒mod {A} {B —→⟨ _ ⟩ C ∷ l} A∈ with ∈-∪⁻ _ (fromList (B �
 ... | inj₁ A∈ˡ = here (∈ˢ-fromList⁻ A∈ˡ)
 ... | inj₂ A∈ʳ = there (mods⇒mod A∈ʳ)
 
-h→ : mods l ♯ addrs P → l ♯♯ P
-h→ {l}{P} p A A∈mod A∈addr =
-  ∈-∩⇒¬♯ _ (mods l) (addrs P)
-    (∈-∩⁺ _ (mods l) (addrs P) (mod⇒mods A∈mod) (addr⇒addrs {P = P} A∈addr))
-    p
-
-h← : l ♯♯ P → mods l ♯ addrs P
-h← {l}{P} l♯P {A} (A∈mod , A∈addr) = l♯P A (mods⇒mod A∈mod) (addrs⇒addr {P = P} A∈addr)
-
+-- ** Disjointness via _♯♯_ is a decidable relation.
 instance
   Dec-♯♯ : (l ♯♯ P) ⁇
   Dec-♯♯ {l = l}{P} .dec with mods l ♯? addrs P
-  ... | yes p = yes $ h→ {P = P} p
-  ... | no ¬p = no  $ ¬p ∘ h← {P = P}
+  ... | yes p = yes $ h→ p
+    where
+      h→ : mods l ♯ addrs P → l ♯♯ P
+      h→ p A A∈mod A∈addr =
+        ∈-∩⇒¬♯ _ (mods l) (addrs P) (∈-∩⁺ _ (mods l) (addrs P) (mod⇒mods A∈mod) (addr⇒addrs {P = P} A∈addr)) p
+  ... | no ¬p = no $ ¬p ∘ h←
+    where
+      h← : l ♯♯ P → mods l ♯ addrs P
+      h← l♯P {A} (A∈mod , A∈addr) =
+        l♯P A (mods⇒mod A∈mod) (addrs⇒addr {P = P} A∈addr)

@@ -1,7 +1,7 @@
 -------------------------
 -- ** Axiomatic semantics
 
-open import Prelude.Init hiding (_⇔_)
+open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -9,22 +9,26 @@ open import Prelude.Maps
 
 module HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
+-- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
 open import Ledger Part ⦃ it ⦄
 
-⟦⟧ₗ-mono : KeyMonotonic ⟦ l ⟧
-⟦⟧ₗ-mono {[]} _ _ = id
-⟦⟧ₗ-mono {t ∷ l} s p = ⟦⟧ₗ-mono {l} (⟦ t ⟧ s) p ∘ cmd-mon [ sender t ∣ value t ↦ receiver t ] s p
-
+-- ** Deeply embedded formulas/propositions for our logic.
+-- NB: this is necessary, in order to inspect the referenced participants later on.
 data Assertion : Set₁ where
-  `emp : Assertion
-  _`↦_ : Part → ℕ → Assertion
-  _`∗_ : Assertion → Assertion → Assertion
-  _`∘⟦_⟧ : Assertion → L → Assertion
+  `emp : Assertion                          -- ^ holds for the empty ledger
+  _`↦_ : Part → ℕ → Assertion               -- ^ holds for the singleton ledger { A ↦ v }
+  _`∗_ : Assertion → Assertion → Assertion  -- ^ separating conjuction
+  _`∘⟦_⟧ : Assertion → L → Assertion        -- ^ holds for a ledger that is first transformed using ⟦ t₁⋯tₙ ⟧
 
 infixl 9 _`∘⟦_⟧
 infixr 10 _`∗_
 infix 11 _`↦_
 
+
+variable
+  P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
+
+-- We denote assestions as predicates over ledger states.
 private
   emp : Pred₀ S
   emp m = ∀ k → k ∉ᵈ m
@@ -38,6 +42,7 @@ private
 ⟦ P `∗ Q  ⟧ᵖ = ⟦ P ⟧ᵖ ∗ ⟦ Q ⟧ᵖ
 ⟦ P `∘⟦ l ⟧  ⟧ᵖ s = ⟦ P ⟧ᵖ $ ⟦ l ⟧ s
 
+-- Convenient notation for working with assertions instead of predicates.
 infixl 9 _`∘⟦_⟧ₜ
 _`∘⟦_⟧ₜ : Assertion → Tx → Assertion
 P `∘⟦ t ⟧ₜ = P `∘⟦ [ t ] ⟧
@@ -49,47 +54,26 @@ P `⊢ Q = ⟦ P ⟧ᵖ ⊢ ⟦ Q ⟧ᵖ
 _∙_ : Assertion → S → Set
 P ∙ s = ⟦ P ⟧ᵖ s
 
-variable
-  P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
-
+-- ** Hoare triples: both strengthening/weakening are captured by consequence.
 data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set₁ where
 
   base :
-    ------------
+    --------------
     ⟨ P ⟩ [] ⟨ P ⟩
 
   step :
       ⟨ P ⟩ l ⟨ R ⟩
-      -------------------------
+      --------------------------
     → ⟨ P `∘⟦ t ⟧ₜ ⟩ t ∷ l ⟨ R ⟩
 
   consequence :
-      P′ `⊢ P
-    → Q  `⊢ Q′
+      P′ `⊢ P          -- ^ weakening the pre-condition
+    → Q  `⊢ Q′         -- ^ strengthening the post-condition
     → ⟨ P  ⟩ l ⟨ Q  ⟩
       ---------------
     → ⟨ P′ ⟩ l ⟨ Q′ ⟩
 
-data ⟨_⟩_⟨_⟩′ : Assertion → L → Assertion → Set₁ where
-
-  base :
-    ----------------------------
-    ⟨ P `∘⟦ t ⟧ₜ ⟩ [ t ] ⟨ P ⟩′
-
-  step :
-      ⟨ P ⟩ l  ⟨ Q ⟩′
-    → ⟨ Q ⟩ l′ ⟨ R ⟩′
-      --------------------
-    → ⟨ P ⟩ l ++ l′ ⟨ R ⟩′
-
-  consequence :
-      P′ `⊢ P
-    → Q  `⊢ Q′
-    → ⟨ P ⟩ l ⟨ Q ⟩′
-      ----------------
-    → ⟨ P′ ⟩ l ⟨ Q′ ⟩′
-
--- utilities
+-- Utilities for Hoare triples.
 weaken : P′ `⊢ P → ⟨ P ⟩ l ⟨ Q ⟩ → ⟨ P′ ⟩ l ⟨ Q ⟩
 weaken H = consequence H id
 
@@ -100,7 +84,7 @@ axiom-base⋆ : ⟨ P `∘⟦ l ⟧ ⟩ l ⟨ P ⟩
 axiom-base⋆ {P = P} {l = []}    = consequence {P = P} id id base
 axiom-base⋆ {P = P} {l = t ∷ l} = consequence {P = P `∘⟦ l ⟧ `∘⟦ t ⟧ₜ} {Q = P} id id (step axiom-base⋆)
 
--- equivalences
+-- ** Correspondence with denotational/operational semantics.
 axiom⇒denot : ⟨ P ⟩ l ⟨ Q ⟩ → (P `⊢ Q `∘⟦ l ⟧)
 axiom⇒denot base = id
 axiom⇒denot (step PlQ) = axiom⇒denot PlQ
@@ -124,8 +108,7 @@ oper⇒axiom = λ H → denot⇒axiom λ Ps → H Ps oper-base⋆
 axiom⇔oper : ⟨ P ⟩ l ⟨ Q ⟩ ⇔ (∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′)
 axiom⇔oper = axiom⇒oper , oper⇒axiom
 
--- equational reasoning
-
+-- Derived alternative formulation for step, using list concatenation.
 step′ :
     ⟨ P ⟩ l  ⟨ Q ⟩
   → ⟨ Q ⟩ l′ ⟨ R ⟩
@@ -138,33 +121,35 @@ step′ {P} {t ∷ l} {Q} {l′} {R} (consequence {P = P′}{Q = Q′} pre post 
     p : ⟨ P′ ⟩ t ∷ l ++ l′ ⟨ R ⟩
     p = step′ PlQ (weaken post QlR)
 
+-- ** Reasoning syntax for Hoare triples.
 module HoareReasoning where
-
   infix  -2 begin_
-  infixr -1 _~⟨_⟩_
-  infixr -1 _~⟨_∶-_⟩_
-  infixr -1 _~⟨_∶-_⟩′_
+  infixr -1 _~⟪_⟩_ _~⟨_⟫_ _~⟨_∶-_⟩_ _~⟨_∶-_⟩′_
   infix  0  _∎
 
   begin_ : ⟨ P ⟩ l ⟨ Q ⟩ → ⟨ P ⟩ l ⟨ Q ⟩
   begin p = p
 
-  _~⟨_⟩_ : ∀ P′ → P′ `⊢ P  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ l ⟨ R ⟩
-  _ ~⟨ H ⟩ PlR = weaken H PlR
+  -- weakening syntax
+  _~⟪_⟩_ : ∀ P′ → P′ `⊢ P  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ l ⟨ R ⟩
+  _ ~⟪ H ⟩ PlR = weaken H PlR
 
-  _~⟨_⟩′_ : ∀ R′ → R `⊢ R′  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
-  _ ~⟨ H ⟩′ PlR = strengthen H PlR
+  -- strengthening syntax
+  _~⟨_⟫_ : ∀ R′ → R `⊢ R′  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
+  _ ~⟨ H ⟫ PlR = strengthen H PlR
 
+  -- step syntax
   _~⟨_∶-_⟩_ : ∀ P′ → (t : Tx) → ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
-  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟨ (axiom⇒denot H) ⟩ step {t = t} PlR
+  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟪ axiom⇒denot H ⟩ step {t = t} PlR
 
+  -- step′ syntax
   _~⟨_∶-_⟩′_ : ∀ P′ → (l : L) → ⟨ P′ ⟩ l ⟨ P ⟩ → ⟨ P ⟩ l′ ⟨ R ⟩ → ⟨ P′ ⟩ l ++ l′ ⟨ R ⟩
   P′ ~⟨ l ∶- H ⟩′ PlR = step′ H PlR
 
   _∎ : ∀ P → ⟨ P ⟩ [] ⟨ P ⟩
   p ∎ = base {P = p}
 
--- ** lemmas
+-- ** Lemmas about separating conjunction.
 
 -- commutativity
 ∗↔ : P `∗ Q `⊢ Q `∗ P
@@ -181,6 +166,7 @@ module HoareReasoning where
   let ≡s′ , s₂♯s₃ = ⊎≈-assocˡ ≡s ≡s₁₂
   in s₁ , (s₂ ∪ s₃) , ≡s′ , Ps₁ , (s₂ , s₃ , (s₂♯s₃ , ≈-refl) , Qs₂ , Rs₃)
 
+-- ** Useful lemmas when transferring a value between participants in the minimal context.
 _↝_∶-_ : ∀ A B → A ≢ B → ⟨ A `↦ v `∗ B `↦ v′ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A `↦ 0 `∗ B `↦ (v′ + v) ⟩
 _↝_∶-_ {v}{v′} A B A≢B = denot⇒axiom d
   where
