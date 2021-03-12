@@ -9,7 +9,7 @@ open import Prelude.Maps
 module SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
 open import Ledger     Part ⦃ it ⦄
-open import HoareLogic Part ⦃ it ⦄
+open import HoareLogic2 Part ⦃ it ⦄
 
 -- Which participants does a ledger modify?
 mod : Part → L → Set
@@ -185,13 +185,13 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
   → ⟨ P ⟩ l ⟨ Q ⟩
     -----------------------
   → ⟨ P `∗ R ⟩ l ⟨ Q `∗ R ⟩
-[FRAME] {l}{P}{Q} R l♯R PlQ = denot⇒axiom d
+[FRAME] {l}{P}{Q} R l♯R PlQ = d
   where
     d : (P `∗ R) `⊢ (Q `∗ R) `∘⟦ l ⟧
     d {s} (s₁ , s₂ , s₁♯s₂ , Ps₁ , Rs₂) = ⟦ l ⟧ s₁ , s₂  , p , Qs₁′ , Rs₂
       where
         Qs₁′ : Q ∙ ⟦ l ⟧ s₁
-        Qs₁′ = axiom⇒denot PlQ Ps₁
+        Qs₁′ = PlQ Ps₁
 
         p : ⟨ ⟦ l ⟧ s₁ ⊎ s₂ ⟩≡ ⟦ l ⟧ s
         p = frame-helper {R = R} l♯R Rs₂ s₁♯s₂
