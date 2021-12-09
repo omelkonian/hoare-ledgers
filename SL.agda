@@ -2,9 +2,11 @@
 -- ** Separation logic (SL)
 
 open import Prelude.Init
+open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Maps
+open import Prelude.Ord
 
 module SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 

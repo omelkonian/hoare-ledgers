@@ -6,6 +6,7 @@ open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Maps
+open import Prelude.Ord
 
 module Ledger
   (Part : Set) -- a fixed set of participants

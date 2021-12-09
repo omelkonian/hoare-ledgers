@@ -38,5 +38,5 @@ open import CSL
 --    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.
 open import Example
 
--- ** Decidability of disjointness (unused)
+-- ** Decidability of disjointness (only used in Example)
 open import Dec

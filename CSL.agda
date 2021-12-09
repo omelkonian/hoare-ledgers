@@ -1,7 +1,7 @@
 ---------------------------------------
 -- ** Concurrent separation logic (CSL)
 
-open import Prelude.Init
+open import Prelude.Init hiding (_∷ʳ_)
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
