@@ -8,18 +8,11 @@ open import Prelude.Lists
 open import Prelude.Sets
 open import Prelude.Maps renaming (_♯_ to _♯′_)
 
-open import Data.List.Membership.Propositional.Properties
-open import Data.List.Relation.Ternary.Interleaving
-
 module CSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
 open import Ledger     Part ⦃ it ⦄
 open import HoareLogic Part ⦃ it ⦄
 open import SL         Part ⦃ it ⦄
-
--- Interleaving two ledgers is the same as interleaving their respective transation list.
-_∥_≡_ : L → L → L → Set
-l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
 
 -- ** Proof of CSL's [PAR] rule, which allows for modular reasoning.
 [PAR] :
@@ -36,7 +29,7 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
     P⊢Q : P₁ `∗ P₂ `⊢ Q₁ `∗ Q₂
     P⊢Q (s₁ , s₂ , s≡ , Ps₁ , Ps₂) = s₁ , s₂ , s≡ , axiom⇒denot Pl₁Q Ps₁ , axiom⇒denot Pl₂Q Ps₂
 
-[PAR] {t ∷ l₁} {l₂} {.t ∷ l} {P₁ `∘⟦ .([ t ]) ⟧} {Q₁} {P₂} {Q₂} (refl ∷ˡ inter) (step Pl₁Q) Pl₂Q l₁♯P₂ l₂♯P₁
+[PAR] {t ∷ l₁} {l₂} {.t ∷ l} {P₁ `∘⟦ .([ t ]) ⟧} {Q₁} {P₂} {Q₂} (keepˡ inter) (step Pl₁Q) Pl₂Q l₁♯P₂ l₂♯P₁
   = qed
   where
     PtX : ⟨ P₁ `∘⟦ t ⟧ₜ ⟩ [ t ] ⟨ P₁ ⟩
@@ -53,7 +46,7 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
 
     qed : ⟨ (P₁ `∘⟦ t ⟧ₜ) `∗ P₂ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
     qed = step′ PtX′ rec
-[PAR] {t ∷ l₁} {l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (refl ∷ˡ inter)
+[PAR] {t ∷ l₁} {l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (keepˡ inter)
              (consequence {P₁}{P₁′}{Q₁′}{Q₁} pre post Pl₁Q) Pl₂Q l₁♯P₂ l₂♯P₁
   = denot⇒axiom qed
   where
@@ -72,9 +65,9 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
          ... | no  A∉ = ∉⇒¬addr {P = P₁′} A∉ (pre Ps) A∈P
 
          h : ⟨ P₁′ `∗ P₂ ⟩ t ∷ l ⟨ Q₁′ `∗ Q₂ ⟩
-         h = [PAR] (refl ∷ˡ inter) Pl₁Q Pl₂Q l₁♯P₂ l₂♯P₁′
+         h = [PAR] (keepˡ inter) Pl₁Q Pl₂Q l₁♯P₂ l₂♯P₁′
 
-[PAR] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂ `∘⟦ .([ t ]) ⟧} {Q₂} (refl ∷ʳ inter) Pl₁Q (step Pl₂Q) l₁♯P₂ l₂♯P₁
+[PAR] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂ `∘⟦ .([ t ]) ⟧} {Q₂} (keepʳ inter) Pl₁Q (step Pl₂Q) l₁♯P₂ l₂♯P₁
   = qed
   where
     PtX : ⟨ P₂ `∘⟦ t ⟧ₜ ⟩ [ t ] ⟨ P₂ ⟩
@@ -96,7 +89,7 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
     qed : ⟨ P₁ `∗ (P₂ `∘⟦ t ⟧ₜ) ⟩ t ∷ l ⟨ Q₁ `∗ Q₂ ⟩
     qed = step′ PtX′ rec
 
-[PAR] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (refl ∷ʳ inter) Pl₁Q
+[PAR] {l₁} {t ∷ l₂} {.t ∷ l} {P₁} {Q₁} {P₂} {Q₂} (keepʳ inter) Pl₁Q
              (consequence {P₂}{P₂′}{Q₂′}{Q₂} pre post Pl₂Q) l₁♯P₂ l₂♯P₁
   = denot⇒axiom qed
   where
@@ -115,4 +108,4 @@ l₁ ∥ l₂ ≡ l = Interleaving _≡_ _≡_ l₁ l₂ l
          ... | no  A∉ = ∉⇒¬addr {P = P₂′} A∉ (pre Ps) A∈P
 
          h : ⟨ P₁ `∗ P₂′ ⟩ t ∷ l ⟨ Q₁ `∗ Q₂′ ⟩
-         h = [PAR] (refl ∷ʳ inter) Pl₁Q Pl₂Q l₁♯P₂′ l₂♯P₁
+         h = [PAR] (keepʳ inter) Pl₁Q Pl₂Q l₁♯P₂′ l₂♯P₁

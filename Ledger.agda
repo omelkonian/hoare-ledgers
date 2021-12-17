@@ -29,6 +29,7 @@ record Tx : Set where
     value    : ℕ
     receiver : Part
 open Tx public
+unquoteDecl DecEq-Tx = DERIVE DecEq [ quote Tx , DecEq-Tx ]
 
 -- A ledger is a list of transactions.
 L = List Tx
