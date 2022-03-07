@@ -1,18 +1,24 @@
 # Separation logic for UTXO-based blockchain ledgers
 
-The Agda formalization (under folder `/src/`) depends on [formal-prelude](https://github.com/omelkonian/formal-prelude),
-make sure you have it installed (either manually or by simply running `$ make install-prelude`). 
+Browse the Agda code in HTML [here](http://omelkonian.github.io/hoare-ledgers).
+
+This Agda formalization depends on [formal-prelude](https://github.com/omelkonian/formal-prelude),
+make sure you have it installed.
 
 ## Design Approaches
 
-Initial tried the following:
-- [Ledger-Shallow](https://github.com/omelkonian/hoare-ledgers/tree/shallow): Shallow embedding using HOAS, both for states `S : Part -> Z` and logical formulas `PredS : S -> Set`.
-  + cannot express separating conjunction...
+Various design decisions are modelled in each sub-directory, answering the following dilemmas:
 
-- [Ledger-Middle](https://github.com/omelkonian/hoare-ledgers/tree/middle): Between shallow and deep embedding, using "deep" states `S : Map Part Z` and "shallow" formulas `PredS : S -> Set`.
-  + here we can prove some inference rules of Separation Logic (e.g. that _∗_ is commutative), but still cannot express `[FRAME]` and `[INTERLEAVE]`
+- Shallow or deep embedding of states?
+  + i.e. `S : Part → ℕ` or `S : Map⟨ Part → ℕ ⟩`
 
-- [Ledger-Deep](https://github.com/omelkonian/hoare-ledgers/tree/deep): Deep embedding, both for states `S : Map Part Z` and logical formulas `data PredS/Assertion : Set where ...`. 
-  + currently struggling to prove the `[FRAME]` rule..
+- Shallow or deep embedding of logic formulas?
+  + i.e. `P : S → Set` or `data P : Set where ...`
 
-Finally decided on another 'middle' with **shallow** embedding for states `S : Map Part N ~ Part -> N` and **deep** embedding for logical formulas `data Assertion : Set where ...`.
+- Shallow or deep embedding of Hoare triples?
+  + i.e. `{P}l{Q} = ∀ s. P(s) → Q(⟦l⟧s)` or `data {P}l{Q} where ...`
+
+- Separate at the level of participants or values?
+  + i.e. `s₁ ⊎ s₂ ≈ s` or `s₁ ◇ s₂ ≈ s`
+
+- Can we easily extend everything from simple linear ledgers to UTxO-based ledgers?
