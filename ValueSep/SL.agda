@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 ---------------------------
 -- ** Separation logic (SL)
 
@@ -5,16 +6,16 @@ open import Prelude.Init
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.Maps as Map hiding (_♯_)
+open import Prelude.Maps
 open import Prelude.Ord
 open import Prelude.General
 open import Prelude.InferenceRules
 open import Prelude.Apartness
 
-module SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import Ledger     Part ⦃ it ⦄
-open import HoareLogic Part ⦃ it ⦄
+open import ValueSep.Ledger     Part ⦃ it ⦄
+open import ValueSep.HoareLogic Part ⦃ it ⦄
 
 instance
   -- extensional version of disjointness

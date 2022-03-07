@@ -11,8 +11,9 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.Functor
 open import Prelude.InferenceRules
+open import Prelude.Apartness
 
-module Ledger
+module ValueSep.Ledger
   (Part : Set) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where

@@ -10,10 +10,10 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 
-module HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
 -- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
-open import Ledger Part ⦃ it ⦄
+open import ValueSep.Ledger Part ⦃ it ⦄
 
 -- ** Shallow embedding of logic formulas/propositions.
 Assertion = Pred₀ S
