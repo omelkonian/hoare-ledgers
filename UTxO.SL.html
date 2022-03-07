@@ -1,0 +1,223 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>UTxO.SL</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--allow-unsolved-metas</a> <a id="36" class="Symbol">#-}</a>
+<a id="40" class="Comment">---------------------------</a>
+<a id="68" class="Comment">-- ** Separation logic (SL)</a>
+
+<a id="97" class="Keyword">module</a> <a id="104" href="UTxO.SL.html" class="Module">UTxO.SL</a> <a id="112" class="Keyword">where</a>
+
+<a id="119" class="Keyword">open</a> <a id="124" class="Keyword">import</a> <a id="131" href="Prelude.Init.html" class="Module">Prelude.Init</a>
+<a id="144" class="Keyword">open</a> <a id="149" href="Prelude.Init.html#5679" class="Module">L.Mem</a>
+<a id="155" class="Keyword">open</a> <a id="160" class="Keyword">import</a> <a id="167" href="Prelude.DecEq.html" class="Module">Prelude.DecEq</a>
+<a id="181" class="Keyword">open</a> <a id="186" class="Keyword">import</a> <a id="193" href="Prelude.Decidable.html" class="Module">Prelude.Decidable</a>
+<a id="211" class="Keyword">open</a> <a id="216" class="Keyword">import</a> <a id="223" href="Prelude.Sets.html" class="Module">Prelude.Sets</a>
+<a id="236" class="Keyword">open</a> <a id="241" class="Keyword">import</a> <a id="248" href="Prelude.Ord.html" class="Module">Prelude.Ord</a>
+<a id="260" class="Keyword">open</a> <a id="265" class="Keyword">import</a> <a id="272" href="Prelude.Functor.html" class="Module">Prelude.Functor</a>
+<a id="288" class="Keyword">open</a> <a id="293" class="Keyword">import</a> <a id="300" href="Prelude.Apartness.html" class="Module">Prelude.Apartness</a>
+
+<a id="319" class="Keyword">open</a> <a id="324" class="Keyword">import</a> <a id="331" href="UTxO.UTxO.html" class="Module">UTxO.UTxO</a>
+<a id="341" class="Keyword">open</a> <a id="346" class="Keyword">import</a> <a id="353" href="UTxO.Ledger.html" class="Module">UTxO.Ledger</a>
+<a id="365" class="Keyword">open</a> <a id="370" class="Keyword">import</a> <a id="377" href="UTxO.HoareLogic.html" class="Module">UTxO.HoareLogic</a>
+
+<a id="394" class="Comment">-- Which addresses does a ledger modify?</a>
+<a id="mod"></a><a id="435" href="UTxO.SL.html#435" class="Function">mod</a> <a id="439" class="Symbol">:</a> <a id="441" href="UTxO.UTxO.html#418" class="Function">Address</a> <a id="449" class="Symbol">→</a> <a id="451" href="UTxO.UTxO.html#1767" class="Function">L</a> <a id="453" class="Symbol">→</a> <a id="455" href="Agda.Primitive.html#326" class="Primitive">Set</a>
+<a id="459" href="UTxO.SL.html#435" class="Function">mod</a> <a id="463" href="UTxO.SL.html#463" class="Bound">A</a> <a id="465" class="Symbol">=</a> <a id="467" href="Data.List.Relation.Unary.Any.html#1156" class="Datatype">Any</a> <a id="471" class="Symbol">λ</a> <a id="473" href="UTxO.SL.html#473" class="Bound">tx</a> <a id="476" class="Symbol">→</a> <a id="478" href="UTxO.SL.html#463" class="Bound">A</a> <a id="480" href="Data.List.Membership.Setoid.html#887" class="Function Operator">∈</a> <a id="482" class="Symbol">(</a><a id="483" href="UTxO.UTxO.html#808" class="Field">address</a> <a id="491" href="Prelude.Functor.html#301" class="Field Operator">&lt;$&gt;</a> <a id="495" href="UTxO.SL.html#473" class="Bound">tx</a> <a id="498" class="Symbol">.</a><a id="499" href="UTxO.UTxO.html#1530" class="Field">outputs</a><a id="506" class="Symbol">)</a>
+
+<a id="509" class="Comment">-- Which addresses does an assertion refer to?</a>
+<a id="addr"></a><a id="556" href="UTxO.SL.html#556" class="Function">addr</a> <a id="561" class="Symbol">:</a> <a id="563" href="UTxO.UTxO.html#418" class="Function">Address</a> <a id="571" class="Symbol">→</a> <a id="573" href="UTxO.HoareLogic.html#486" class="Datatype">Assertion</a> <a id="583" class="Symbol">→</a> <a id="585" href="Agda.Primitive.html#326" class="Primitive">Set</a>
+<a id="589" href="UTxO.SL.html#556" class="Function">addr</a> <a id="594" href="UTxO.SL.html#594" class="Bound">A</a> <a id="596" href="UTxO.HoareLogic.html#511" class="InductiveConstructor">`emp</a>     <a id="605" class="Symbol">=</a> <a id="607" href="Data.Empty.html#526" class="Datatype">⊥</a>
+<a id="609" href="UTxO.SL.html#556" class="Function">addr</a> <a id="614" href="UTxO.SL.html#614" class="Bound">A</a> <a id="616" class="Symbol">(</a><a id="617" href="UTxO.SL.html#617" class="Bound">B</a> <a id="619" href="UTxO.HoareLogic.html#587" class="InductiveConstructor Operator">`↦</a> <a id="622" class="Symbol">_)</a> <a id="625" class="Symbol">=</a> <a id="627" href="UTxO.SL.html#614" class="Bound">A</a> <a id="629" href="Agda.Builtin.Equality.html#151" class="Datatype Operator">≡</a> <a id="631" href="UTxO.SL.html#617" class="Bound">B</a>
+<a id="633" href="UTxO.SL.html#556" class="Function">addr</a> <a id="638" href="UTxO.SL.html#638" class="Bound">A</a> <a id="640" class="Symbol">(</a><a id="641" href="UTxO.SL.html#641" class="Bound">P</a> <a id="643" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="646" href="UTxO.SL.html#646" class="Bound">Q</a><a id="647" class="Symbol">)</a> <a id="649" class="Symbol">=</a> <a id="651" href="UTxO.SL.html#556" class="Function">addr</a> <a id="656" href="UTxO.SL.html#638" class="Bound">A</a> <a id="658" href="UTxO.SL.html#641" class="Bound">P</a> <a id="660" href="Data.Sum.Base.html#734" class="Datatype Operator">⊎</a> <a id="662" href="UTxO.SL.html#556" class="Function">addr</a> <a id="667" href="UTxO.SL.html#638" class="Bound">A</a> <a id="669" href="UTxO.SL.html#646" class="Bound">Q</a>
+<a id="671" href="UTxO.SL.html#556" class="Function">addr</a> <a id="676" href="UTxO.SL.html#676" class="Bound">A</a> <a id="678" class="Symbol">(</a><a id="679" href="UTxO.SL.html#679" class="Bound">P</a> <a id="681" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">`∘⟦</a> <a id="685" class="Symbol">_</a> <a id="687" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">⟧</a><a id="688" class="Symbol">)</a> <a id="690" class="Symbol">=</a> <a id="692" href="UTxO.SL.html#556" class="Function">addr</a> <a id="697" href="UTxO.SL.html#676" class="Bound">A</a> <a id="699" href="UTxO.SL.html#679" class="Bound">P</a>
+
+<a id="702" class="Comment">-- Define disjointness between ledgers/states/formulas as disjointness of the participant set they refer to.</a>
+<a id="811" class="Keyword">instance</a>
+  <a id="Disjoint-LS"></a><a id="822" href="UTxO.SL.html#822" class="Function">Disjoint-LS</a> <a id="834" class="Symbol">:</a> <a id="836" href="UTxO.UTxO.html#1767" class="Function">L</a> <a id="838" href="Prelude.Apartness.html#152" class="Record Operator">//</a> <a id="841" href="UTxO.UTxO.html#1999" class="Function">S</a>
+  <a id="845" href="UTxO.SL.html#822" class="Function">Disjoint-LS</a> <a id="857" class="Symbol">.</a><a id="858" href="Prelude.Apartness.html#237" class="Field Operator">_♯_</a> <a id="862" href="UTxO.SL.html#862" class="Bound">l</a> <a id="864" href="UTxO.SL.html#864" class="Bound">s</a> <a id="866" class="Symbol">=</a> <a id="868" class="Symbol">∀</a> <a id="870" href="UTxO.SL.html#870" class="Bound">A</a> <a id="872" class="Symbol">→</a> <a id="874" href="UTxO.SL.html#435" class="Function">mod</a> <a id="878" href="UTxO.SL.html#870" class="Bound">A</a> <a id="880" href="UTxO.SL.html#862" class="Bound">l</a> <a id="882" class="Symbol">→</a> <a id="884" href="Relation.Nullary.html#656" class="Function Operator">¬</a> <a id="886" href="Data.Product.html#1369" class="Function">∃</a> <a id="888" class="Symbol">λ</a> <a id="890" href="UTxO.SL.html#890" class="Bound">utxo</a> <a id="895" class="Symbol">→</a> <a id="897" class="Symbol">(</a><a id="898" href="UTxO.SL.html#890" class="Bound">utxo</a> <a id="903" class="Symbol">.</a><a id="904" href="UTxO.UTxO.html#1841" class="Field">UTXO.out</a> <a id="913" class="Symbol">.</a><a id="914" href="UTxO.UTxO.html#808" class="Field">address</a> <a id="922" href="Agda.Builtin.Equality.html#151" class="Datatype Operator">≡</a> <a id="924" href="UTxO.SL.html#870" class="Bound">A</a><a id="925" class="Symbol">)</a> <a id="927" href="Data.Product.html#1167" class="Function Operator">×</a> <a id="929" class="Symbol">(</a><a id="930" href="UTxO.SL.html#890" class="Bound">utxo</a> <a id="935" href="Prelude.Sets.Interface.html#499" class="Function Operator">∈ˢ</a> <a id="938" href="UTxO.SL.html#864" class="Bound">s</a><a id="939" class="Symbol">)</a>
+
+  <a id="Disjoint-SL"></a><a id="944" href="UTxO.SL.html#944" class="Function">Disjoint-SL</a> <a id="956" class="Symbol">:</a> <a id="958" href="UTxO.UTxO.html#1999" class="Function">S</a> <a id="960" href="Prelude.Apartness.html#152" class="Record Operator">//</a> <a id="963" href="UTxO.UTxO.html#1767" class="Function">L</a>
+  <a id="967" href="UTxO.SL.html#944" class="Function">Disjoint-SL</a> <a id="979" class="Symbol">.</a><a id="980" href="Prelude.Apartness.html#237" class="Field Operator">_♯_</a> <a id="984" href="UTxO.SL.html#984" class="Bound">s</a> <a id="986" href="UTxO.SL.html#986" class="Bound">l</a> <a id="988" class="Symbol">=</a> <a id="990" class="Symbol">∀</a> <a id="992" href="UTxO.SL.html#992" class="Bound">A</a> <a id="994" class="Symbol">→</a> <a id="996" class="Symbol">(</a><a id="997" href="Data.Product.html#1369" class="Function">∃</a> <a id="999" class="Symbol">λ</a> <a id="1001" href="UTxO.SL.html#1001" class="Bound">utxo</a> <a id="1006" class="Symbol">→</a> <a id="1008" class="Symbol">(</a><a id="1009" href="UTxO.SL.html#1001" class="Bound">utxo</a> <a id="1014" class="Symbol">.</a><a id="1015" href="UTxO.UTxO.html#1841" class="Field">UTXO.out</a> <a id="1024" class="Symbol">.</a><a id="1025" href="UTxO.UTxO.html#808" class="Field">address</a> <a id="1033" href="Agda.Builtin.Equality.html#151" class="Datatype Operator">≡</a> <a id="1035" href="UTxO.SL.html#992" class="Bound">A</a><a id="1036" class="Symbol">)</a> <a id="1038" href="Data.Product.html#1167" class="Function Operator">×</a> <a id="1040" class="Symbol">(</a><a id="1041" href="UTxO.SL.html#1001" class="Bound">utxo</a> <a id="1046" href="Prelude.Sets.Interface.html#499" class="Function Operator">∈ˢ</a> <a id="1049" href="UTxO.SL.html#984" class="Bound">s</a><a id="1050" class="Symbol">))</a> <a id="1053" class="Symbol">→</a> <a id="1055" href="Relation.Nullary.html#656" class="Function Operator">¬</a> <a id="1057" href="UTxO.SL.html#435" class="Function">mod</a> <a id="1061" href="UTxO.SL.html#992" class="Bound">A</a> <a id="1063" href="UTxO.SL.html#986" class="Bound">l</a>
+
+  <a id="Disjoint-LA"></a><a id="1068" href="UTxO.SL.html#1068" class="Function">Disjoint-LA</a> <a id="1080" class="Symbol">:</a> <a id="1082" href="UTxO.UTxO.html#1767" class="Function">L</a> <a id="1084" href="Prelude.Apartness.html#152" class="Record Operator">//</a> <a id="1087" href="UTxO.HoareLogic.html#486" class="Datatype">Assertion</a>
+  <a id="1099" href="UTxO.SL.html#1068" class="Function">Disjoint-LA</a> <a id="1111" class="Symbol">.</a><a id="1112" href="Prelude.Apartness.html#237" class="Field Operator">_♯_</a> <a id="1116" href="UTxO.SL.html#1116" class="Bound">l</a> <a id="1118" href="UTxO.SL.html#1118" class="Bound">P</a> <a id="1120" class="Symbol">=</a> <a id="1122" class="Symbol">∀</a> <a id="1124" href="UTxO.SL.html#1124" class="Bound">A</a> <a id="1126" class="Symbol">→</a> <a id="1128" href="UTxO.SL.html#435" class="Function">mod</a> <a id="1132" href="UTxO.SL.html#1124" class="Bound">A</a> <a id="1134" href="UTxO.SL.html#1116" class="Bound">l</a> <a id="1136" class="Symbol">→</a> <a id="1138" href="Relation.Nullary.html#656" class="Function Operator">¬</a> <a id="1140" href="UTxO.SL.html#556" class="Function">addr</a> <a id="1145" href="UTxO.SL.html#1124" class="Bound">A</a> <a id="1147" href="UTxO.SL.html#1118" class="Bound">P</a>
+
+<a id="1150" class="Comment">-- ** Utility lemmas about separation.</a>
+
+<a id="1190" class="Comment">-- ∈ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∈ᵈ s → A ∈ᵈ s₁ ⊎ A ∈ᵈ s₂</a>
+<a id="1244" class="Comment">-- ∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈ = ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)</a>
+
+<a id="1320" class="Comment">-- ∉ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s → A ∉ᵈ s₁ × A ∉ᵈ s₂</a>
+<a id="1374" class="Comment">-- ∉ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉ = A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ˡ _ _ _ , A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ʳ _ _ _</a>
+
+<a id="1477" class="Comment">-- ∈⇒addr : A ∈ᵈ s → P ∙ s → addr A P</a>
+<a id="1515" class="Comment">-- ∈⇒addr {A}{s}{P = `emp} A∈ Ps = ⊥-elim $ Ps A A∈</a>
+<a id="1567" class="Comment">-- ∈⇒addr {A}{s}{P = B `↦ v} A∈ Ps with A ≟ B</a>
+<a id="1613" class="Comment">-- ... | yes A≡B = A≡B</a>
+<a id="1636" class="Comment">-- ... | no  A≢B = ⊥-elim $ proj₂ Ps A A≢B A∈</a>
+<a id="1682" class="Comment">-- ∈⇒addr {A}{s}{P = P `∗ Q} A∈ (s₁ , s₂ , ≡s , Ps₁ , Qs₂)</a>
+<a id="1741" class="Comment">--   with ∈ᵈ-∪ ≡s A∈</a>
+<a id="1762" class="Comment">-- ... | inj₁ A∈₁ = inj₁ $ ∈⇒addr {P = P} A∈₁ Ps₁</a>
+<a id="1812" class="Comment">-- ... | inj₂ A∈₂ = inj₂ $ ∈⇒addr {P = Q} A∈₂ Qs₂</a>
+<a id="1862" class="Comment">-- ∈⇒addr {A}{s}{P = P `∘⟦ l ⟧} A∈ Ps = ∈⇒addr {P = P} (⟦⟧ₗ-mono {l} s A A∈) Ps</a>
+
+<a id="1943" class="Comment">-- ∉⇒¬addr : A ∉ᵈ s → P ∙ s → ¬ addr A P</a>
+<a id="1984" class="Comment">-- ∉⇒¬addr {A}{s}{P = `emp} A∉ Ps ()</a>
+<a id="2021" class="Comment">-- ∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ (Ps , _) refl = A∉ $ ⁉⇒∈ᵈ (subst Is-just (sym Ps) auto)</a>
+<a id="2111" class="Comment">-- ∉⇒¬addr {A}{s}{P = P `∗ Q} A∉ (s₁ , s₂ , ≡s , Ps₁ , Qs₂) A∈</a>
+<a id="2174" class="Comment">--   with A∉ˡ , A∉ʳ ← ∉ᵈ-∪ ≡s A∉</a>
+<a id="2207" class="Comment">--   with A∈</a>
+<a id="2220" class="Comment">-- ... | inj₁ A∈ˡ = ∉⇒¬addr {P = P} A∉ˡ Ps₁ A∈ˡ</a>
+<a id="2268" class="Comment">-- ... | inj₂ A∈ʳ = ∉⇒¬addr {P = Q} A∉ʳ Qs₂ A∈ʳ</a>
+<a id="2316" class="Comment">-- ∉⇒¬addr {A}{s}{P = P `∘⟦ l ⟧} A∉ Ps A∈ = ∉⇒¬addr {P = P} (∉-⟦⟧ₗ {l = l} A∉) Ps A∈</a>
+
+<a id="♯-skip"></a><a id="2402" href="UTxO.SL.html#2402" class="Function">♯-skip</a> <a id="2409" class="Symbol">:</a> <a id="2411" class="Symbol">(</a><a id="2412" href="UTxO.Ledger.html#1121" class="Generalizable">t</a> <a id="2414" class="InductiveConstructor Operator">∷</a> <a id="2416" href="UTxO.Ledger.html#1136" class="Generalizable">l</a><a id="2417" class="Symbol">)</a> <a id="2419" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="2421" href="UTxO.HoareLogic.html#910" class="Generalizable">P</a> <a id="2423" class="Symbol">→</a> <a id="2425" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="2427" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="2429" href="UTxO.HoareLogic.html#910" class="Generalizable">P</a>
+<a id="2431" href="UTxO.SL.html#2402" class="Function">♯-skip</a> <a id="2438" href="UTxO.SL.html#2438" class="Bound">p</a> <a id="2440" href="UTxO.SL.html#2440" class="Bound">A</a> <a id="2442" class="Symbol">=</a> <a id="2444" href="UTxO.SL.html#2438" class="Bound">p</a> <a id="2446" href="UTxO.SL.html#2440" class="Bound">A</a> <a id="2448" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="2450" href="Data.List.Relation.Unary.Any.html#1272" class="InductiveConstructor">there</a>
+
+<a id="2457" class="Comment">-- ♯⇒♯ : l ♯ s → s ♯ l</a>
+<a id="2480" class="Comment">-- ♯⇒♯ {s = s} p A A∈ A∈l = p _ A∈l A∈</a>
+
+<a id="♯♯⇒♯"></a><a id="2520" href="UTxO.SL.html#2520" class="Function">♯♯⇒♯</a> <a id="2525" class="Symbol">:</a> <a id="2527" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="2529" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="2531" href="UTxO.HoareLogic.html#932" class="Generalizable">R</a> <a id="2533" class="Symbol">→</a> <a id="2535" href="UTxO.HoareLogic.html#932" class="Generalizable">R</a> <a id="2537" href="UTxO.HoareLogic.html#1859" class="Function Operator">∙</a> <a id="2539" href="UTxO.Ledger.html#1101" class="Generalizable">s</a> <a id="2541" class="Symbol">→</a> <a id="2543" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="2545" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="2547" href="UTxO.Ledger.html#1101" class="Generalizable">s</a>
+<a id="2549" href="UTxO.SL.html#2520" class="Function">♯♯⇒♯</a> <a id="2554" class="Symbol">{</a><a id="2555" href="UTxO.SL.html#2555" class="Bound">l</a><a id="2556" class="Symbol">}</a> <a id="2558" class="Symbol">{</a><a id="2559" href="UTxO.HoareLogic.html#511" class="InductiveConstructor">`emp</a><a id="2563" class="Symbol">}</a> <a id="2565" class="Symbol">{</a><a id="2566" href="UTxO.SL.html#2566" class="Bound">s</a><a id="2567" class="Symbol">}</a> <a id="2569" href="UTxO.SL.html#2569" class="Bound">l♯R</a> <a id="2573" href="UTxO.SL.html#2573" class="Bound">s∅</a> <a id="2576" class="Symbol">=</a> <a id="2578" class="Symbol">λ</a> <a id="2580" href="UTxO.SL.html#2580" class="Bound">_</a> <a id="2582" href="UTxO.SL.html#2582" class="Bound">_</a> <a id="2584" class="Symbol">(_</a> <a id="2587" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="2589" class="Symbol">_</a> <a id="2591" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="2593" href="UTxO.SL.html#2593" class="Bound">utxo∈</a><a id="2598" class="Symbol">)</a> <a id="2600" class="Symbol">→</a> <a id="2602" href="UTxO.SL.html#2573" class="Bound">s∅</a> <a id="2605" class="Symbol">_</a> <a id="2607" href="UTxO.SL.html#2593" class="Bound">utxo∈</a>
+<a id="2613" href="UTxO.SL.html#2520" class="Function">♯♯⇒♯</a> <a id="2618" class="Symbol">{</a><a id="2619" href="UTxO.SL.html#2619" class="Bound">l</a><a id="2620" class="Symbol">}</a> <a id="2622" class="Symbol">{</a><a id="2623" href="UTxO.SL.html#2623" class="Bound">A</a> <a id="2625" href="UTxO.HoareLogic.html#587" class="InductiveConstructor Operator">`↦</a> <a id="2628" href="UTxO.SL.html#2628" class="Bound">v</a><a id="2629" class="Symbol">}</a> <a id="2631" class="Symbol">{</a><a id="2632" href="UTxO.SL.html#2632" class="Bound">s</a><a id="2633" class="Symbol">}</a> <a id="2635" href="UTxO.SL.html#2635" class="Bound">l♯R</a> <a id="2639" href="UTxO.SL.html#2639" class="Bound">Rs</a> <a id="2642" class="Symbol">=</a> <a id="2644" class="Hole">{!!}</a>
+<a id="2649" href="UTxO.SL.html#2520" class="Function">♯♯⇒♯</a> <a id="2654" class="Symbol">{</a><a id="2655" href="UTxO.SL.html#2655" class="Bound">l</a><a id="2656" class="Symbol">}</a> <a id="2658" class="Symbol">{</a><a id="2659" href="UTxO.SL.html#2659" class="Bound">R</a> <a id="2661" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="2664" href="UTxO.SL.html#2664" class="Bound">Q</a><a id="2665" class="Symbol">}</a> <a id="2667" class="Symbol">{</a><a id="2668" href="UTxO.SL.html#2668" class="Bound">s</a><a id="2669" class="Symbol">}</a> <a id="2671" href="UTxO.SL.html#2671" class="Bound">l♯R</a> <a id="2675" href="UTxO.SL.html#2675" class="Bound">Rs</a> <a id="2678" class="Symbol">=</a> <a id="2680" class="Hole">{!!}</a>
+<a id="2685" href="UTxO.SL.html#2520" class="Function">♯♯⇒♯</a> <a id="2690" class="Symbol">{_}</a> <a id="2694" class="Symbol">{</a><a id="2695" href="UTxO.SL.html#2695" class="Bound">R</a> <a id="2697" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">`∘⟦</a> <a id="2701" href="UTxO.SL.html#2701" class="Bound">l</a> <a id="2703" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">⟧</a><a id="2704" class="Symbol">}</a> <a id="2706" class="Symbol">{</a><a id="2707" href="UTxO.SL.html#2707" class="Bound">s</a><a id="2708" class="Symbol">}</a> <a id="2710" href="UTxO.SL.html#2710" class="Bound">l♯R</a> <a id="2714" href="UTxO.SL.html#2714" class="Bound">Rs</a> <a id="2717" class="Symbol">=</a> <a id="2719" class="Hole">{!!}</a>
+
+<a id="2725" class="Comment">-- ♯♯⇒♯ {l}{`emp}{s} l♯R s∅ A A∈ = s∅ A</a>
+<a id="2765" class="Comment">-- ♯♯⇒♯ {l}{B `↦ v}{s} l♯R (_ , B↦) A A∈ A∈′</a>
+<a id="2810" class="Comment">--   with A ≟ B</a>
+<a id="2826" class="Comment">-- ... | yes refl = l♯R A A∈ refl</a>
+<a id="2860" class="Comment">-- ... | no  A≢B  = B↦ A A≢B A∈′</a>
+<a id="2893" class="Comment">-- ♯♯⇒♯ {l}{R `∗ Q}{s} l♯R (s₁ , s₂ , ≡s , Rs₁ , Qs₂) A A∈</a>
+<a id="2952" class="Comment">--   with s₁ ⁉ A | inspect (s₁ ⁉_) A | s₂ ⁉ A | inspect (s₂ ⁉_) A</a>
+<a id="3018" class="Comment">-- ... | just _  | ≡[ s₁≡ ] | _       | _</a>
+<a id="3060" class="Comment">--     = ⊥-elim $ l♯R A A∈ $ inj₁ $ ∈⇒addr {A}{s₁}{R} (⁉⇒∈ᵈ $ subst Is-just (sym s₁≡) auto) Rs₁</a>
+<a id="3156" class="Comment">-- ... | _       | _        | just _  | ≡[ s₂≡ ]</a>
+<a id="3205" class="Comment">--     = ⊥-elim $ l♯R A A∈ $ inj₂ $ ∈⇒addr {A}{s₂}{Q} (⁉⇒∈ᵈ $ subst M.Is-just (sym s₂≡) auto) Qs₂</a>
+<a id="3303" class="Comment">-- ... | nothing | ≡[ s₁≡ ] | nothing | ≡[ s₂≡ ]</a>
+<a id="3352" class="Comment">--   = ∉-splits ≡s (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁≡) auto))</a>
+<a id="3421" class="Comment">--                 (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₂≡) auto))</a>
+<a id="3490" class="Comment">-- ♯♯⇒♯ {_}{R `∘⟦ l ⟧}{s} l♯R Rs A A∈ = ¬A∈</a>
+<a id="3534" class="Comment">--   where</a>
+<a id="3545" class="Comment">--     A∉ : A ∉ᵈ ⟦ l ⟧ s</a>
+<a id="3570" class="Comment">--     A∉ = ♯♯⇒♯ {R = R} {s = ⟦ l ⟧ s} l♯R Rs A A∈</a>
+
+<a id="3622" class="Comment">--     ¬A∈ : A ∉ᵈ s</a>
+<a id="3642" class="Comment">--     ¬A∈ = A∉ ∘ ⟦⟧ₗ-mono {l} s A</a>
+
+<a id="3678" class="Comment">-- Helper lemma for [FRAME]: pushing ⟦ l ⟧ inside the partition.</a>
+<a id="frame-helper"></a><a id="3743" href="UTxO.SL.html#3743" class="Function">frame-helper</a> <a id="3756" class="Symbol">:</a>
+    <a id="3762" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="3764" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="3766" href="UTxO.HoareLogic.html#932" class="Generalizable">R</a>
+  <a id="3770" class="Symbol">→</a> <a id="3772" href="UTxO.HoareLogic.html#932" class="Generalizable">R</a> <a id="3774" href="UTxO.HoareLogic.html#1859" class="Function Operator">∙</a> <a id="3776" href="UTxO.Ledger.html#1112" class="Generalizable">s₂</a>
+  <a id="3781" class="Symbol">→</a> <a id="3783" href="UTxO.HoareLogic.html#947" class="Function Operator">⟨</a> <a id="3785" href="UTxO.Ledger.html#1109" class="Generalizable">s₁</a> <a id="3788" href="UTxO.HoareLogic.html#947" class="Function Operator">⊎</a> <a id="3790" href="UTxO.Ledger.html#1112" class="Generalizable">s₂</a> <a id="3793" href="UTxO.HoareLogic.html#947" class="Function Operator">⟩≡</a> <a id="3796" href="UTxO.Ledger.html#1101" class="Generalizable">s</a>
+    <a id="3802" class="Comment">-----------------------</a>
+  <a id="3828" class="Symbol">→</a> <a id="3830" href="UTxO.HoareLogic.html#947" class="Function Operator">⟨</a> <a id="3832" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="3834" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="3836" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="3838" href="UTxO.Ledger.html#1109" class="Generalizable">s₁</a> <a id="3841" href="UTxO.HoareLogic.html#947" class="Function Operator">⊎</a> <a id="3843" href="UTxO.Ledger.html#1112" class="Generalizable">s₂</a> <a id="3846" href="UTxO.HoareLogic.html#947" class="Function Operator">⟩≡</a> <a id="3849" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="3851" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="3853" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="3855" href="UTxO.Ledger.html#1101" class="Generalizable">s</a>
+<a id="3857" href="UTxO.SL.html#3743" class="Function">frame-helper</a> <a id="3870" class="Symbol">{</a><a id="3871" class="Argument">l</a> <a id="3873" class="Symbol">=</a> <a id="3875" href="Agda.Builtin.List.html#185" class="InductiveConstructor">[]</a><a id="3877" class="Symbol">}</a> <a id="3879" class="Symbol">_</a> <a id="3881" class="Symbol">_</a> <a id="3883" href="UTxO.SL.html#3883" class="Bound">p</a> <a id="3885" class="Symbol">=</a> <a id="3887" href="UTxO.SL.html#3883" class="Bound">p</a>
+<a id="3889" href="UTxO.SL.html#3743" class="Function">frame-helper</a> <a id="3902" class="Symbol">{</a><a id="3903" class="Argument">l</a> <a id="3905" class="Symbol">=</a> <a id="3907" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="3910" href="Agda.Builtin.List.html#200" class="InductiveConstructor Operator">∷</a> <a id="3912" href="UTxO.SL.html#3912" class="Bound">l</a><a id="3913" class="Symbol">}{</a><a id="3915" href="UTxO.SL.html#3915" class="Bound">R</a><a id="3916" class="Symbol">}{</a><a id="3918" href="UTxO.SL.html#3918" class="Bound">s₂</a><a id="3920" class="Symbol">}{</a><a id="3922" href="UTxO.SL.html#3922" class="Bound">s₁</a><a id="3924" class="Symbol">}{</a><a id="3926" href="UTxO.SL.html#3926" class="Bound">s</a><a id="3927" class="Symbol">}</a> <a id="3929" href="UTxO.SL.html#3929" class="Bound">l♯R</a> <a id="3933" href="UTxO.SL.html#3933" class="Bound">Rs₂</a> <a id="3937" class="Symbol">(</a><a id="3938" href="UTxO.SL.html#3938" class="Bound">s₁♯s₂</a> <a id="3944" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="3946" href="UTxO.SL.html#3946" class="Bound">≡s</a><a id="3948" class="Symbol">)</a> <a id="3950" class="Symbol">=</a>
+  <a id="3954" href="UTxO.SL.html#3743" class="Function">frame-helper</a> <a id="3967" class="Symbol">{</a><a id="3968" href="UTxO.SL.html#3912" class="Bound">l</a><a id="3969" class="Symbol">}{</a><a id="3971" href="UTxO.SL.html#3915" class="Bound">R</a><a id="3972" class="Symbol">}{</a><a id="3974" href="UTxO.SL.html#3918" class="Bound">s₂</a><a id="3976" class="Symbol">}{</a><a id="3978" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="3980" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="3983" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="3985" href="UTxO.SL.html#3922" class="Bound">s₁</a><a id="3987" class="Symbol">}{</a><a id="3989" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="3991" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="3994" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="3996" href="UTxO.SL.html#3926" class="Bound">s</a><a id="3997" class="Symbol">}</a> <a id="3999" class="Symbol">(</a><a id="4000" href="UTxO.SL.html#2402" class="Function">♯-skip</a> <a id="4007" class="Symbol">{</a><a id="4008" class="Argument">P</a> <a id="4010" class="Symbol">=</a> <a id="4012" href="UTxO.SL.html#3915" class="Bound">R</a><a id="4013" class="Symbol">}</a> <a id="4015" href="UTxO.SL.html#3929" class="Bound">l♯R</a><a id="4018" class="Symbol">)</a> <a id="4020" href="UTxO.SL.html#3933" class="Bound">Rs₂</a> <a id="4024" href="UTxO.SL.html#4175" class="Function">p′</a>
+  <a id="4029" class="Keyword">where</a>
+    <a id="4039" href="UTxO.SL.html#4039" class="Function">p₁</a> <a id="4042" class="Symbol">:</a> <a id="4044" class="Symbol">(</a><a id="4045" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="4047" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="4050" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="4052" href="UTxO.SL.html#3922" class="Bound">s₁</a><a id="4054" class="Symbol">)</a> <a id="4056" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="4058" href="UTxO.SL.html#3918" class="Bound">s₂</a>
+    <a id="4065" href="UTxO.SL.html#4039" class="Function">p₁</a> <a id="4068" class="Symbol">=</a> <a id="4070" class="Hole">{!!}</a>
+    <a id="4079" class="Comment">-- p₁ = transfer-helper s₁♯s₂ B∉₂</a>
+
+    <a id="4118" href="UTxO.SL.html#4118" class="Function">p₂</a> <a id="4121" class="Symbol">:</a> <a id="4123" class="Symbol">((</a><a id="4125" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="4127" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="4130" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="4132" href="UTxO.SL.html#3922" class="Bound">s₁</a><a id="4134" class="Symbol">)</a> <a id="4136" href="Prelude.Sets.Interface.html#529" class="Function Operator">∪</a> <a id="4138" href="UTxO.SL.html#3918" class="Bound">s₂</a><a id="4140" class="Symbol">)</a> <a id="4142" href="Prelude.Sets.Interface.html#2032" class="Function Operator">≈ˢ</a> <a id="4145" class="Symbol">(</a><a id="4146" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="4148" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="4151" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="4153" href="UTxO.SL.html#3926" class="Bound">s</a><a id="4154" class="Symbol">)</a>
+    <a id="4160" href="UTxO.SL.html#4118" class="Function">p₂</a> <a id="4163" class="Symbol">=</a> <a id="4165" class="Hole">{!!}</a>
+
+    <a id="4175" href="UTxO.SL.html#4175" class="Function">p′</a> <a id="4178" class="Symbol">:</a> <a id="4180" href="UTxO.HoareLogic.html#947" class="Function Operator">⟨</a> <a id="4182" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="4184" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="4187" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="4189" href="UTxO.SL.html#3922" class="Bound">s₁</a> <a id="4192" href="UTxO.HoareLogic.html#947" class="Function Operator">⊎</a> <a id="4194" href="UTxO.SL.html#3918" class="Bound">s₂</a> <a id="4197" href="UTxO.HoareLogic.html#947" class="Function Operator">⟩≡</a> <a id="4200" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="4202" href="UTxO.SL.html#3907" class="Bound">tx</a> <a id="4205" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="4207" href="UTxO.SL.html#3926" class="Bound">s</a>
+    <a id="4213" href="UTxO.SL.html#4175" class="Function">p′</a> <a id="4216" class="Symbol">=</a> <a id="4218" href="UTxO.SL.html#4039" class="Function">p₁</a> <a id="4221" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="4223" href="UTxO.SL.html#4118" class="Function">p₂</a>
+
+
+<a id="4228" class="Comment">{-
+frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs₂ (s₁♯s₂ , ≡s) =
+  frame-helper {l}{R}{s₂}{run [ A ∣ v ↦ B ] s₁} {run [ A ∣ v ↦ B ] s} (♯-skip {P = R} l♯R) Rs₂ p′
+  where
+    l♯s₂ : l₀ ♯ s₂
+    l♯s₂ = ♯♯⇒♯ {R = R} l♯R Rs₂
+
+    A∉₂ : A ∉ᵈ s₂
+    A∉₂ = l♯s₂ A $ here (here refl)
+
+    B∉₂ : B ∉ᵈ s₂
+    B∉₂ = l♯s₂ B $ here (there (here refl))
+
+    p₁ : (run [ A ∣ v ↦ B ] s₁) Map.♯ s₂
+    p₁ = transfer-helper s₁♯s₂ B∉₂
+
+    ∉⇒≢ : ∀ k → k ∈ᵈ s₂ → (k ≢ A) × (k ≢ B)
+    ∉⇒≢ k k∈ = k≢A , k≢B
+      where
+        k∉ : ¬ mod k l₀
+        k∉ = ♯⇒♯ l♯s₂ k k∈
+
+        k≢A : k ≢ A
+        k≢A refl = ⊥-elim $ k∉ (here (here refl))
+
+        k≢B : k ≢ B
+        k≢B refl = ⊥-elim $ k∉ (here (there (here refl)))
+
+    p₂ : (run [ A ∣ v ↦ B ] s₁) ∪ s₂ ≈ run [ A ∣ v ↦ B ] s
+    p₂ k
+      with eq ← ≡s k
+      with eqᵃ ← ≡s A
+      with eqᵇ ← ≡s B
+      with ¿ k ∈ᵈ s₂ ¿
+    ... | yes k∈
+      with k≢A , k≢B ← ∉⇒≢ k k∈
+      rewrite ∪-chooseᵣ p₁ k∈
+            | ∪-chooseᵣ s₁♯s₂ k∈
+            | drop-[∣↦] {v = v} {s = s} k k≢A k≢B
+            = eq
+    ... | no k∉
+      rewrite ∪-chooseₗ p₁ k∉
+            | ∪-chooseₗ s₁♯s₂ k∉
+      with s₁ ⁉ A | inspect (s₁ ⁉_) A
+         | s  ⁉ A | inspect (s  ⁉_) A
+         | eqᵃ
+    ... | nothing | _ | nothing | _ | _ = eq
+    ... | nothing | ≡[ s₁A≡ ] | just _  | ≡[ sA≡ ] | _
+        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁A≡) auto)
+          in ⊥-elim $ A∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵃ sA≡)) auto
+    ... | just vᵃ | ≡[ s₁A≡ ] | nothing | _ | eqᵃ′
+        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁A≡)) eqᵃ′ of λ ()
+    ... | just vᵃ  | ≡[ s₁A≡ ] | just vᵃ′ | _ | eqᵃ′
+      with vᵃ ≟ vᵃ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁A≡) eqᵃ′
+    ... | yes refl
+      with s₁ ⁉ B | inspect (s₁ ⁉_) B
+         | s  ⁉ B | inspect (s  ⁉_) B
+         | eqᵇ
+    ... | nothing | _ | nothing | _ | _
+        = eq
+    ... | nothing | ≡[ s₁B≡ ] | just _  | ≡[ sB≡ ] | _
+        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁B≡) auto)
+          in ⊥-elim $ B∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵇ sB≡)) auto
+    ... | just vᵇ | ≡[ s₁B≡ ] | nothing | _ | eqᵇ′
+        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁B≡)) eqᵇ′ of λ ()
+    ... | just vᵇ  | ≡[ s₁B≡ ] | just vᵇ′ | _ | eqᵇ′
+      with vᵇ ≟ vᵇ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁B≡) eqᵇ′
+    ... | yes refl
+      with v ≤? vᵃ
+    ... | no  _ = eq
+    ... | yes _ = ≡-cong-update $ ≡-cong-update eq
+
+    p′ : ⟨ run [ A ∣ v ↦ B ] s₁ ⊎ s₂ ⟩≡ run [ A ∣ v ↦ B ] s
+    p′ = p₁ , p₂
+-}</a>
+
+<a id="6847" class="Comment">-- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts</a>
+<a id="6951" class="Comment">-- and then weaken our results to the desired context (assuming the rest of the context is disjoint).</a>
+<a id="[FRAME]"></a><a id="7053" href="UTxO.SL.html#7053" class="Function">[FRAME]</a> <a id="7061" class="Symbol">:</a> <a id="7063" class="Symbol">∀</a> <a id="7065" href="UTxO.SL.html#7065" class="Bound">R</a>
+  <a id="7069" class="Symbol">→</a> <a id="7071" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="7073" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="7075" href="UTxO.SL.html#7065" class="Bound">R</a>
+  <a id="7079" class="Symbol">→</a> <a id="7081" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟨</a> <a id="7083" href="UTxO.HoareLogic.html#910" class="Generalizable">P</a> <a id="7085" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟩</a> <a id="7087" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="7089" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟨</a> <a id="7091" href="UTxO.HoareLogic.html#921" class="Generalizable">Q</a> <a id="7093" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟩</a>
+    <a id="7099" class="Comment">-----------------------</a>
+  <a id="7125" class="Symbol">→</a> <a id="7127" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟨</a> <a id="7129" href="UTxO.HoareLogic.html#910" class="Generalizable">P</a> <a id="7131" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="7134" href="UTxO.SL.html#7065" class="Bound">R</a> <a id="7136" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟩</a> <a id="7138" href="UTxO.Ledger.html#1136" class="Generalizable">l</a> <a id="7140" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟨</a> <a id="7142" href="UTxO.HoareLogic.html#921" class="Generalizable">Q</a> <a id="7144" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="7147" href="UTxO.SL.html#7065" class="Bound">R</a> <a id="7149" href="UTxO.HoareLogic.html#1987" class="Datatype Operator">⟩</a>
+<a id="7151" href="UTxO.SL.html#7053" class="Function">[FRAME]</a> <a id="7159" class="Symbol">{</a><a id="7160" href="UTxO.SL.html#7160" class="Bound">l</a><a id="7161" class="Symbol">}{</a><a id="7163" href="UTxO.SL.html#7163" class="Bound">P</a><a id="7164" class="Symbol">}{</a><a id="7166" href="UTxO.SL.html#7166" class="Bound">Q</a><a id="7167" class="Symbol">}</a> <a id="7169" href="UTxO.SL.html#7169" class="Bound">R</a> <a id="7171" href="UTxO.SL.html#7171" class="Bound">l♯R</a> <a id="7175" href="UTxO.SL.html#7175" class="Bound">PlQ</a> <a id="7179" class="Symbol">=</a> <a id="7181" href="UTxO.HoareLogic.html#3018" class="Function">denot⇒axiom</a> <a id="7193" href="UTxO.SL.html#7207" class="Function">d</a>
+  <a id="7197" class="Keyword">where</a>
+    <a id="7207" href="UTxO.SL.html#7207" class="Function">d</a> <a id="7209" class="Symbol">:</a> <a id="7211" class="Symbol">(</a><a id="7212" href="UTxO.SL.html#7163" class="Bound">P</a> <a id="7214" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="7217" href="UTxO.SL.html#7169" class="Bound">R</a><a id="7218" class="Symbol">)</a> <a id="7220" href="UTxO.HoareLogic.html#1798" class="Function Operator">`⊢</a> <a id="7223" class="Symbol">(</a><a id="7224" href="UTxO.SL.html#7166" class="Bound">Q</a> <a id="7226" href="UTxO.HoareLogic.html#675" class="InductiveConstructor Operator">`∗</a> <a id="7229" href="UTxO.SL.html#7169" class="Bound">R</a><a id="7230" class="Symbol">)</a> <a id="7232" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">`∘⟦</a> <a id="7236" href="UTxO.SL.html#7160" class="Bound">l</a> <a id="7238" href="UTxO.HoareLogic.html#746" class="InductiveConstructor Operator">⟧</a>
+    <a id="7244" href="UTxO.SL.html#7207" class="Function">d</a> <a id="7246" class="Symbol">{</a><a id="7247" href="UTxO.SL.html#7247" class="Bound">s</a><a id="7248" class="Symbol">}</a> <a id="7250" class="Symbol">(</a><a id="7251" href="UTxO.SL.html#7251" class="Bound">s₁</a> <a id="7254" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7256" href="UTxO.SL.html#7256" class="Bound">s₂</a> <a id="7259" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7261" href="UTxO.SL.html#7261" class="Bound">s₁♯s₂</a> <a id="7267" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7269" href="UTxO.SL.html#7269" class="Bound">Ps₁</a> <a id="7273" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7275" href="UTxO.SL.html#7275" class="Bound">Rs₂</a><a id="7278" class="Symbol">)</a> <a id="7280" class="Symbol">=</a> <a id="7282" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="7284" href="UTxO.SL.html#7160" class="Bound">l</a> <a id="7286" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="7288" href="UTxO.SL.html#7251" class="Bound">s₁</a> <a id="7291" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7293" href="UTxO.SL.html#7256" class="Bound">s₂</a>  <a id="7297" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7299" href="UTxO.SL.html#7398" class="Function">p</a> <a id="7301" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7303" href="UTxO.SL.html#7334" class="Function">Qs₁′</a> <a id="7308" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="7310" href="UTxO.SL.html#7275" class="Bound">Rs₂</a>
+      <a id="7320" class="Keyword">where</a>
+        <a id="7334" href="UTxO.SL.html#7334" class="Function">Qs₁′</a> <a id="7339" class="Symbol">:</a> <a id="7341" href="UTxO.SL.html#7166" class="Bound">Q</a> <a id="7343" href="UTxO.HoareLogic.html#1859" class="Function Operator">∙</a> <a id="7345" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="7347" href="UTxO.SL.html#7160" class="Bound">l</a> <a id="7349" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="7351" href="UTxO.SL.html#7251" class="Bound">s₁</a>
+        <a id="7362" href="UTxO.SL.html#7334" class="Function">Qs₁′</a> <a id="7367" class="Symbol">=</a> <a id="7369" href="UTxO.HoareLogic.html#2835" class="Function">axiom⇒denot</a> <a id="7381" href="UTxO.SL.html#7175" class="Bound">PlQ</a> <a id="7385" href="UTxO.SL.html#7269" class="Bound">Ps₁</a>
+
+        <a id="7398" href="UTxO.SL.html#7398" class="Function">p</a> <a id="7400" class="Symbol">:</a> <a id="7402" href="UTxO.HoareLogic.html#947" class="Function Operator">⟨</a> <a id="7404" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="7406" href="UTxO.SL.html#7160" class="Bound">l</a> <a id="7408" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="7410" href="UTxO.SL.html#7251" class="Bound">s₁</a> <a id="7413" href="UTxO.HoareLogic.html#947" class="Function Operator">⊎</a> <a id="7415" href="UTxO.SL.html#7256" class="Bound">s₂</a> <a id="7418" href="UTxO.HoareLogic.html#947" class="Function Operator">⟩≡</a> <a id="7421" href="UTxO.Ledger.html#489" class="Field Operator">⟦</a> <a id="7423" href="UTxO.SL.html#7160" class="Bound">l</a> <a id="7425" href="UTxO.Ledger.html#489" class="Field Operator">⟧</a> <a id="7427" href="UTxO.SL.html#7247" class="Bound">s</a>
+        <a id="7437" href="UTxO.SL.html#7398" class="Function">p</a> <a id="7439" class="Symbol">=</a> <a id="7441" href="UTxO.SL.html#3743" class="Function">frame-helper</a> <a id="7454" class="Symbol">{</a><a id="7455" class="Argument">R</a> <a id="7457" class="Symbol">=</a> <a id="7459" href="UTxO.SL.html#7169" class="Bound">R</a><a id="7460" class="Symbol">}</a> <a id="7462" href="UTxO.SL.html#7171" class="Bound">l♯R</a> <a id="7466" href="UTxO.SL.html#7275" class="Bound">Rs₂</a> <a id="7470" href="UTxO.SL.html#7261" class="Bound">s₁♯s₂</a>
+</pre></body></html>

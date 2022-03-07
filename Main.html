@@ -1,44 +1,31 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="utf-8"><title>Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="Main.html" class="Module">Main</a> <a id="13" class="Keyword">where</a>
+<html><head><meta charset="utf-8"><title>Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--rewriting</a> <a id="25" class="Symbol">#-}</a> <a id="29" class="Comment">-- needed for UTxO hashing</a>
+<a id="56" class="Keyword">module</a> <a id="63" href="Main.html" class="Module">Main</a> <a id="68" class="Keyword">where</a>
 
-<a id="20" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
-<a id="105" class="Comment">-- We model the ledger state as maps from participants to balances, using the abstract map interface in Prelude.Maps,</a>
-<a id="223" class="Comment">-- and define both operational and denotational semantics.</a>
-<a id="282" class="Comment">-- [Proofs]</a>
-<a id="294" class="Comment">--    * correspondence between operational and denotational semantics</a>
-<a id="364" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
-<a id="441" class="Keyword">open</a> <a id="446" class="Keyword">import</a> <a id="453" href="Ledger.html" class="Module">Ledger</a>
+<a id="75" class="Comment">-- ∙ S := K → Value</a>
+<a id="95" class="Comment">-- ∙ P := S → Set</a>
+<a id="113" class="Comment">-- ∙ Separation := _∪_</a>
+<a id="136" class="Keyword">open</a> <a id="141" class="Keyword">import</a> <a id="148" href="Shallow.Main.html" class="Module">Shallow.Main</a>
 
-<a id="461" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
-<a id="545" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
-<a id="643" class="Comment">-- [Proofs]</a>
-<a id="655" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
-<a id="750" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
-<a id="814" class="Keyword">open</a> <a id="819" class="Keyword">import</a> <a id="826" href="HoareLogic.html" class="Module">HoareLogic</a>
+<a id="162" class="Comment">-- ∙ S := Map⟨ K ↦ Value ⟩</a>
+<a id="189" class="Comment">-- ∙ P := S → Set</a>
+<a id="207" class="Comment">-- ∙ Separation := _∪_</a>
+<a id="230" class="Keyword">open</a> <a id="235" class="Keyword">import</a> <a id="242" href="Middle.Main.html" class="Module">Middle.Main</a>
 
-<a id="838" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
-<a id="957" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
-<a id="1028" class="Comment">-- [Proofs]</a>
-<a id="1040" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
-<a id="1106" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
-<a id="1233" class="Keyword">open</a> <a id="1238" class="Keyword">import</a> <a id="1245" href="SL.html" class="Module">SL</a>
+<a id="255" class="Comment">-- ∙ S := Map⟨ K ↦ Value ⟩</a>
+<a id="282" class="Comment">-- ∙ P := Assertion</a>
+<a id="302" class="Comment">-- ∙ Separation := _∪_</a>
+<a id="325" class="Keyword">open</a> <a id="330" class="Keyword">import</a> <a id="337" href="Deep.Main.html" class="Module">Deep.Main</a>
 
-<a id="1249" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
-<a id="1356" class="Comment">-- [Proofs]</a>
-<a id="1368" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
-<a id="1491" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
-<a id="1586" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
-<a id="1692" class="Keyword">open</a> <a id="1697" class="Keyword">import</a> <a id="1704" href="CSL.html" class="Module">CSL</a>
+<a id="348" class="Comment">-- &lt;Deep.Main&gt; + shallow embedding of Hoare triples</a>
+<a id="400" class="Comment">--   ∙ {P}l{Q} = ∀ s. P(s) → Q(⟦l⟧s)</a>
+<a id="437" class="Keyword">open</a> <a id="442" class="Keyword">import</a> <a id="449" href="ShallowHoare.Main.html" class="Module">ShallowHoare.Main</a>
 
-<a id="1709" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
-<a id="1774" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
-<a id="1849" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
-<a id="1908" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
-<a id="2013" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
-<a id="2104" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
-<a id="2168" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
-<a id="2254" class="Keyword">open</a> <a id="2259" class="Keyword">import</a> <a id="2266" href="Example.html" class="Module">Example</a>
+<a id="468" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
+<a id="521" class="Keyword">open</a> <a id="526" class="Keyword">import</a> <a id="533" href="UTxO.Main.html" class="Module">UTxO.Main</a>
 
-<a id="2275" class="Comment">-- ** Decidability of disjointness (unused)</a>
-<a id="2319" class="Keyword">open</a> <a id="2324" class="Keyword">import</a> <a id="2331" href="Dec.html" class="Module">Dec</a>
+<a id="544" class="Comment">-- ∙ S := Map⟨ K ↦ Value ⟩</a>
+<a id="571" class="Comment">-- ∙ P := S → Set</a>
+<a id="589" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="612" class="Keyword">open</a> <a id="617" class="Keyword">import</a> <a id="624" href="ValueSep.Main.html" class="Module">ValueSep.Main</a>
 </pre></body></html>

@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSep.Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="ValueSep.Main.html" class="Module">ValueSep.Main</a> <a id="22" class="Keyword">where</a>
+
+<a id="29" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="114" class="Comment">-- We model the ledger state as maps from participants to balances, using the abstract map interface in Prelude.Maps,</a>
+<a id="232" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="291" class="Comment">-- [Proofs]</a>
+<a id="303" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="373" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="450" class="Keyword">open</a> <a id="455" class="Keyword">import</a> <a id="462" href="ValueSep.Ledger.html" class="Module">ValueSep.Ledger</a>
+
+<a id="479" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="563" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="661" class="Comment">-- [Proofs]</a>
+<a id="673" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="768" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="832" class="Keyword">open</a> <a id="837" class="Keyword">import</a> <a id="844" href="ValueSep.HoareLogic.html" class="Module">ValueSep.HoareLogic</a>
+
+<a id="865" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="984" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1055" class="Comment">-- [Proofs]</a>
+<a id="1067" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1133" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1260" class="Keyword">open</a> <a id="1265" class="Keyword">import</a> <a id="1272" href="ValueSep.SL.html" class="Module">ValueSep.SL</a>
+
+<a id="1285" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
+</pre></body></html>

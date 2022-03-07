@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ShallowHoare.Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="ShallowHoare.Main.html" class="Module">ShallowHoare.Main</a> <a id="26" class="Keyword">where</a>
+
+<a id="33" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="118" class="Comment">-- We model the ledger state as maps from participants to balances, using the abstract map interface in Prelude.Maps,</a>
+<a id="236" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="295" class="Comment">-- [Proofs]</a>
+<a id="307" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="377" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="454" class="Keyword">open</a> <a id="459" class="Keyword">import</a> <a id="466" href="ShallowHoare.Ledger.html" class="Module">ShallowHoare.Ledger</a>
+
+<a id="487" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="571" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="669" class="Comment">-- [Proofs]</a>
+<a id="681" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="776" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="840" class="Keyword">open</a> <a id="845" class="Keyword">import</a> <a id="852" href="ShallowHoare.HoareLogic.html" class="Module">ShallowHoare.HoareLogic</a>
+
+<a id="877" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="996" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1067" class="Comment">-- [Proofs]</a>
+<a id="1079" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1145" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1272" class="Keyword">open</a> <a id="1277" class="Keyword">import</a> <a id="1284" href="ShallowHoare.SL.html" class="Module">ShallowHoare.SL</a>
+
+<a id="1301" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1408" class="Comment">-- [Proofs]</a>
+<a id="1420" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="1543" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="1638" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="1744" class="Keyword">open</a> <a id="1749" class="Keyword">import</a> <a id="1756" href="ShallowHoare.CSL.html" class="Module">ShallowHoare.CSL</a>
+</pre></body></html>

@@ -1,0 +1,190 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSep.SL</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--allow-unsolved-metas</a> <a id="36" class="Symbol">#-}</a>
+<a id="40" class="Comment">---------------------------</a>
+<a id="68" class="Comment">-- ** Separation logic (SL)</a>
+
+<a id="97" class="Keyword">open</a> <a id="102" class="Keyword">import</a> <a id="109" href="Prelude.Init.html" class="Module">Prelude.Init</a>
+<a id="122" class="Keyword">open</a> <a id="127" href="Prelude.Init.html#5679" class="Module">L.Mem</a>
+<a id="133" class="Keyword">open</a> <a id="138" class="Keyword">import</a> <a id="145" href="Prelude.DecEq.html" class="Module">Prelude.DecEq</a>
+<a id="159" class="Keyword">open</a> <a id="164" class="Keyword">import</a> <a id="171" href="Prelude.Decidable.html" class="Module">Prelude.Decidable</a>
+<a id="189" class="Keyword">open</a> <a id="194" class="Keyword">import</a> <a id="201" href="Prelude.Maps.html" class="Module">Prelude.Maps</a>
+<a id="214" class="Keyword">open</a> <a id="219" class="Keyword">import</a> <a id="226" href="Prelude.Ord.html" class="Module">Prelude.Ord</a>
+<a id="238" class="Keyword">open</a> <a id="243" class="Keyword">import</a> <a id="250" href="Prelude.General.html" class="Module">Prelude.General</a>
+<a id="266" class="Keyword">open</a> <a id="271" class="Keyword">import</a> <a id="278" href="Prelude.InferenceRules.html" class="Module">Prelude.InferenceRules</a>
+<a id="301" class="Keyword">open</a> <a id="306" class="Keyword">import</a> <a id="313" href="Prelude.Apartness.html" class="Module">Prelude.Apartness</a>
+
+<a id="332" class="Keyword">module</a> <a id="339" href="ValueSep.SL.html" class="Module">ValueSep.SL</a> <a id="351" class="Symbol">(</a><a id="352" href="ValueSep.SL.html#352" class="Bound">Part</a> <a id="357" class="Symbol">:</a> <a id="359" href="Agda.Primitive.html#326" class="Primitive">Set</a><a id="362" class="Symbol">)</a> <a id="364" class="Symbol">⦃</a> <a id="366" href="ValueSep.SL.html#366" class="Bound">_</a> <a id="368" class="Symbol">:</a> <a id="370" href="Prelude.DecEq.Core.html#97" class="Record">DecEq</a> <a id="376" href="ValueSep.SL.html#352" class="Bound">Part</a> <a id="381" class="Symbol">⦄</a> <a id="383" class="Keyword">where</a>
+
+<a id="390" class="Keyword">open</a> <a id="395" class="Keyword">import</a> <a id="402" href="ValueSep.Ledger.html" class="Module">ValueSep.Ledger</a>     <a id="422" href="ValueSep.SL.html#352" class="Bound">Part</a> <a id="427" class="Symbol">⦃</a> <a id="429" href="Function.Base.html#4812" class="Function">it</a> <a id="432" class="Symbol">⦄</a>
+<a id="434" class="Keyword">open</a> <a id="439" class="Keyword">import</a> <a id="446" href="ValueSep.HoareLogic.html" class="Module">ValueSep.HoareLogic</a> <a id="466" href="ValueSep.SL.html#352" class="Bound">Part</a> <a id="471" class="Symbol">⦃</a> <a id="473" href="Function.Base.html#4812" class="Function">it</a> <a id="476" class="Symbol">⦄</a>
+
+<a id="479" class="Keyword">instance</a>
+  <a id="490" class="Comment">-- extensional version of disjointness</a>
+  <a id="Denotable//Assertion"></a><a id="531" href="ValueSep.SL.html#531" class="Function">Denotable//Assertion</a> <a id="552" class="Symbol">:</a> <a id="554" class="Symbol">∀</a> <a id="556" class="Symbol">{</a><a id="557" href="ValueSep.SL.html#557" class="Bound">A</a> <a id="559" class="Symbol">:</a> <a id="561" href="Agda.Primitive.html#326" class="Primitive">Set</a><a id="564" class="Symbol">}</a> <a id="566" class="Symbol">→</a> <a id="568" class="Symbol">⦃</a> <a id="570" href="ValueSep.Ledger.html#1354" class="Record">Denotable</a> <a id="580" href="ValueSep.SL.html#557" class="Bound">A</a> <a id="582" class="Symbol">⦄</a> <a id="584" class="Symbol">→</a> <a id="586" href="ValueSep.SL.html#557" class="Bound">A</a> <a id="588" href="Prelude.Apartness.html#152" class="Record Operator">//</a> <a id="591" href="ValueSep.HoareLogic.html#537" class="Function">Assertion</a>
+  <a id="603" href="ValueSep.SL.html#531" class="Function">Denotable//Assertion</a> <a id="624" class="Symbol">.</a><a id="625" href="Prelude.Apartness.html#237" class="Field Operator">_♯_</a> <a id="629" href="ValueSep.SL.html#629" class="Bound">x</a> <a id="631" href="ValueSep.SL.html#631" class="Bound">P</a> <a id="633" class="Symbol">=</a> <a id="635" class="Symbol">∀</a> <a id="637" href="ValueSep.SL.html#637" class="Bound">s</a> <a id="639" class="Symbol">→</a> <a id="641" href="ValueSep.SL.html#631" class="Bound">P</a> <a id="643" href="ValueSep.SL.html#637" class="Bound">s</a> <a id="645" href="Prelude.General.html#662" class="Function Operator">⇔</a> <a id="647" href="ValueSep.SL.html#631" class="Bound">P</a> <a id="649" class="Symbol">(</a><a id="650" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="652" href="ValueSep.SL.html#629" class="Bound">x</a> <a id="654" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="656" href="ValueSep.SL.html#637" class="Bound">s</a><a id="657" class="Symbol">)</a>
+
+<a id="[FRAME]"></a><a id="660" href="ValueSep.SL.html#660" class="Function">[FRAME]</a> <a id="668" class="Symbol">:</a> <a id="670" class="Symbol">∀</a> <a id="672" href="ValueSep.SL.html#672" class="Bound">R</a> <a id="674" class="Symbol">→</a>
+  <a id="678" href="Prelude.InferenceRules.html#56066" class="Function Operator">∙</a> <a id="680" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="682" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="684" href="ValueSep.SL.html#672" class="Bound">R</a>
+  <a id="688" href="Prelude.InferenceRules.html#56000" class="Function Operator">∙</a> <a id="690" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟨</a> <a id="692" href="ValueSep.HoareLogic.html#567" class="Generalizable">P</a> <a id="694" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟩</a> <a id="696" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="698" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟨</a> <a id="700" href="ValueSep.HoareLogic.html#578" class="Generalizable">Q</a> <a id="702" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟩</a>
+    <a id="708" href="Prelude.InferenceRules.html#14045" class="Function Operator">─────────────────────</a>
+    <a id="734" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟨</a> <a id="736" href="ValueSep.HoareLogic.html#567" class="Generalizable">P</a> <a id="738" href="ValueSep.HoareLogic.html#642" class="Function Operator">∗</a> <a id="740" href="ValueSep.SL.html#672" class="Bound">R</a> <a id="742" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟩</a> <a id="744" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="746" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟨</a> <a id="748" href="ValueSep.HoareLogic.html#578" class="Generalizable">Q</a> <a id="750" href="ValueSep.HoareLogic.html#642" class="Function Operator">∗</a> <a id="752" href="ValueSep.SL.html#672" class="Bound">R</a> <a id="754" href="ValueSep.HoareLogic.html#882" class="Datatype Operator">⟩</a>
+<a id="756" href="ValueSep.SL.html#660" class="Function">[FRAME]</a> <a id="764" class="Symbol">{</a><a id="765" href="ValueSep.SL.html#765" class="Bound">l</a><a id="766" class="Symbol">}{</a><a id="768" href="ValueSep.SL.html#768" class="Bound">P</a><a id="769" class="Symbol">}{</a><a id="771" href="ValueSep.SL.html#771" class="Bound">Q</a><a id="772" class="Symbol">}</a> <a id="774" href="ValueSep.SL.html#774" class="Bound">R</a> <a id="776" href="ValueSep.SL.html#776" class="Bound">l♯R</a> <a id="780" href="ValueSep.SL.html#780" class="Bound">PlQ</a> <a id="784" class="Symbol">=</a> <a id="786" href="ValueSep.HoareLogic.html#1912" class="Function">denot⇒axiom</a> <a id="798" href="ValueSep.SL.html#812" class="Function">d</a>
+  <a id="802" class="Keyword">where</a>
+    <a id="812" href="ValueSep.SL.html#812" class="Function">d</a> <a id="814" class="Symbol">:</a> <a id="816" class="Symbol">(</a><a id="817" href="ValueSep.SL.html#768" class="Bound">P</a> <a id="819" href="ValueSep.HoareLogic.html#642" class="Function Operator">∗</a> <a id="821" href="ValueSep.SL.html#774" class="Bound">R</a><a id="822" class="Symbol">)</a> <a id="824" href="Prelude.General.html#718" class="Function Operator">⊢</a> <a id="826" class="Symbol">(</a><a id="827" href="ValueSep.SL.html#771" class="Bound">Q</a> <a id="829" href="ValueSep.HoareLogic.html#642" class="Function Operator">∗</a> <a id="831" href="ValueSep.SL.html#774" class="Bound">R</a><a id="832" class="Symbol">)</a> <a id="834" href="Function.Base.html#1031" class="Function Operator">∘</a> <a id="836" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="838" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="840" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a>
+    <a id="846" href="ValueSep.SL.html#812" class="Function">d</a> <a id="848" class="Symbol">{</a><a id="849" href="ValueSep.SL.html#849" class="Bound">s</a><a id="850" class="Symbol">}</a> <a id="852" class="Symbol">(</a><a id="853" href="ValueSep.SL.html#853" class="Bound">s₁</a> <a id="856" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="858" href="ValueSep.SL.html#858" class="Bound">s₂</a> <a id="861" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="863" href="ValueSep.SL.html#863" class="Bound">s₁◇s₂</a> <a id="869" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="871" href="ValueSep.SL.html#871" class="Bound">Ps₁</a> <a id="875" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="877" href="ValueSep.SL.html#877" class="Bound">Rs₂</a><a id="880" class="Symbol">)</a> <a id="882" class="Symbol">=</a> <a id="884" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="886" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="888" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="890" href="ValueSep.SL.html#853" class="Bound">s₁</a> <a id="893" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="895" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="897" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="899" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="901" href="ValueSep.SL.html#858" class="Bound">s₂</a>  <a id="905" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="907" href="ValueSep.SL.html#1127" class="Function">p</a> <a id="909" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="911" href="ValueSep.SL.html#986" class="Function">Qs₁′</a> <a id="916" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="918" href="ValueSep.SL.html#1050" class="Function">Rs₂′</a>
+      <a id="929" class="Keyword">where</a>
+        <a id="943" href="ValueSep.SL.html#943" class="Function">s₁′</a> <a id="947" class="Symbol">=</a> <a id="949" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="951" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="953" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="955" href="ValueSep.SL.html#853" class="Bound">s₁</a>
+        <a id="966" href="ValueSep.SL.html#966" class="Function">s₂′</a> <a id="970" class="Symbol">=</a> <a id="972" class="Hole">{!!}</a>
+
+        <a id="986" href="ValueSep.SL.html#986" class="Function">Qs₁′</a> <a id="991" class="Symbol">:</a> <a id="993" href="ValueSep.SL.html#771" class="Bound">Q</a> <a id="995" class="Symbol">(</a><a id="996" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="998" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="1000" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="1002" href="ValueSep.SL.html#853" class="Bound">s₁</a><a id="1004" class="Symbol">)</a>
+        <a id="1014" href="ValueSep.SL.html#986" class="Function">Qs₁′</a> <a id="1019" class="Symbol">=</a> <a id="1021" href="ValueSep.HoareLogic.html#1730" class="Function">axiom⇒denot</a> <a id="1033" href="ValueSep.SL.html#780" class="Bound">PlQ</a> <a id="1037" href="ValueSep.SL.html#871" class="Bound">Ps₁</a>
+
+        <a id="1050" href="ValueSep.SL.html#1050" class="Function">Rs₂′</a> <a id="1055" class="Symbol">:</a> <a id="1057" href="ValueSep.SL.html#774" class="Bound">R</a> <a id="1059" href="ValueSep.SL.html#966" class="Function">s₂′</a>
+        <a id="1071" href="ValueSep.SL.html#1050" class="Function">Rs₂′</a> <a id="1076" class="Symbol">=</a> <a id="1078" class="Hole">{!!}</a>
+        <a id="1091" class="Comment">-- Rs₂′ = frame-⟦⟧ l♯R Rs₂</a>
+
+        <a id="1127" href="ValueSep.SL.html#1127" class="Function">p</a> <a id="1129" class="Symbol">:</a> <a id="1131" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟨</a> <a id="1133" href="ValueSep.SL.html#943" class="Function">s₁′</a> <a id="1137" href="Prelude.Maps.Interface.html#7482" class="Function Operator">◇</a> <a id="1139" href="ValueSep.SL.html#966" class="Function">s₂′</a> <a id="1143" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟩≡</a> <a id="1146" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="1148" href="ValueSep.SL.html#765" class="Bound">l</a> <a id="1150" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="1152" href="ValueSep.SL.html#849" class="Bound">s</a>
+        <a id="1162" href="ValueSep.SL.html#1127" class="Function">p</a> <a id="1164" class="Symbol">=</a> <a id="1166" class="Hole">{!!}</a> <a id="1171" class="Comment">-- frame-helper s₁◇s₂ l♯s₂</a>
+
+
+<a id="destruct-♯"></a><a id="1200" href="ValueSep.SL.html#1200" class="Function">destruct-♯</a> <a id="1211" class="Symbol">:</a> <a id="1213" class="Symbol">(</a><a id="1214" href="ValueSep.Ledger.html#1097" class="Generalizable">t</a> <a id="1216" class="InductiveConstructor Operator">∷</a> <a id="1218" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a><a id="1219" class="Symbol">)</a> <a id="1221" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="1223" href="ValueSep.HoareLogic.html#567" class="Generalizable">P</a> <a id="1225" class="Symbol">→</a> <a id="1227" href="ValueSep.Ledger.html#1097" class="Generalizable">t</a> <a id="1229" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="1231" href="ValueSep.HoareLogic.html#567" class="Generalizable">P</a> <a id="1233" href="Data.Product.html#1167" class="Function Operator">×</a> <a id="1235" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="1237" href="Prelude.Apartness.html#237" class="Field Operator">♯</a> <a id="1239" href="ValueSep.HoareLogic.html#567" class="Generalizable">P</a>
+<a id="1241" href="ValueSep.SL.html#1200" class="Function">destruct-♯</a> <a id="1252" href="ValueSep.SL.html#1252" class="Bound">p</a> <a id="1254" class="Symbol">=</a> <a id="1256" class="Symbol">(λ</a> <a id="1259" href="ValueSep.SL.html#1259" class="Bound">s</a> <a id="1261" class="Symbol">→</a> <a id="1263" class="Hole">{!p s!}</a><a id="1270" class="Symbol">)</a> <a id="1272" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1274" class="Symbol">(λ</a> <a id="1277" href="ValueSep.SL.html#1277" class="Bound">s</a> <a id="1279" class="Symbol">→</a> <a id="1281" class="Hole">{!p s!}</a><a id="1288" class="Symbol">)</a>
+  <a id="1292" class="Comment">-- where</a>
+  <a id="1303" class="Comment">--   s : S</a>
+  <a id="1316" class="Comment">--   p s : P s ⇔ P (⟦ t ∷ l ⟧ s)</a>
+  <a id="1351" class="Comment">--             ⇔ P (⟦ l ⟧ (⟦ t ⟧ s))</a>
+
+<a id="1389" class="Comment">-- ♯⇒♯ : l ♯ R → R s → l ♯ s</a>
+<a id="1418" class="Comment">-- ♯⇒♯ {l = []} _ _ = λ k → refl</a>
+<a id="1451" class="Comment">-- ♯⇒♯ {l = A —→⟨ _ ⟩ B ∷ _}{R}{s} l♯R Rs = λ k → {!l♯R s .proj₁ Rs!}</a>
+<a id="1521" class="Comment">-- -- ♯⇒♯ {l = []} _ _ = []</a>
+<a id="1549" class="Comment">-- -- ♯⇒♯ {l = A —→⟨ _ ⟩ B ∷ _} {s} ((A∉ , B∉) ∷ l♯R) Rs = (A∉ _ Rs , B∉ _ Rs) ∷ ♯⇒♯ l♯R Rs</a>
+
+<a id="1642" class="Comment">-- frame-update :</a>
+<a id="1660" class="Comment">--   ∙ A ∉ᵃ R</a>
+<a id="1674" class="Comment">--     ──────────────────────</a>
+<a id="1704" class="Comment">--     R s ⇔ R (update (A , v) s)</a>
+<a id="1738" class="Comment">-- frame-update {A}{R}{s}{v} A∉ = A∉ s (update (A , v)) A∈ B∉</a>
+<a id="1800" class="Comment">--   where</a>
+<a id="1811" class="Comment">--     A∈ : A ∈ᶠ update (A , v)</a>
+<a id="1843" class="Comment">--     A∈ = singleton (A , suc v) , neq</a>
+<a id="1883" class="Comment">--       where</a>
+<a id="1898" class="Comment">--         neq : singleton (A , suc v) ⁉ A</a>
+<a id="1941" class="Comment">--             ≢ update (A , v) (singleton (A , suc v)) ⁉ A</a>
+<a id="2001" class="Comment">--         neq rewrite singleton-law′ {k = A}{suc v}</a>
+<a id="2054" class="Comment">--           | singleton-law′ {k = A}{v}</a>
+<a id="2095" class="Comment">--           | singleton-accept {k = A}{v}{singleton (A , suc v)}</a>
+<a id="2161" class="Comment">--           = λ ()</a>
+
+<a id="2182" class="Comment">--     B∉ : ∀ B → B ≢ A → B ∉ᶠ update (A , v)</a>
+<a id="2228" class="Comment">--     B∉ B B≢ (s , neq) = {!!}</a>
+
+<a id="2261" class="Comment">-- {-</a>
+<a id="2267" class="Comment">-- frame-modify : ∀ {f} →</a>
+<a id="2293" class="Comment">--   ∙ A ∉ᵃ R</a>
+<a id="2307" class="Comment">--     ──────────────────────</a>
+<a id="2337" class="Comment">--     R s ⇔ R (modify A f s)</a>
+<a id="2367" class="Comment">-- frame-modify {A = A} {s = s} A∉ with s ⁉ A</a>
+<a id="2413" class="Comment">-- ... | nothing = id , id</a>
+<a id="2440" class="Comment">-- ... | just x = frame-update A∉</a>
+
+<a id="2475" class="Comment">-- -}</a>
+
+<a id="2482" class="Comment">-- frame-⟦⟧ :</a>
+<a id="2496" class="Comment">--   ∙ l ♯ R</a>
+<a id="2509" class="Comment">--   ∙ R s</a>
+<a id="2520" class="Comment">--     ────────────</a>
+<a id="2540" class="Comment">--     R (⟦ l ⟧ s)</a>
+<a id="2559" class="Comment">-- frame-⟦⟧ = {!!}</a>
+<a id="2578" class="Comment">-- -- frame-⟦⟧ {[]} {R} {s} l♯R Rs = Rs</a>
+<a id="2618" class="Comment">-- -- frame-⟦⟧ {tx@(A —→⟨ v ⟩ B) ∷ l} {R} {s} ((A∉ , B∉) ∷ l♯R) Rs = frame-⟦⟧ l♯R Rs′</a>
+<a id="2704" class="Comment">-- --   where</a>
+<a id="2718" class="Comment">-- --     Rs′ : R $ ⟦ tx ⟧ s</a>
+<a id="2747" class="Comment">-- --     Rs′ with s ⁉ A</a>
+<a id="2772" class="Comment">-- --     ... | nothing = Rs</a>
+<a id="2801" class="Comment">-- --     ... | just vᵃ</a>
+<a id="2825" class="Comment">-- --       with s ⁉ B</a>
+<a id="2848" class="Comment">-- --     ... | nothing = Rs</a>
+<a id="2877" class="Comment">-- --     ... | just _</a>
+<a id="2900" class="Comment">-- --       with v ≤? vᵃ</a>
+<a id="2925" class="Comment">-- --     ... | no _ = Rs</a>
+<a id="2951" class="Comment">-- --     ... | yes v≤</a>
+<a id="2974" class="Comment">-- --       = frame-modify A∉ .proj₁</a>
+<a id="3011" class="Comment">-- --       $ frame-modify B∉ .proj₁ Rs</a>
+
+<a id="3052" class="Comment">-- Helper lemma for [FRAME]: pushing ⟦ l ⟧ inside the partition.</a>
+<a id="frame-helper"></a><a id="3117" href="ValueSep.SL.html#3117" class="Function">frame-helper</a> <a id="3130" class="Symbol">:</a>
+    <a id="3136" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟨</a> <a id="3138" href="ValueSep.Ledger.html#1078" class="Generalizable">s₁</a> <a id="3141" href="Prelude.Maps.Interface.html#7482" class="Function Operator">◇</a> <a id="3143" href="ValueSep.Ledger.html#1081" class="Generalizable">s₂</a> <a id="3146" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟩≡</a> <a id="3149" href="ValueSep.Ledger.html#1070" class="Generalizable">s</a>
+  <a id="3153" class="Comment">-- → l ♯ s₂</a>
+    <a id="3169" class="Comment">-----------------------</a>
+  <a id="3195" class="Symbol">→</a> <a id="3197" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟨</a> <a id="3199" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="3201" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="3203" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="3205" href="ValueSep.Ledger.html#1078" class="Generalizable">s₁</a> <a id="3208" href="Prelude.Maps.Interface.html#7482" class="Function Operator">◇</a> <a id="3210" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="3212" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="3214" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="3216" href="ValueSep.Ledger.html#1081" class="Generalizable">s₂</a> <a id="3219" href="Prelude.Maps.Interface.html#7482" class="Function Operator">⟩≡</a> <a id="3222" href="ValueSep.Ledger.html#1394" class="Field Operator">⟦</a> <a id="3224" href="ValueSep.Ledger.html#1112" class="Generalizable">l</a> <a id="3226" href="ValueSep.Ledger.html#1394" class="Field Operator">⟧</a> <a id="3228" href="ValueSep.Ledger.html#1070" class="Generalizable">s</a>
+<a id="3230" href="ValueSep.SL.html#3117" class="Function">frame-helper</a> <a id="3243" class="Symbol">=</a> <a id="3245" class="Hole">{!!}</a>
+<a id="3250" class="Comment">-- {-</a>
+<a id="3256" class="Comment">-- frame-helper {l = []} p = p</a>
+<a id="3287" class="Comment">-- frame-helper {s₁}{s₂}{s}{l₀@(A —→⟨ v ⟩ B ∷ l)} (s₁♯s₂ , ≡s) =</a>
+<a id="3352" class="Comment">--   frame-helper {run [ A ∣ v ↦ B ] s₁}{run [ A ∣ v ↦ B ] s₂}{run [ A ∣ v ↦ B ] s}{l} p′</a>
+<a id="3442" class="Comment">--   where</a>
+<a id="3453" class="Comment">--     A∉₂ : A ∉ᵈ s₂</a>
+<a id="3474" class="Comment">--     A∉₂ = ?</a>
+
+<a id="3490" class="Comment">--     B∉₂ : B ∉ᵈ s₂</a>
+<a id="3511" class="Comment">--     B∉₂ = ?</a>
+
+<a id="3527" class="Comment">--     p₁ : (run [ A ∣ v ↦ B ] s₁) ♯ (run [ A ∣ v ↦ B ] s₂)</a>
+<a id="3587" class="Comment">--     p₁ = ? -- transfer-helper s₁♯s₂ B∉₂</a>
+
+<a id="3631" class="Comment">--     ∉⇒≢ : ∀ k → k ∈ᵈ s₂ → (k ≢ A) × (k ≢ B)</a>
+<a id="3678" class="Comment">--     ∉⇒≢ k k∈ = (λ where refl → A∉₂ k∈) , (λ where refl → B∉₂ k∈)</a>
+
+<a id="3747" class="Comment">--     p₂ : (run [ A ∣ v ↦ B ] s₁) ∪ (run [ A ∣ v ↦ B ] s₂) ≈ run [ A ∣ v ↦ B ] s</a>
+<a id="3829" class="Comment">--     p₂ k</a>
+<a id="3841" class="Comment">--       with eq ← ≡s k</a>
+<a id="3865" class="Comment">--       with eqᵃ ← ≡s A</a>
+<a id="3890" class="Comment">--       with eqᵇ ← ≡s B</a>
+<a id="3915" class="Comment">--       with ¿ k ∈ᵈ s₂ ¿</a>
+<a id="3941" class="Comment">--     ... | yes k∈</a>
+<a id="3961" class="Comment">--       with k≢A , k≢B ← ∉⇒≢ k k∈</a>
+<a id="3996" class="Comment">--       rewrite ∪-chooseᵣ p₁ k∈</a>
+<a id="4029" class="Comment">--             | ∪-chooseᵣ s₁♯s₂ k∈</a>
+<a id="4065" class="Comment">--             | drop-[∣↦] {v = v} {s = s} k k≢A k≢B</a>
+<a id="4118" class="Comment">--             = eq</a>
+<a id="4138" class="Comment">--     ... | no k∉</a>
+<a id="4157" class="Comment">--       rewrite ∪-chooseₗ p₁ k∉</a>
+<a id="4190" class="Comment">--             | ∪-chooseₗ s₁♯s₂ k∉</a>
+<a id="4226" class="Comment">--       with s₁ ⁉ A | inspect (s₁ ⁉_) A</a>
+<a id="4267" class="Comment">--          | s  ⁉ A | inspect (s  ⁉_) A</a>
+<a id="4308" class="Comment">--          | eqᵃ</a>
+<a id="4326" class="Comment">--     ... | nothing | _ | nothing | _ | _ = eq</a>
+<a id="4374" class="Comment">--     ... | nothing | ≡[ s₁A≡ ] | just _  | ≡[ sA≡ ] | _</a>
+<a id="4432" class="Comment">--         = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁A≡) auto)</a>
+<a id="4511" class="Comment">--           in ⊥-elim $ A∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵃ sA≡)) auto</a>
+<a id="4600" class="Comment">--     ... | just vᵃ | ≡[ s₁A≡ ] | nothing | _ | eqᵃ′</a>
+<a id="4654" class="Comment">--         = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁A≡)) eqᵃ′ of λ ()</a>
+<a id="4722" class="Comment">--     ... | just vᵃ  | ≡[ s₁A≡ ] | just vᵃ′ | _ | eqᵃ′</a>
+<a id="4778" class="Comment">--       with vᵃ ≟ vᵃ′</a>
+<a id="4801" class="Comment">--     ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁A≡) eqᵃ′</a>
+<a id="4897" class="Comment">--     ... | yes refl</a>
+<a id="4919" class="Comment">--       with s₁ ⁉ B | inspect (s₁ ⁉_) B</a>
+<a id="4960" class="Comment">--          | s  ⁉ B | inspect (s  ⁉_) B</a>
+<a id="5001" class="Comment">--          | eqᵇ</a>
+<a id="5019" class="Comment">--     ... | nothing | _ | nothing | _ | _</a>
+<a id="5062" class="Comment">--         = eq</a>
+<a id="5078" class="Comment">--     ... | nothing | ≡[ s₁B≡ ] | just _  | ≡[ sB≡ ] | _</a>
+<a id="5136" class="Comment">--         = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁B≡) auto)</a>
+<a id="5215" class="Comment">--           in ⊥-elim $ B∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵇ sB≡)) auto</a>
+<a id="5304" class="Comment">--     ... | just vᵇ | ≡[ s₁B≡ ] | nothing | _ | eqᵇ′</a>
+<a id="5358" class="Comment">--         = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁B≡)) eqᵇ′ of λ ()</a>
+<a id="5426" class="Comment">--     ... | just vᵇ  | ≡[ s₁B≡ ] | just vᵇ′ | _ | eqᵇ′</a>
+<a id="5482" class="Comment">--       with vᵇ ≟ vᵇ′</a>
+<a id="5505" class="Comment">--     ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁B≡) eqᵇ′</a>
+<a id="5601" class="Comment">--     ... | yes refl</a>
+<a id="5623" class="Comment">--       with v ≤? vᵃ</a>
+<a id="5645" class="Comment">--     ... | no  _ = eq</a>
+<a id="5669" class="Comment">--     ... | yes _ = ≡-cong-update $ ≡-cong-update eq</a>
+
+<a id="5724" class="Comment">--     p′ : ⟨ run [ A ∣ v ↦ B ] s₁ ⊎ run [ A ∣ v ↦ B ] s₂ ⟩≡ run [ A ∣ v ↦ B ] s</a>
+<a id="5805" class="Comment">--     p′ = p₁ , p₂</a>
+<a id="5825" class="Comment">-- -}</a>
+<a id="5831" class="Comment">-- -- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts</a>
+<a id="5938" class="Comment">-- -- and then weaken our results to the desired context (assuming the rest of the context is disjoint).</a>
+</pre></body></html>
