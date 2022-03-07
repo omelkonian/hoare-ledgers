@@ -7,6 +7,10 @@ open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Maps
 open import Prelude.Ord
+open import Prelude.Semigroup
+open import Prelude.Monoid
+open import Prelude.Functor
+open import Prelude.InferenceRules
 
 module Ledger
   (Part : Set) -- a fixed set of participants
@@ -20,6 +24,12 @@ variable
 -- The state of a ledger is a collection of participants, along with their balance.
 S : Set
 S = Map⟨ Part ↦ ℕ ⟩
+
+instance
+  Sℕ  = Semigroup-ℕ-+
+  Sℕ⁺ = SemigroupLaws-ℕ-+
+  Mℕ  = Monoid-ℕ-+
+  Mℕ⁺ = MonoidLaws-ℕ-+
 
 -- A transaction is transferring money from one participant to another.
 record Tx : Set where
@@ -35,7 +45,7 @@ unquoteDecl DecEq-Tx = DERIVE DecEq [ quote Tx , DecEq-Tx ]
 L = List Tx
 
 variable
-  s s′ s″ s₁ s₂ : S
+  s s′ s″ s₁ s₂ s₃ s₂₃ : S
   t t′ t″ : Tx
   l l′ l″ l₁ l₂ : L
   ls ls′ ls″ : L × S
@@ -47,8 +57,7 @@ variable
 Domain = S → S
 
 record Denotable (A : Set) : Set where
-  field
-    ⟦_⟧ : A → Domain
+  field ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
 
 -- Express the action of tranferring values between keys in a map.
@@ -67,10 +76,11 @@ open Denotable ⦃...⦄ public
 [_∣_↦_] : Part → ℕ → Part → Cmd
 [ A ∣ v ↦ B ] =
   just? A λ vᵃ →
-  just? B λ vᵇ →
-  iff (v ≤? vᵃ)
-  ((A ≔ vᵃ ∸ v) ∶ (B ≔ vᵇ + v))
-
+  just? B λ _ →
+  iff¿ v ≤ vᵃ ¿
+    ( [ (_+ v) ← B ]
+    ∶ [ (_∸ v) ← A ]
+    )
 
 instance
   -- we denote a transaction as simply running the transaction based on the transfer operation above
@@ -100,16 +110,11 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 ... | just vᵃ | A∈
   with s ⁉ B | ⁉⇒∈ᵈ {s = s} {k = B}
 ... | nothing | _ = k∈
-... | just vᵇ | B∈
+... | just _  | B∈
   with v ≤? vᵃ
 ... | no  _ = k∈
-... | yes _
-  with ∈ᵈ-∪⁻ _ _ _ k∈
-... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = B∈ auto
-... | inj₂ k∈ʳ
-  with ∈ᵈ-∪⁻ _ _ _ k∈ʳ
-... | inj₁ k∈ˡ rewrite singleton∈ k∈ˡ = A∈ auto
-... | inj₂ k∈ʳ′ = k∈ʳ′
+... | yes _ = modify-pre s k
+            $ modify-pre (run [ (_+ v) ← B ] s) k k∈
 
 -- ** Utility lemmas about membership/transfer/maps.
 ∉-⟦⟧ₜ : A ∉ᵈ s → A ∉ᵈ ⟦ t ⟧ s
@@ -119,65 +124,94 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 ∉-⟦⟧ₗ {A}{s}{[]} A∉ = A∉
 ∉-⟦⟧ₗ {A}{s}{t ∷ l} A∉ = ∉-⟦⟧ₗ {l = l} (∉-⟦⟧ₜ {s = s}{t = t} A∉)
 
-∉-splits : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s₁ → A ∉ᵈ s₂ → A ∉ᵈ s
-∉-splits {s₁ = s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉₁ A∉₂ A∈
-  with ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
-... | inj₁ A∈₁ = ⊥-elim $ A∉₁ A∈₁
-... | inj₂ A∈₂ = ⊥-elim $ A∉₂ A∈₂
-
 -- ** Lemmas about the transfer operation on maps.
 transfer-helper : s₁ ♯ s₂ → B ∉ᵈ s₂ → (run [ A ∣ v ↦ B ] s₁) ♯ s₂
 transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre [∣↦]-pre s₁♯s₂
 
+transfer-id : (run [ A ∣ v ↦ A ] s) ≈ s
+transfer-id {A}{v}{s} k
+  with s ⁉ A in s≡
+... | nothing = refl
+... | just vᵃ
+  rewrite s≡
+  with v ≤? vᵃ
+... | no  _ = refl
+... | yes v≤ =
+  begin
+    (modify A (_∸ v) $ modify A (_+ v) s) ⁉ k
+  ≡⟨ modify∘modify k ⟩
+    modify A ((_∸ v) ∘ (_+ v)) s ⁉ k
+  ≡⟨ modify-id (λ _ → Nat.m+n∸n≡m _ v) k ⟩
+    s ⁉ k
+  ∎ where open ≡-Reasoning
+
 drop-[∣↦] : ∀ k → k ≢ A → k ≢ B → (run [ A ∣ v ↦ B ] s) ⁉ k ≡ s ⁉ k
 drop-[∣↦] {A}{B}{v}{s} k k≢A k≢B
-  with s ⁉ A | inspect (s ⁉_) A
-... | nothing | _ = refl
-... | just vᵃ | ≡[ sᵃ ]
-  with s ⁉ B | inspect (s ⁉_) B
-... | nothing | _ = refl
-... | just vᵇ | ≡[ sᵇ ]
+  with s ⁉ A in sᵃ
+... | nothing = refl
+... | just vᵃ
+  with s ⁉ B in sᵇ
+... | nothing = refl
+... | just _
   with v ≤? vᵃ
 ... | no _ = refl
 ... | yes _
-  with k ≟ A
-... | yes eq = ⊥-elim $ k≢A eq
-... | no  _ with k ≟ B
-... | yes eq = ⊥-elim $ k≢B eq
-... | no  _  = trans (singleton-reject k≢B) (singleton-reject k≢A)
+  rewrite modify-other {k = A}{k}{run [ (_+ v) ← B ] s}{_∸ v} (≢-sym k≢A)
+        | modify-other {k = B}{k}{s}{_+ v} (≢-sym k≢B)
+  = refl
 
 -- Transferring a value to/from distinct participants in the minimal map.
 -- (utilizes general lemmas about the 3 available commands: `just?`/`iff`/`_≔_`)
-transfer : ∀ {A B v v′}
-  → A ≢ B
-  → run [ A ∣ v ↦ B ] (singleton (A , v) ∪ singleton (B , v′))
-  ≈ (singleton (A , 0) ∪ singleton (B , v′ + v))
-transfer {A}{B}{v}{v′} A≢B =
-  let
-    m = singleton (A , v) ∪ singleton (B , v′)
-  in
+transfer◇ : ∀ {A B v v′}
+    → run [ A ∣ v ↦ B ] (singleton (A , v) ◇ singleton (B , v′))
+    ≈ (singleton (A , 0) ◇ singleton (B , v′ + v))
+transfer◇ {A}{B}{v}{v′}
+  with A ≟ B
+... | yes refl
+  =
   begin
+    run [ A ∣ v ↦ A ] (singleton (A , v) ◇ singleton (A , v′))
+  ≈⟨ transfer-id ⟩
+    singleton (A , v) ◇ singleton (A , v′)
+  ≈⟨ singleton◇ ⟩
+    singleton (A , v + v′)
+  ≡⟨ cong (λ ◆ → singleton (A , ◆)) (◇-comm v v′) ⟩
+    singleton (A , 0 + v′ + v)
+  ≈⟨ ≈-sym $ singleton◇ ⟩
+    singleton (A , 0) ◇ singleton (A , v′ + v)
+  ∎ where open ≈-Reasoning
+... | no A≢B
+  =
+  let Aᵥ = singleton (A , v); Bᵥ = singleton (B , v′); m = Aᵥ ◇ Bᵥ
+      A∉ : ∀ {vᵇ} → A ∉ᵈ singleton (B , vᵇ)
+      A∉ = ⊥-elim ∘ A≢B ∘ singleton∈
+      B∉ : ∀ {vᵃ} → B ∉ᵈ singleton (A , vᵃ)
+      B∉ = ⊥-elim ∘ A≢B ∘ sym ∘ singleton∈
+  in begin
     run [ A ∣ v ↦ B ] m
   ≡⟨⟩
-    run (just? A λ vᵃ → just? B λ vᵇ → iff (v ≤? vᵃ) ((A ≔ vᵃ ∸ v) ∶ (B ≔ vᵇ + v))) m
-  ≈⟨ just?-accept (↦-∪⁺ˡ singleton-law′) ⟩
-    run (just? B λ vᵇ → iff (v ≤? v) ((A ≔ v ∸ v) ∶ (B ≔ vᵇ + v))) m
-  ≈⟨ just?-accept (↦-∪⁺ʳ′ (⊥-elim ∘ A≢B ∘ sym ∘ singleton∈) singleton-law′) ⟩
-    run (iff (v ≤? v) ((A ≔ v ∸ v) ∶ (B ≔ v′ + v))) m
+    run (just? A λ vᵃ → just? B λ _ → iff¿ v ≤ vᵃ ¿ ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ])) m
+  ≈⟨ just?-accept (trans (sym $ ↦-◇⁺ˡ A∉) singleton-law′) ⟩
+    run (just? B λ _ → iff¿ v ≤ v ¿ ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ])) m
+  ≈⟨ just?-accept (trans (sym $ ↦-◇⁺ʳ B∉) singleton-law′) ⟩
+    run (iff¿ v ≤ v ¿ ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ])) m
   ≈⟨ iff-accept {b = v ≤? v} (fromWitness Nat.≤-refl) ⟩
-    run ((A ≔ v ∸ v) ∶ (B ≔ v′ + v)) m
-  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) update-update ⟩
-    run (B ≔ (v′ + v)) (singleton (A , v ∸ v) ∪ singleton (B , v′))
-  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) (∪-comm $ singleton♯ A≢B) ⟩
-    run (B ≔ (v′ + v)) (singleton (B , v′) ∪ singleton (A , v ∸ v))
-  ≈⟨ update-update ⟩
-    singleton (B , v′ + v) ∪ singleton (A , v ∸ v)
-  ≈⟨ ∪-comm $ singleton♯ (≢-sym A≢B) ⟩
-    singleton (A , v ∸ v) ∪ singleton (B , v′ + v)
-  ≡⟨ cong (λ x → (singleton (A , x) ∪ singleton (B , v′ + v))) (Nat.n∸n≡0 v) ⟩
-    singleton (A , 0) ∪ singleton (B , v′ + v)
-  ∎ where
-    open ≈-Reasoning
+    run ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ]) m
+  ≡⟨⟩
+    run ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ]) (Aᵥ ◇ Bᵥ)
+  ≈⟨ ≈-cong-cmd ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ]) (◇-comm Aᵥ Bᵥ) ⟩
+    run ([ (_+ v) ← B ] ∶ [ (_∸ v) ← A ]) (Bᵥ ◇ Aᵥ)
+  ≡⟨⟩
+    run [ (_∸ v) ← A ] (modify B (_+ v) (Bᵥ ◇ Aᵥ))
+  ≈⟨ ≈-cong-cmd [ (_∸ v) ← A ] (modify-thisˡ B∉) ⟩
+    run [ (_∸ v) ← A ] (singleton (B , v′ + v) ◇ Aᵥ)
+  ≈⟨ ≈-cong-cmd [ (_∸ v) ← A ] $ ◇-comm (singleton (B , v′ + v)) Aᵥ ⟩
+    run [ (_∸ v) ← A ] (Aᵥ ◇ singleton (B , v′ + v))
+  ≈⟨ modify-thisˡ A∉ ⟩
+    singleton (A , v ∸ v) ◇ singleton (B , v′ + v)
+  ≡⟨ cong (λ ◆ → singleton (A , ◆) ◇ singleton (B , v′ + v)) (Nat.n∸n≡0 v) ⟩
+    singleton (A , 0) ◇ singleton (B , v′ + v)
+  ∎ where open ≈-Reasoning
 
 -- ** Operational semantics
 -- We model configurations of the transition system as pairs of a ledger and its current state.
@@ -185,28 +219,34 @@ transfer {A}{B}{v}{v′} A≢B =
 infix 0 _—→_ _—→⋆_ _—→⋆′_
 
 data _—→_ : L × S → L × S → Set where
+
   singleStep :
-     ------------------------
+
+     ─────────────────────────
      t ∷ l , s —→ l , ⟦ t ⟧ s
 
 data _—→⋆_ : L × S → L × S → Set where
+
    base :
-       ---------
-       ls —→⋆ ls
+
+     ─────────
+     ls —→⋆ ls
 
    step :
-       ls —→ ls′
-     → ls′ —→⋆ ls″
-       ----------
-     → ls —→⋆ ls″
+
+     ∙ ls —→ ls′
+     ∙ ls′ —→⋆ ls″
+       ───────────
+       ls —→⋆ ls″
 
 _—→⋆′_ : L × S → S → Set
 ls —→⋆′ s = ls —→⋆ ([] , s)
 
 comp′ :
-    l       , s  —→⋆′ s′
-  → l′      , s′ —→⋆′ s″
-  → l ++ l′ , s  —→⋆′ s″
+  ∙ l       , s  —→⋆′ s′
+  ∙ l′      , s′ —→⋆′ s″
+    ────────────────────
+    l ++ l′ , s  —→⋆′ s″
 comp′ {l = []}    base                   s′→s″ = s′→s″
 comp′ {l = _ ∷ _} (step singleStep s→s′) s′→s″ = step singleStep (comp′ s→s′ s′→s″)
 

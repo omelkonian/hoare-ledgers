@@ -20,14 +20,14 @@ open import HoareLogic
 -- [Proofs]
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
-open import SL
+-- open import SL
 
 -- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).
 -- [Proofs]
 --  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,
 -- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)
 -- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.
-open import CSL
+-- open import CSL
 
 -- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,
 --    recording that values are correctly updated in pre-/post-conditions.
@@ -36,7 +36,7 @@ open import CSL
 --    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.
 -- 2. the second proof h′ utilizes modular reasoning via [PAR];
 --    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.
-open import Example
+-- open import Example
 
 -- ** Decidability of disjointness (only used in Example)
-open import Dec
+-- open import Dec
