@@ -1,4 +1,4 @@
-# Separation logic for UTXO-based blockchain ledgers
+# Separation logic for UTXO-based blockchain ledgers [![CI](https://github.com/omelkonian/hoare-ledgers/workflows/CI/badge.svg)](https://github.com/omelkonian/hoare-ledgers/actions)
 
 Browse the Agda code in HTML [here](http://omelkonian.github.io/hoare-ledgers).
 

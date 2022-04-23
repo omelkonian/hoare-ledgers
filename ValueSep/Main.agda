@@ -1,7 +1,7 @@
 module ValueSep.Main where
 
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.
--- We model the ledger state as maps from participants to balances, using the abstract map interface in Prelude.Maps,
+-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,
 -- and define both operational and denotational semantics.
 -- [Proofs]
 --    * correspondence between operational and denotational semantics
@@ -23,3 +23,4 @@ open import ValueSep.HoareLogic
 open import ValueSep.SL
 
 -- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.
+-- **SOLUTION** Change domain to incorporate failure, i.e. `S -> S` to `S -> Maybe S`.
