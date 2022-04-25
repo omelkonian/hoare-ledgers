@@ -1,4 +1,3 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
 ---------------------------
 -- ** Separation logic (SL)
 
@@ -6,7 +5,6 @@ open import Prelude.Init
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
--- open import Prelude.Maps
 open import ValueSep.Maps
 open import Prelude.Ord
 open import Prelude.General
@@ -16,40 +14,23 @@ open import Prelude.Semigroup
 open import Prelude.Functor
 open import Prelude.Monoid
 
-module ValueSep.SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.StrongSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import ValueSep.Ledger     Part ⦃ it ⦄
-open import ValueSep.HoareLogic Part ⦃ it ⦄
+-- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
+open import ValueSep.Ledger Part ⦃ it ⦄
+open import ValueSep.StrongHoareLogic Part ⦃ it ⦄
 
-instance
-  -- extensional version of disjointness
-  Denotable//Assertion : ∀ {A : Set} → ⦃ Denotable A ⦄ → A // Assertion
-  Denotable//Assertion ._♯_ x P = ∀ s → P s ⇔ lift↑ P (⟦ x ⟧ s)
-
-just-◇ˡ : ∀ {A : Set} ⦃ _ : Monoid A ⦄ ⦃ _ : MonoidLaws≡ A ⦄ (x : A) (mx : Maybe A) →
-  just x ◇ mx ≡ just (x ◇ fromMaybe ε mx)
-just-◇ˡ x = λ where
-  (just _) → refl
-  nothing  → cong just $ sym $ ε-identityʳ x
-
-just-◇ʳ : ∀ {A : Set} ⦃ _ : Monoid A ⦄ ⦃ _ : MonoidLaws≡ A ⦄ (x : A) (mx : Maybe A) →
-  mx ◇ just x ≡ just (fromMaybe ε mx ◇ x)
-just-◇ʳ x = λ where
-  (just _) → refl
-  nothing  → cong just $ sym $ ε-identityˡ x
-
-≈-[↝] : ∀ (k A : Part) s s′ {f : Op₁ ℕ} →
+≈-[↝] : ∀ (A : Part) s s′ {f : Op₁ ℕ} →
   s ≈ s′
-  ──────────────────────────────────
-  (s [ A ↝ f ]) k ≡ (s′ [ A ↝ f ]) k
-≈-[↝] k A s s′ s≈ rewrite s≈ k = refl
+  ──────────────────────────
+  s [ A ↝ f ] ≈ s′ [ A ↝ f ]
+≈-[↝] A s s′ s≈ k rewrite s≈ k = refl
 
-≈-[↝]² : ∀ (k A B : Part) s s′ {f g : Op₁ ℕ} →
+≈-[↝]² : ∀ (A B : Part) s s′ {f g : Op₁ ℕ} →
   s ≈ s′
-  ──────────────────────────────────
-  (s [ A ↝ f ] [ B ↝ g ]) k ≡ (s′ [ A ↝ f ] [ B ↝ g ]) k
-≈-[↝]² k A B s s′ s≈ rewrite s≈ k = refl
-
+  ──────────────────────────────────────────────
+  s [ A ↝ f ] [ B ↝ g ] ≈ s′ [ A ↝ f ] [ B ↝ g ]
+≈-[↝]² A B s s′ s≈ k rewrite s≈ k = refl
 
 ◇≡-[↝+] : ∀ A v →
   A ∈ᵈ s₁
@@ -107,7 +88,7 @@ just-◇ʳ x = λ where
   rewrite just-◇ˡ vᵃ (s₂ A) | just-◇ˡ vᵇ (s₂ B)
   with v ≤? vᵃ ◇ (s₂ ⁉⁰ A)
 ... | no v≰ = ⊥-elim $ v≰ $ Nat.≤-stepsʳ (s₂ ⁉⁰ A) $ v≤
-... | yes _ = M.Any.just qed
+... | yes _ = ret↑ qed
   where
     _s₁′ = s₁ [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
     _s′  = s  [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
@@ -119,46 +100,67 @@ just-◇ʳ x = λ where
     B∈₁′ = [↝]-mono A (_∸ v) s₁ B B∈₁
 
     qed : ⟨ _s₁′ ◇ s₂ ⟩≡ _s′
-    qed k
-      = begin
-        (_s₁′ ◇ s₂) k
-      ≡⟨⟩
-        ((s₁ [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]) ◇ s₂) k
-      ≡⟨ ◇≡-[↝+] {s₁ = s₁ [ A ↝ (_∸ v) ]} {s₂ = s₂} B v B∈₁′ k ⟩
-        (((s₁ [ A ↝ (_∸ v) ]) ◇ s₂) [ B ↝ (_+ v) ]) k
-      ≡⟨ (cong (fmap (if k == B then (_+ v) else id)) $ ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ As₁ v≤ k) ⟩
-        ((s₁ ◇ s₂) [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]) k
-      ≡⟨ ≈-[↝]² k A B (s₁ ◇ s₂) s ≡s ⟩
-        (s [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]) k
-      ≡⟨⟩
-        _s′ k
-      ∎ where open ≡-Reasoning
+    qed =
+      begin
+        _s₁′ ◇ s₂
+      ≈⟨ ◇≡-[↝+] {s₁ = s₁ [ A ↝ (_∸ v) ]} {s₂ = s₂} B v B∈₁′ ⟩
+        ((s₁ [ A ↝ (_∸ v) ]) ◇ s₂) [ B ↝ (_+ v) ]
+      ≈⟨ (λ k → cong (fmap (if k == B then (_+ v) else id)) $ ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ As₁ v≤ k) ⟩
+        (s₁ ◇ s₂) [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
+      ≈⟨ ≈-[↝]² A B (s₁ ◇ s₂) s ≡s ⟩
+        _s′
+      ∎ where open ≈-Reasoning
+
+◇-⟦⟧ᵗ˘ : ∀ s₂′ →
+  ∙ ⟦ t ⟧ s₂ ≡ just s₂′
+  ∙ ⟨ s₁ ◇ s₂ ⟩≡ s
+    ────────────────────────────────
+    lift↑ (⟨ s₁ ◇ s₂′ ⟩≡_) (⟦ t ⟧ s)
+◇-⟦⟧ᵗ˘ {t@(A —→⟨ v ⟩ B)}{s₂}{s₁}{s} s₂′ ⟦t⟧s≡ ≡s
+  with ⟦ t ⟧ s | ◇-⟦⟧ᵗ {t = t}{s₂}{s₁} s₂′ ⟦t⟧s≡ (◇≡-comm {x = s₁}{s₂} ≡s)
+... | just _ | ret↑ ≡s′ = ret↑ (◇≡-comm {x = s₂′}{s₁} ≡s′)
 
 ◇-⟦⟧ : ∀ s₁′ →
   ∙ ⟦ l ⟧ s₁ ≡ just s₁′
   ∙ ⟨ s₁ ◇ s₂ ⟩≡ s
     ────────────────────────────────
     lift↑ (⟨ s₁′ ◇ s₂ ⟩≡_) (⟦ l ⟧ s)
-◇-⟦⟧ {l = []} _ refl p = M.Any.just p
+◇-⟦⟧ {l = []} _ refl p = ret↑ p
 ◇-⟦⟧ {l = t ∷ l} {s₁ = s₁} {s₂} {s} s₁″ eq ≡s
   with ⟦ t ⟧ s₁ in ⟦t⟧s≡
 ... | just s₁′
   with ⟦ t ⟧ s | ◇-⟦⟧ᵗ {t = t} {s₁ = s₁} {s₂ = s₂} s₁′ ⟦t⟧s≡ ≡s
-... | just s′  | M.Any.just s₁′◇s₂≡s′
+... | just s′  | ret↑ s₁′◇s₂≡s′
   with ⟦ l ⟧ s₁′ in ⟦l⟧s≡ | eq
 ... | just .s₁″           | refl
   = ◇-⟦⟧ {l = l} {s₁ = s₁′} {s₂ = s₂} s₁″ ⟦l⟧s≡ s₁′◇s₂≡s′
 
+◇-⟦⟧˘ : ∀ s₂′ →
+  ∙ ⟦ l ⟧ s₂ ≡ just s₂′
+  ∙ ⟨ s₁ ◇ s₂ ⟩≡ s
+    ────────────────────────────────
+    lift↑ (⟨ s₁ ◇ s₂′ ⟩≡_) (⟦ l ⟧ s)
+◇-⟦⟧˘ {l = l} {s₂ = s₂} {s₁} {s} s₂′ eq ≡s
+  with ⟦ l ⟧ s | ◇-⟦⟧ {l = l} {s₁ = s₂} {s₁} {s} s₂′ eq (◇≡-comm {x = s₁}{s₂} ≡s)
+... | just _ | ret↑ ≡s′ = ret↑ (◇≡-comm {x = s₂′}{s₁} ≡s′)
+
 -- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts
--- and then weaken our results to the desired context (assuming the rest of the context is disjoint).
+-- and then weaken our results to the desired context.
 [FRAME] : ∀ R →
-  -- ∙ l ♯ R
-  ∙ ⟨ P ⟩ l ⟨ Q ⟩
-    ─────────────────────
-    ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
-[FRAME] {P}{l}{Q} R PlQ s (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
-  with ⟦ l ⟧ s₁ in s₁≡ | PlQ s₁ Ps₁
-... | .just s₁′        | M.Any.just Qs₁′
+  -- l ♯ R
+  ⟨ P ⟩ l ⟨ Q ⟩
+  ─────────────────────
+  ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
+[FRAME] {P}{l}{Q} R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
+  with ⟦ l ⟧ s₁ in s₁≡ | PlQ Ps₁
+... | .just s₁′ | ret↑ Qs₁′
  with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
-... | .just s′      | M.Any.just ≡s′
-  = M.Any.just (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
+... | .just s′ | ret↑ ≡s′
+  = ret↑ (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
+
+open HoareReasoning
+ℝ[FRAME] : ∀ R →
+  ℝ⟨ P ⟩ l ⟨ Q ⟩
+  ─────────────────────
+  ℝ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
+ℝ[FRAME] {l = l} R PlQ = mkℝ [FRAME] {l = l} R (begin PlQ)
