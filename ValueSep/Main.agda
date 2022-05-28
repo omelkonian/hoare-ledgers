@@ -1,5 +1,10 @@
 module ValueSep.Main where
 
+-- ** Concrete implementation of (shallow) maps (mostly copied from Prelude.Maps).
+--    ∙ this makes the code more self-contained
+--    ∙ as the implementation is not abstract anymore, we can utilize decidability in our (closed) examples
+open import ValueSep.Maps
+
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.
 -- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,
 -- and define both operational and denotational semantics.

@@ -65,7 +65,7 @@ hoare-step :
   ─────────────────────────
   ⟨ P ↑∘ ⟦ t ⟧ ⟩ t ∷ l ⟨ Q ⟩
 hoare-step {t = t} PlQ {s} Ps↑ with ⟦ t ⟧ s | Ps↑
-... | just _  | ret↑ Ps = PlQ Ps
+... | _       | ret↑ Ps = PlQ Ps
 ... | nothing | ret∅    = ret∅
 
 consequence :

@@ -12,6 +12,7 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
+open import Prelude.Monad
 
 module ValueSep.StrongHoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
@@ -57,12 +58,32 @@ hoare-base :
   ⟨ P ⟩ [] ⟨ P ⟩
 hoare-base = ret↑
 
+module _ (f : S → Maybe S) where
+  lift∘>>= : ∀ {ms}
+    → lift↑ (lift↑ P ∘ f) ms
+    → lift↑ P (ms >>= f)
+  lift∘>>= (ret↑ p) = p
+
+  lift∘>>=˘ : ∀ {ms : Maybe S}
+    → lift↑ P (ms >>= f)
+    → lift↑ (lift↑ P ∘ f) ms
+  lift∘>>=˘ {ms = just s} p = ret↑ p
+
+  lift∘=<<  = lift∘>>=
+  lift∘=<<˘ = lift∘>>=˘
+
+module _ (f g : S → Maybe S) where
+  lift²∘>=> : (P ↑∘ g ↑∘ f) ⊢ (P ↑∘ (f >=> g))
+  lift²∘>=> = lift∘=<< _
+
+  lift²∘>=>˘ : (P ↑∘ (f >=> g)) ⊢ (P ↑∘ g ↑∘ f)
+  lift²∘>=>˘ = lift∘=<<˘ _
+
 hoare-step :
   ⟨ P ⟩ l ⟨ Q ⟩
   ──────────────────────────
   ⟨ P ↑∘ ⟦ t ⟧ ⟩ t ∷ l ⟨ Q ⟩
-hoare-step {P}{l}{Q} {t = t} PlQ {s} Ps↑ with ⟦ t ⟧ s | Ps↑
-... | just _ | ret↑ Ps = PlQ Ps
+hoare-step {t = t} PlQ {s} = lift²∘>=> ⟦ t ⟧ _ {x = s} ∘ map↑ PlQ
 
 consequence :
   ∙ P′ ⊢ P   -- ^ weakening the pre-condition
@@ -84,15 +105,27 @@ axiom-base⋆ {P = P} {l = []} = weaken {P′ = P ↑∘ ⟦ [] ⟧} {l = []} (�
 axiom-base⋆ {P = P} {l = t ∷ l} = map↑ id
 
 -- Derived alternative formulation for step, using list concatenation.
+
 hoare-step′ :
   ∙ ⟨ P ⟩ l  ⟨ Q ⟩
   ∙ ⟨ Q ⟩ l′ ⟨ R ⟩
     ───────────────────
     ⟨ P ⟩ l ++ l′ ⟨ R ⟩
-hoare-step′ {P}{l}{Q}{l′}{R} PlQ QlR {s} Ps
-  rewrite comp {l}{l′} s
-  with ⟦ l ⟧ s | PlQ Ps
-... | just _   | ret↑ Qs′ = QlR Qs′
+hoare-step′ {P}{l}{Q}{l′}{R} PlQ QlR
+--   {s} Ps rewrite comp {l}{l′} s
+--   with ⟦ l ⟧ s | PlQ Ps
+-- ... | .(just _) | ret↑ Qs′ = QlR Qs′
+  = begin
+    P
+  ⊢⟨ PlQ  ⟩
+    Q ↑∘ ⟦ l ⟧
+  ⊢⟨ map↑ QlR ⟩
+    R ↑∘ ⟦ l′ ⟧ ↑∘ ⟦ l ⟧
+  ⊢⟨ lift²∘>=> ⟦ l ⟧ ⟦ l′ ⟧  ⟩
+    R ↑∘ (⟦ l ⟧ >=> ⟦ l′ ⟧)
+  ≗˘⟨ cong (lift↑ R) ∘ comp {l}{l′} ⟩
+    R ↑∘ ⟦ l ++ l′ ⟧
+  ∎ where open ⊢-Reasoning
 
 -- ** Reasoning syntax for Hoare triples.
 module HoareReasoning where

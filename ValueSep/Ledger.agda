@@ -89,10 +89,10 @@ instance
   ⟦L⟧ .⟦_⟧ (t ∷ l) = ⟦ t ⟧ >=> ⟦ l ⟧
 
 comp : ∀ x → ⟦ l ++ l′ ⟧ x ≡ (⟦ l ⟧ >=> ⟦ l′ ⟧) x
-comp {l = []}    {l′} x = refl
-comp {l = t ∷ l} {l′} x with ⟦ t ⟧ x
+comp {l = []}    x = refl
+comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | nothing = refl
-... | just s  = comp {l} {l′} s
+... | just s  = comp {l} s
 
 -- Executing transactions never introduces new keys in the resulting map out-of-thin-air.
 ⟦⟧ₜ-mono : KeyMonotonicᵐ ⟦ t ⟧

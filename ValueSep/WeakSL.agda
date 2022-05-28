@@ -25,18 +25,6 @@ instance
   Denotable//Assertion : ∀ {A : Set} → ⦃ Denotable A ⦄ → A // Assertion
   Denotable//Assertion ._♯_ x P = ∀ s → P s ⇔ lift↑ P (⟦ x ⟧ s)
 
-just-◇ˡ : ∀ {A : Set} ⦃ _ : Monoid A ⦄ ⦃ _ : MonoidLaws≡ A ⦄ (x : A) (mx : Maybe A) →
-  just x ◇ mx ≡ just (x ◇ fromMaybe ε mx)
-just-◇ˡ x = λ where
-  (just _) → refl
-  nothing  → cong just $ sym $ ε-identityʳ x
-
-just-◇ʳ : ∀ {A : Set} ⦃ _ : Monoid A ⦄ ⦃ _ : MonoidLaws≡ A ⦄ (x : A) (mx : Maybe A) →
-  mx ◇ just x ≡ just (fromMaybe ε mx ◇ x)
-just-◇ʳ x = λ where
-  (just _) → refl
-  nothing  → cong just $ sym $ ε-identityˡ x
-
 ≈-[↝] : ∀ (k A : Part) s s′ {f : Op₁ ℕ} →
   s ≈ s′
   ──────────────────────────────────
@@ -185,8 +173,8 @@ just-◇ʳ x = λ where
   ∙ ⟨ P ⟩ l ⟨ Q ⟩
     ─────────────────────
     ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
-[FRAME] {l}{P}{Q} R l♯R PlQ s (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
-  with ⟦ l ⟧ s₁ in s₁≡ | PlQ s₁ Ps₁
+[FRAME] {l}{P}{Q} R l♯R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
+  with ⟦ l ⟧ s₁ in s₁≡ | PlQ Ps₁
 ... | nothing   | ret∅ rewrite ◇-⟦⟧⁻ {l = l} s₁≡ ≡s Rs₂ l♯R = ret∅
 ... | .just s₁′ | ret↑ Qs₁′
  with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s

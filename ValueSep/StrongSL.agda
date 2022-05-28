@@ -154,7 +154,7 @@ open import ValueSep.StrongHoareLogic Part ⦃ it ⦄
 [FRAME] {P}{l}{Q} R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
   with ⟦ l ⟧ s₁ in s₁≡ | PlQ Ps₁
 ... | .just s₁′ | ret↑ Qs₁′
- with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
+  with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
 ... | .just s′ | ret↑ ≡s′
   = ret↑ (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
 
