@@ -1,49 +1,53 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Ord
-open import Prelude.Maps
+open import Prelude.Maps.Abstract; open CommandDSL
 open import Prelude.Apartness
+open import Prelude.Setoid
+open import Prelude.Monoid
 
-module ShallowHoare.SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ShallowHoare.SL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ShallowHoare.Ledger     Part ⦃ it ⦄
 open import ShallowHoare.HoareLogic Part ⦃ it ⦄
 
+instance _ = Semigroup-ℕ-+; _ = SemigroupLaws-ℕ-+; _ = Monoid-ℕ-+; _ = MonoidLaws-ℕ-+
+
 -- Which participants does a ledger modify?
-mod : Part → L → Set
+mod : Part → L → Type
 mod A = Any λ t → A L.Mem.∈ (t .sender ∷ t .receiver ∷ [])
 
 -- Which participants does an assertion refer to?
-addr : Part → Assertion → Set
+addr : Part → Assertion → Type
 addr A `emp     = ⊥
 addr A (B `↦ _) = A ≡ B
 addr A (P `∗ Q) = addr A P ⊎ addr A Q
 addr A (P `∘⟦ _ ⟧) = addr A P
 
 -- Define disjointness between ledgers/states/formulas as disjointness of the participant set they refer to.
-_ˡ♯_ : L → S → Set
+_ˡ♯_ : L → S → Type
 l ˡ♯ s = ∀ A → mod A l → A ∉ᵈ s
 
-_♯ˡ_ : S → L → Set
+_♯ˡ_ : S → L → Type
 s ♯ˡ l = ∀ A → A ∈ᵈ s → ¬ mod A l
 
-_♯♯_ : L → Assertion → Set
+_♯♯_ : L → Assertion → Type
 l ♯♯ P = ∀ A → mod A l → ¬ addr A P
 
-_♯♯′_ : L → S → Set
+_♯♯′_ : L → S → Type
 l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
 
 -- ** Utility lemmas about separation.
 
 ∈ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∈ᵈ s → A ∈ᵈ s₁ ⊎ A ∈ᵈ s₂
-∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈ = ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
+∈ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∈ = ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong _ _ _ (≈-sym p) A∈)
 
 ∉ᵈ-∪ : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s → A ∉ᵈ s₁ × A ∉ᵈ s₂
-∉ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉ = A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ˡ _ _ _ , A∉ ∘ ∈ᵈ-cong p ∘ ∈ᵈ-∪⁺ʳ _ _ _
+∉ᵈ-∪ {s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉ = A∉ ∘ ∈ᵈ-cong _ _ _ p ∘ ∈ᵈ-∪⁺ˡ _ _ _ , A∉ ∘ ∈ᵈ-cong _ _ _ p ∘ ∈ᵈ-∪⁺ʳ _ _ _
 
 ∈⇒addr : A ∈ᵈ s → P ∙ s → addr A P
 ∈⇒addr {A}{s}{P = `emp} A∈ Ps = ⊥-elim $ Ps A A∈
@@ -54,11 +58,11 @@ l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
   with ∈ᵈ-∪ ≡s A∈
 ... | inj₁ A∈₁ = inj₁ $ ∈⇒addr {P = P} A∈₁ Ps₁
 ... | inj₂ A∈₂ = inj₂ $ ∈⇒addr {P = Q} A∈₂ Qs₂
-∈⇒addr {A}{s}{P = P `∘⟦ l ⟧} A∈ Ps = ∈⇒addr {P = P} (⟦⟧ₗ-mono {l} s A A∈) Ps
+∈⇒addr {A}{s}{P = P `∘⟦ l ⟧} A∈ Ps = ∈⇒addr {P = P} (⟦⟧ₗ-mono {l} s A∈) Ps
 
 ∉⇒¬addr : A ∉ᵈ s → P ∙ s → ¬ addr A P
 ∉⇒¬addr {A}{s}{P = `emp} A∉ Ps ()
-∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ (Ps , _) refl = A∉ $ ⁉⇒∈ᵈ (subst Is-just (sym Ps) auto)
+∉⇒¬addr {A}{s}{P = .A `↦ _} A∉ (Ps , _) refl = A∉ $ ⁉⇒∈ᵈ _ (subst Is-just (sym Ps) auto)
 ∉⇒¬addr {A}{s}{P = P `∗ Q} A∉ (s₁ , s₂ , ≡s , Ps₁ , Qs₂) A∈
   with A∉ˡ , A∉ʳ ← ∉ᵈ-∪ ≡s A∉
   with A∈
@@ -81,19 +85,19 @@ l ♯♯′ s = ∀ A → mod A l → A ∉ᵈ s
 ♯♯⇒ˡ♯ {l}{R `∗ Q}{s} l♯R (s₁ , s₂ , ≡s , Rs₁ , Qs₂) A A∈
   with s₁ ⁉ A | inspect (s₁ ⁉_) A | s₂ ⁉ A | inspect (s₂ ⁉_) A
 ... | just _  | ≡[ s₁≡ ] | _       | _
-    = ⊥-elim $ l♯R A A∈ $ inj₁ $ ∈⇒addr {A}{s₁}{R} (⁉⇒∈ᵈ $ subst Is-just (sym s₁≡) auto) Rs₁
+    = ⊥-elim $ l♯R A A∈ $ inj₁ $ ∈⇒addr {A}{s₁}{R} (⁉⇒∈ᵈ _ $ subst Is-just (sym s₁≡) auto) Rs₁
 ... | _       | _        | just _  | ≡[ s₂≡ ]
-    = ⊥-elim $ l♯R A A∈ $ inj₂ $ ∈⇒addr {A}{s₂}{Q} (⁉⇒∈ᵈ $ subst M.Is-just (sym s₂≡) auto) Qs₂
+    = ⊥-elim $ l♯R A A∈ $ inj₂ $ ∈⇒addr {A}{s₂}{Q} (⁉⇒∈ᵈ _ $ subst M.Is-just (sym s₂≡) auto) Qs₂
 ... | nothing | ≡[ s₁≡ ] | nothing | ≡[ s₂≡ ]
-  = ∉-splits ≡s (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁≡) auto))
-                (⊥-elim ∘ ⁉⇒∉ᵈ (subst Is-nothing (sym s₂≡) auto))
+  = ∉-splits ≡s (⊥-elim ∘ ⁉⇒∉ᵈ _ (subst Is-nothing (sym s₁≡) auto))
+                (⊥-elim ∘ ⁉⇒∉ᵈ _ (subst Is-nothing (sym s₂≡) auto))
 ♯♯⇒ˡ♯ {_}{R `∘⟦ l ⟧}{s} l♯R Rs A A∈ = ¬A∈
   where
     A∉ : A ∉ᵈ ⟦ l ⟧ s
     A∉ = ♯♯⇒ˡ♯ {R = R} {s = ⟦ l ⟧ s} l♯R Rs A A∈
 
     ¬A∈ : A ∉ᵈ s
-    ¬A∈ = A∉ ∘ ⟦⟧ₗ-mono {l} s A
+    ¬A∈ = A∉ ∘ ⟦⟧ₗ-mono {l} s
 
 
 -- Helper lemma for [FRAME]: pushing ⟦ l ⟧ inside the partition.
@@ -139,25 +143,25 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
       with ¿ k ∈ᵈ s₂ ¿
     ... | yes k∈
       with k≢A , k≢B ← ∉⇒≢ k k∈
-      rewrite ∪-chooseᵣ p₁ k∈
-            | ∪-chooseᵣ s₁♯s₂ k∈
+      rewrite ∪-chooseᵣ _ _ p₁ k∈
+            | ∪-chooseᵣ _ _ s₁♯s₂ k∈
             | drop-[∣↦] {v = v} {s = s} k k≢A k≢B
             = eq
     ... | no k∉
-      rewrite ∪-chooseₗ p₁ k∉
-            | ∪-chooseₗ s₁♯s₂ k∉
+      rewrite ∪-chooseₗ _ _ p₁ k∉
+            | ∪-chooseₗ _ _ s₁♯s₂ k∉
       with s₁ ⁉ A | inspect (s₁ ⁉_) A
          | s  ⁉ A | inspect (s  ⁉_) A
          | eqᵃ
     ... | nothing | _ | nothing | _ | _ = eq
     ... | nothing | ≡[ s₁A≡ ] | just _  | ≡[ sA≡ ] | _
-        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁A≡) auto)
-          in ⊥-elim $ A∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵃ sA≡)) auto
+        = let p = ↦-∪⁺ʳ _ s₂ $ ⁉⇒∉ᵈ _ (subst Is-nothing (sym s₁A≡) auto)
+          in ⊥-elim $ A∉₂ $ ⁉⇒∈ᵈ _ $ subst Is-just (sym $ trans p (trans eqᵃ sA≡)) auto
     ... | just vᵃ | ≡[ s₁A≡ ] | nothing | _ | eqᵃ′
-        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁A≡)) eqᵃ′ of λ ()
+        = case trans (sym $ (↦-∪⁺ˡ _ s₂ s₁A≡)) eqᵃ′ of λ ()
     ... | just vᵃ  | ≡[ s₁A≡ ] | just vᵃ′ | _ | eqᵃ′
       with vᵃ ≟ vᵃ′
-    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁A≡) eqᵃ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ _ s₂ s₁A≡) eqᵃ′
     ... | yes refl
       with s₁ ⁉ B | inspect (s₁ ⁉_) B
          | s  ⁉ B | inspect (s  ⁉_) B
@@ -165,17 +169,17 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
     ... | nothing | _ | nothing | _ | _
         = eq
     ... | nothing | ≡[ s₁B≡ ] | just _  | ≡[ sB≡ ] | _
-        = let p = ↦-∪⁺ʳ {s₂ = s₂} $ ⁉⇒∉ᵈ (subst Is-nothing (sym s₁B≡) auto)
-          in ⊥-elim $ B∉₂ $ ⁉⇒∈ᵈ $ subst Is-just (sym $ trans p (trans eqᵇ sB≡)) auto
+        = let p = ↦-∪⁺ʳ _ s₂ $ ⁉⇒∉ᵈ _ (subst Is-nothing (sym s₁B≡) auto)
+          in ⊥-elim $ B∉₂ $ ⁉⇒∈ᵈ _  $ subst Is-just (sym $ trans p (trans eqᵇ sB≡)) auto
     ... | just vᵇ | ≡[ s₁B≡ ] | nothing | _ | eqᵇ′
-        = case trans (sym $ (↦-∪⁺ˡ {s₂ = s₂} s₁B≡)) eqᵇ′ of λ ()
+        = case trans (sym $ (↦-∪⁺ˡ _ s₂ s₁B≡)) eqᵇ′ of λ ()
     ... | just vᵇ  | ≡[ s₁B≡ ] | just vᵇ′ | _ | eqᵇ′
       with vᵇ ≟ vᵇ′
-    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ {s₂ = s₂} s₁B≡) eqᵇ′
+    ... | no neq = ⊥-elim $ neq $ M.just-injective $ trans (sym $ ↦-∪⁺ˡ _ s₂ s₁B≡) eqᵇ′
     ... | yes refl
       with v ≤? vᵃ
     ... | no  _ = eq
-    ... | yes _ = ≡-cong-update $ ≡-cong-update eq
+    ... | yes _ = ≡-cong-update _ _ $ ≡-cong-update _ _ eq
 
     p′ : ⟨ run [ A ∣ v ↦ B ] s₁ ⊎ s₂ ⟩≡ run [ A ∣ v ↦ B ] s
     p′ = p₁ , p₂

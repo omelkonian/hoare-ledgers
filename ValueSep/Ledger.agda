@@ -66,27 +66,67 @@ record Denotable (A : Set) : Set where
   field ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
 
+-- pure fragment without error-handling
+Domain₀ = S → S
+
+record Denotable₀ (A : Set) : Set where
+  field ⟦_⟧₀ : A → Domain₀
+open Denotable₀ ⦃...⦄ public
+
+IsValidTx : Tx → S → Set
+IsValidTx (A —→⟨ v ⟩ B) s =
+  case (s A , s B) of λ where
+    (just vᵃ , just _) → v ≤ vᵃ
+    (_ , _) → ⊥
+
+data IsValidTx′ : Tx → S → Set where
+
+  mkValid : ∀ {vᵃ} →
+
+    ∙ s A ≡ just vᵃ
+    ∙ Is-just (s B)
+    ∙ v ≤ vᵃ
+      ──────────────────────────
+      IsValidTx′ (A —→⟨ v ⟩ B) s
+
+isValidTx? : Decidable² IsValidTx
+isValidTx? t@(A —→⟨ v ⟩ B) s
+  with s A | s B
+... | nothing | _       = no λ ()
+... | just _  | nothing = no λ ()
+... | just vᵃ | just _
+  with v ≤? vᵃ
+... | no  v≰ = no  v≰
+... | yes v≤ = yes v≤
+
+isValidTx : Tx → S → Bool
+isValidTx t s = ⌊ isValidTx? t s ⌋
+
 -- Express the action of tranferring values between keys in a map.
 -- NB: a transaction goes through only when:
 --   1. both participants are present in the domain
 --   2. the sender holds sufficient funds
 instance
   -- we denote a transaction as the map transformation that implements the transfer
+  ⟦Tx⟧₀ : Denotable₀ Tx
+  ⟦Tx⟧₀ .⟦_⟧₀ (A —→⟨ v ⟩ B) s = s [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
+
   ⟦Tx⟧ : Denotable Tx
-  ⟦Tx⟧ .⟦_⟧ (A —→⟨ v ⟩ B) m =
-    case (m A , m B) of λ where
-      (just vᵃ , just vᵇ) →
-        if v ≤ᵇ vᵃ then
-          just $ m [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
-        else
-          nothing
-      (_ , _) → nothing
+  ⟦Tx⟧ .⟦_⟧ t s = M.when (isValidTx t s) (⟦ t ⟧₀ s)
 
   -- we denote a ledger as the composition of the denotations of its transactions,
   -- i.e. we run all transactions in sequence
+  ⟦L⟧₀ : Denotable₀ L
+  ⟦L⟧₀ .⟦_⟧₀ []      = id
+  ⟦L⟧₀ .⟦_⟧₀ (t ∷ l) = ⟦ l ⟧₀ ∘ ⟦ t ⟧₀
+
   ⟦L⟧ : Denotable L
   ⟦L⟧ .⟦_⟧ []      s = just s
   ⟦L⟧ .⟦_⟧ (t ∷ l) = ⟦ t ⟧ >=> ⟦ l ⟧
+
+comp₀ : ∀ x → ⟦ l ++ l′ ⟧₀ x ≡ (⟦ l′ ⟧₀ ∘ ⟦ l ⟧₀) x
+comp₀ {l = []}    _ = refl
+comp₀ {l = t ∷ l} x = comp₀ {l} (⟦ t ⟧₀ x)
 
 comp : ∀ x → ⟦ l ++ l′ ⟧ x ≡ (⟦ l ⟧ >=> ⟦ l′ ⟧) x
 comp {l = []}    x = refl
@@ -101,9 +141,9 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | just _  | nothing = M.All.nothing
 ... | nothing | _       = M.All.nothing
 ... | just vᵃ | just vᵇ
-  with v ≤ᵇ vᵃ
-... | false = M.All.nothing
-... | true  = M.All.just λ k → [↝]-mono B (_+ v) (m [ A ↝ (_∸ v) ]) k ∘ [↝]-mono A (_∸ v) m k
+  with v ≤? vᵃ
+... | no  _ = M.All.nothing
+... | yes _ = M.All.just λ k → [↝]-mono B (_+ v) (m [ A ↝ (_∸ v) ]) k ∘ [↝]-mono A (_∸ v) m k
 
 ⟦⟧ₗ-mono : KeyMonotonicᵐ ⟦ l ⟧
 ⟦⟧ₗ-mono {[]}    _ = M.All.just λ _ → id
@@ -122,9 +162,9 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | just _  | nothing = M.All.nothing
 ... | nothing | _       = M.All.nothing
 ... | just vᵃ | just vᵇ
-  with v ≤ᵇ vᵃ
-... | false = M.All.nothing
-... | true  = M.All.just λ k k∈ → [↝]-pre A (_∸ v) m _ ([↝]-pre B (_+ v) (m [ A ↝ (_∸ v) ]) k k∈)
+  with v ≤? vᵃ
+... | no  _ = M.All.nothing
+... | yes _ = M.All.just λ k k∈ → [↝]-pre A (_∸ v) m _ ([↝]-pre B (_+ v) (m [ A ↝ (_∸ v) ]) k k∈)
 
 ⟦⟧ₗ-pre : KeyPreservingᵐ ⟦ l ⟧
 ⟦⟧ₗ-pre {[]} _ = M.All.just λ _ → id
@@ -151,129 +191,56 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 -- ** Operational semantics
 -- We model configurations of the transition system as pairs of a ledger and its current state.
 
-infix 0 _—→_ _—→∅ _—→⋆_ _—→⋆∅ _—→⋆_✓
-
-data _—→_ : L × S → Maybe (L × S) → Set where
-
-  singleStep :
-
-     ─────────────────────────
-     t ∷ l , s —→ l ,_ <$> ⟦ t ⟧ s
-
--- data _—→⋆_ : Rel₀ (L × S) where
-
---    base :
-
---      ──────────────
---      ls —→⋆ ls
-
---    step :
-
---      ∙ ls  —→ just ls′
---      ∙ ls′ —→⋆ ls″
---        ───────────
---        ls —→⋆ ls″
-
--- comp′ :
---   ∙ l       , s  —→⋆′ s′
---   ∙ l′      , s′ —→⋆′ s″
---     ────────────────────
---     l ++ l′ , s  —→⋆′ s″
--- comp′ {l = []}    base                   s′→s″ = s′→s″
--- comp′ {l = t ∷ l}{s} (step x s→) s′→
---   with ⟦ t ⟧ s | singleStep {t}{l}{s}
--- ... | nothing | H = step {!singleStep!} s′→
--- ... | just s′ | H
---   = {!!}
--- (step singleStep s→s′) s′→s″ = step singleStep (comp′ s→s′ s′→s″)
-
-data _—→⋆_ : L × S → Maybe (L × S) → Set where
+infix 0 _—→_
+data _—→_ : L × S → S → Set where
 
   base :
-    ──────────────
-    ls —→⋆ just ls
+    ────────────
+    ε , s —→ s
 
-  step-✓ :
-    ∙ ls  —→  just ls′
-    ∙ ls′ —→⋆ mls″
-      ───────────
-      ls  —→⋆ mls″
+  step : ∀ {vᵃ} → let t = A —→⟨ v ⟩ B in
 
-  step-∅ :
-    ∙ ls  —→  nothing
-      ───────────────
-      ls  —→⋆ nothing
+    ∙ s A ≡ just vᵃ
+    ∙ Is-just (s B)
+    ∙ v ≤ vᵃ
+    ∙ l , ⟦ t ⟧₀ s —→ s′
+      ──────────────────
+      t ∷ l , s —→ s′
 
-_—→∅ _—→⋆∅ : L × S → Set
-ls —→∅  = ls —→  nothing
-ls —→⋆∅ = ls —→⋆ nothing
-
-_—→⋆_✓ : L × S → S → Set
-ls —→⋆ s ✓ = ls —→⋆ just ([] , s)
-
--- comp′ :
---   ∙ l       , s  —→⋆ s′ ✓
---   ∙ l′      , s′ —→⋆ s″ ✓
---     ─────────────────────
---     l ++ l′ , s  —→⋆ s″ ✓
--- comp′ {.[]}      base         p = p
--- comp′ {t ∷ l}{s} (step-✓ p q) r
---   with ⟦ t ⟧ s | p
--- ... | nothing | absurd = {!!}
--- ... | just s′ | _ = {!!}
--- step-✓ {!comp′ s→s′ s′→s″!} {!s′→✓!}
-
--- comp′ {l = []}    base                   s′→s″ = s′→s″
--- comp′ {l = _ ∷ _} (step (singleStep s≡) s→s′) s′→s″ = step (singleStep s≡) (comp′ s→s′ s′→s″)
-
--- data _—→_ : Rel₀ (L × S) where
-
---   singleStep :
-
---      ⟦ t ⟧ s ≡ just s′
---      ─────────────────────────
---      t ∷ l , s —→ l , s′
-
--- data _—→⋆_ : Rel₀ (L × S) where
-
---    base :
-
---      ─────────
---      ls —→⋆ ls
-
---    step :
-
---      ∙ ls —→ ls′
---      ∙ ls′ —→⋆ ls″
---        ───────────
---        ls —→⋆ ls″
-
--- _—→⋆_✓ : L × S → S → Set
--- ls —→⋆ s ✓ = ls —→⋆ ([] , s)
-
--- comp′ :
---   ∙ l       , s  —→⋆′ s′
---   ∙ l′      , s′ —→⋆′ s″
---     ────────────────────
---     l ++ l′ , s  —→⋆′ s″
--- comp′ {l = []}    base                   s′→s″ = s′→s″
--- comp′ {l = _ ∷ _} (step (singleStep s≡) s→s′) s′→s″ = step (singleStep s≡) (comp′ s→s′ s′→s″)
-
-oper-base⋆ :
-  ⟦ l ⟧ s ≡ just s′
-  ────────────────────
-  l , s —→⋆ s′ ✓
-oper-base⋆ {l = []} refl = base
-oper-base⋆ {l = t ∷ l}{s} l≡ with ⟦ t ⟧ s | singleStep {t}{l}{s}
-... | just s′ | H = step-✓ H (oper-base⋆ l≡)
+oper-comp :
+  ∙ l       , s  —→ s′
+  ∙ l′      , s′ —→ s″
+    ────────────────────
+    l ++ l′ , s  —→ s″
+oper-comp {l = []}    base                   s′→s″ = s′→s″
+oper-comp {l = _ ∷ _} (step sA≡ sB≡ v≤ s→s′) s′→s″ = step sA≡ sB≡ v≤ (oper-comp s→s′ s′→s″)
 
 -- ** Relating denotational and operational semantics.
--- denot⇒oper : (⟦ l ⟧ s ≡ ms′) → (l , s —→⋆ ms′ ✓)
--- denot⇒oper = oper-base⋆
+denot⇒oper :
+  ⟦ l ⟧ s ≡ just s′
+  ─────────────────
+  l , s —→ s′
+denot⇒oper {l = []} refl = base
+denot⇒oper {l = A —→⟨ v ⟩ B ∷ l}{s} l≡
+  with s A in sA≡ | s B in sB≡
+... | just vᵃ | just vᵇ
+  with v ≤? vᵃ
+... | yes v≤
+  = step sA≡ (⟪ Is-just ⟫ sB≡ ~: auto) v≤ (denot⇒oper l≡)
 
--- oper⇒denot : (l , s —→⋆′ s′) → (⟦ l ⟧ s ≡ just s′)
--- oper⇒denot {l = .[]} base  = refl
--- oper⇒denot {l = _ ∷ _} (step (singleStep s≡) p) rewrite s≡ | oper⇒denot p = refl
+oper⇒denot :
+  l , s —→ s′
+  ─────────────────
+  ⟦ l ⟧ s ≡ just s′
+oper⇒denot {l = .[]} base = refl
+oper⇒denot {l = A —→⟨ v ⟩ B ∷ _}{s} (step {vᵃ = vᵃ} sA≡ sB≡ v≤ p)
+  with s A     | sA≡    | s B    | sB≡
+... | just .vᵃ | refl   | just _ | _
+  rewrite dec-yes (v ≤? vᵃ) v≤ .proj₂
+  = oper⇒denot p
 
--- denot⇔oper : (⟦ l ⟧ s ≡ just s′) ⇔ (l , s —→⋆′ s′)
--- denot⇔oper = denot⇒oper , oper⇒denot
+denot⇔oper :
+  ⟦ l ⟧ s ≡ just s′
+  ═════════════════
+  l , s —→ s′
+denot⇔oper = denot⇒oper , oper⇒denot

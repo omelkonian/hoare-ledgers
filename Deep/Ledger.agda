@@ -4,14 +4,19 @@ open import Prelude.General
 open Integer using () renaming (_-_ to _-ℤ_; _+_ to _+ℤ_)
 open import Prelude.DecEq
 open import Prelude.Sets
-open import Prelude.Maps hiding (∅; singleton) renaming (_∪_ to _∪ᵐ_)
+open import Prelude.Maps.Abstract hiding (∅; singleton) renaming (_∪_ to _∪ᵐ_)
+open CommandDSL
 open import Prelude.Lists
 open import Prelude.Apartness
+open import Prelude.Semigroup
+open import Prelude.Monoid
 
 module Deep.Ledger
   (Part : Set) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where
+
+instance _ = Semigroup-ℤ-+; _ = SemigroupLaws-ℤ-+; _ = Monoid-ℤ-+; _ = MonoidLaws-ℤ-+
 
 -- The state of a ledger is a collection of participants, along with their balance.
 S : Set

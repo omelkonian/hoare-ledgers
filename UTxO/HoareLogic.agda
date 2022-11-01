@@ -8,7 +8,7 @@ open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.Sets
+open import Prelude.Sets hiding (_↦_)
 open import Prelude.Apartness
 
 open import UTxO.UTxO
@@ -36,7 +36,8 @@ _[_↦_] : S → Address → Value → Set
 s [ addr ↦ v ] = ∃ λ or → record {outRef = or; out = v at addr} ∈ˢ s
 
 _[_↦_]∅ : S → Address → Value → Set
-s [ addr ↦ v ]∅ = s [ addr ↦ v ] × ∃ λ or → s ≈ˢ singleton (record {outRef = or; out = v at addr})
+s [ addr ↦ v ]∅ = s [ addr ↦ v ]
+                × ∃ λ or → s ≈ˢ singleton (record {outRef = or; out = v at addr})
 
 -- We denote assertions as predicates over ledger states.
 private
@@ -125,31 +126,35 @@ step′ {P} {t ∷ l} {Q} {l′} {R} (consequence {P = P′}{Q = Q′} pre post 
 
 -- ** Reasoning syntax for Hoare triples.
 module HoareReasoning where
-  infix  -2 begin_
-  infixr -1 _~⟪_⟩_ _~⟨_⟫_ _~⟨_∶-_⟩_ _~⟨_∶-_⟩′_
+
+  -- Reasoning newtype (for better type inference).
+  record ℝ⟨_⟩_⟨_⟩ (P : Assertion) (l : L) (Q : Assertion) : Set₁ where
+    constructor mkℝ_
+    field begin_ : ⟨ P ⟩ l ⟨ Q ⟩
+    infix -2 begin_
+  open ℝ⟨_⟩_⟨_⟩ public
+  infix  -2 mkℝ_
+  infixr -1 _~⟪_⟩_ _~⟨_⟫_ _~⟨_∶-_⟩_ _~⟨_∶-_⟩++_
   infix  0  _∎
 
-  begin_ : ⟨ P ⟩ l ⟨ Q ⟩ → ⟨ P ⟩ l ⟨ Q ⟩
-  begin p = p
-
   -- weakening syntax
-  _~⟪_⟩_ : ∀ P′ → P′ `⊢ P  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ l ⟨ R ⟩
-  _ ~⟪ H ⟩ PlR = weaken H PlR
+  _~⟪_⟩_ : ∀ P′ → P′ `⊢ P  → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P′ ⟩ l ⟨ R ⟩
+  _ ~⟪ H ⟩ PlR = mkℝ weaken H (begin PlR)
 
   -- strengthening syntax
-  _~⟨_⟫_ : ∀ R′ → R `⊢ R′  → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
-  _ ~⟨ H ⟫ PlR = strengthen H PlR
+  _~⟨_⟫_ : ∀ R′ → R `⊢ R′  → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P ⟩ l ⟨ R′ ⟩
+  _ ~⟨ H ⟫ PlR = mkℝ strengthen H (begin PlR)
 
   -- step syntax
-  _~⟨_∶-_⟩_ : ∀ P′ → (t : Tx) → ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
-  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟪ axiom⇒denot H ⟩ step {t = t} PlR
+  _~⟨_∶-_⟩_ : ∀ P′ (t : Tx) → ℝ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
+  P′ ~⟨ t ∶- H ⟩ PlR = P′ ~⟪ axiom⇒denot (begin H) ⟩ (mkℝ step {t = t} (begin PlR))
 
   -- step′ syntax
-  _~⟨_∶-_⟩′_ : ∀ P′ → (l : L) → ⟨ P′ ⟩ l ⟨ P ⟩ → ⟨ P ⟩ l′ ⟨ R ⟩ → ⟨ P′ ⟩ l ++ l′ ⟨ R ⟩
-  P′ ~⟨ l ∶- H ⟩′ PlR = step′ H PlR
+  _~⟨_∶-_⟩++_ : ∀ P′ (l : L) → ℝ⟨ P′ ⟩ l ⟨ P ⟩ → ℝ⟨ P ⟩ l′ ⟨ R ⟩ → ℝ⟨ P′ ⟩ l ++ l′ ⟨ R ⟩
+  P′ ~⟨ l ∶- H ⟩++ PlR = mkℝ step′ {l = l} (begin H) (begin PlR)
 
-  _∎ : ∀ P → ⟨ P ⟩ [] ⟨ P ⟩
-  p ∎ = base {P = p}
+  _∎ : ∀ P → ℝ⟨ P ⟩ [] ⟨ P ⟩
+  p ∎ = mkℝ base {P = p}
 
 -- ** Lemmas about separating conjunction.
 

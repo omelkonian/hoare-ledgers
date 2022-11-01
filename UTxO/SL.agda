@@ -219,3 +219,11 @@ frame-helper {l = l₀@(A —→⟨ v ⟩ B ∷ l)}{R}{s₂}{s₁}{s} l♯R Rs�
 
         p : ⟨ ⟦ l ⟧ s₁ ⊎ s₂ ⟩≡ ⟦ l ⟧ s
         p = frame-helper {R = R} l♯R Rs₂ s₁♯s₂
+
+open HoareReasoning
+ℝ[FRAME] : ∀ R
+  → l ♯ R
+  → ⟨ P ⟩ l ⟨ Q ⟩
+    -----------------------
+  → ℝ⟨ P `∗ R ⟩ l ⟨ Q `∗ R ⟩
+ℝ[FRAME] {l = l} R l♯R PlQ = mkℝ [FRAME] {l = l} R l♯R PlQ

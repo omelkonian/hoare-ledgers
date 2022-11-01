@@ -13,6 +13,7 @@ open import Prelude.Lists
 open import Prelude.DecLists
 open import Prelude.Functor
 open import Prelude.Applicative
+open import Prelude.ToList
 
 Value   = ℕ
 HashId  = ℕ

@@ -1,16 +1,18 @@
 ------------------------------------------
 -- ** Denotational & operational semantics
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Ord
-open import Prelude.Maps
+open import Prelude.Maps.Abstract; open CommandDSL
 open import Prelude.Apartness
+open import Prelude.Setoid
+open import Prelude.Monoid
 
 module ShallowHoare.Ledger
-  (Part : Set) -- a fixed set of participants
+  (Part : Type) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where
 
@@ -18,12 +20,14 @@ variable
   A B C D : Part
   v v′ v″ : ℕ
 
+instance _ = Semigroup-ℕ-+; _ = SemigroupLaws-ℕ-+; _ = Monoid-ℕ-+; _ = MonoidLaws-ℕ-+
+
 -- The state of a ledger is a collection of participants, along with their balance.
-S : Set
+S : Type
 S = Map⟨ Part ↦ ℕ ⟩
 
 -- A transaction is transferring money from one participant to another.
-record Tx : Set where
+record Tx : Type where
   constructor _—→⟨_⟩_
   field
     sender   : Part
@@ -46,7 +50,7 @@ variable
 -- i.e. function from the current state to the updated one.
 Domain = S → S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field
     ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
@@ -89,16 +93,17 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 
 -- Executing transactions never introduces new keys in the resulting map out-of-thin-air.
 ⟦⟧ₗ-mono : KeyMonotonic ⟦ l ⟧
-⟦⟧ₗ-mono {[]} _ _ = id
-⟦⟧ₗ-mono {t ∷ l} s p = ⟦⟧ₗ-mono {l} (⟦ t ⟧ s) p ∘ cmd-mon [ sender t ∣ value t ↦ receiver t ] s p
+⟦⟧ₗ-mono {[]}    _ = id
+⟦⟧ₗ-mono {t ∷ l} s = ⟦⟧ₗ-mono {l = l} (⟦ t ⟧ s)
+                   ∘ cmd-mon [ sender t ∣ value t ↦ receiver t ] s
 
 -- Executing a transaction never removes existing keys.
 [∣↦]-pre : KeyPreserving ⟦ t ⟧
-[∣↦]-pre {t = A —→⟨ v ⟩ B} s k k∈
-  with s ⁉ A | ⁉⇒∈ᵈ {s = s} {k = A}
+[∣↦]-pre {t = A —→⟨ v ⟩ B} s {k} k∈
+  with s ⁉ A | ⁉⇒∈ᵈ s {A}
 ... | nothing | _ = k∈
 ... | just vᵃ | A∈
-  with s ⁉ B | ⁉⇒∈ᵈ {s = s} {k = B}
+  with s ⁉ B | ⁉⇒∈ᵈ s {B}
 ... | nothing | _ = k∈
 ... | just vᵇ | B∈
   with v ≤? vᵃ
@@ -113,7 +118,7 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 
 -- ** Utility lemmas about membership/transfer/maps.
 ∉-⟦⟧ₜ : A ∉ᵈ s → A ∉ᵈ ⟦ t ⟧ s
-∉-⟦⟧ₜ A∉s = ⊥-elim ∘ A∉s ∘ [∣↦]-pre _ _
+∉-⟦⟧ₜ A∉s = ⊥-elim ∘ A∉s ∘ [∣↦]-pre _
 
 ∉-⟦⟧ₗ : A ∉ᵈ s → A ∉ᵈ ⟦ l ⟧ s
 ∉-⟦⟧ₗ {A}{s}{[]} A∉ = A∉
@@ -121,13 +126,13 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 
 ∉-splits : ⟨ s₁ ⊎ s₂ ⟩≡ s → A ∉ᵈ s₁ → A ∉ᵈ s₂ → A ∉ᵈ s
 ∉-splits {s₁ = s₁}{s₂}{s}{A} (s₁♯s₂ , p) A∉₁ A∉₂ A∈
-  with ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong (≈-sym p) A∈)
+  with ∈ᵈ-∪⁻ _ _ _ (∈ᵈ-cong _ _ _ (≈-sym p) A∈)
 ... | inj₁ A∈₁ = ⊥-elim $ A∉₁ A∈₁
 ... | inj₂ A∈₂ = ⊥-elim $ A∉₂ A∈₂
 
 -- ** Lemmas about the transfer operation on maps.
 transfer-helper : s₁ ♯ s₂ → B ∉ᵈ s₂ → (run [ A ∣ v ↦ B ] s₁) ♯ s₂
-transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre [∣↦]-pre s₁♯s₂
+transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre _ _ _ [∣↦]-pre s₁♯s₂
 
 drop-[∣↦] : ∀ k → k ≢ A → k ≢ B → (run [ A ∣ v ↦ B ] s) ⁉ k ≡ s ⁉ k
 drop-[∣↦] {A}{B}{v}{s} k k≢A k≢B
@@ -160,7 +165,7 @@ transfer {A}{B}{v}{v′} A≢B =
     run [ A ∣ v ↦ B ] m
   ≡⟨⟩
     run (just? A λ vᵃ → just? B λ vᵇ → iff¿ v ≤ vᵃ ¿ ((A ≔ vᵃ ∸ v) ∶ (B ≔ vᵇ + v))) m
-  ≈⟨ just?-accept (↦-∪⁺ˡ singleton-law′) ⟩
+  ≈⟨ just?-accept (↦-∪⁺ˡ _ _ singleton-law′) ⟩
     run (just? B λ vᵇ → iff¿ v ≤ v ¿ ((A ≔ v ∸ v) ∶ (B ≔ vᵇ + v))) m
   ≈⟨ just?-accept (↦-∪⁺ʳ′ (⊥-elim ∘ A≢B ∘ sym ∘ singleton∈) singleton-law′) ⟩
     run (iff¿ v ≤ v ¿ ((A ≔ v ∸ v) ∶ (B ≔ v′ + v))) m
@@ -168,11 +173,11 @@ transfer {A}{B}{v}{v′} A≢B =
     run ((A ≔ v ∸ v) ∶ (B ≔ v′ + v)) m
   ≈⟨ ≈-cong-cmd (B ≔ v′ + v) update-update ⟩
     run (B ≔ (v′ + v)) (singleton (A , v ∸ v) ∪ singleton (B , v′))
-  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) (∪-comm $ singleton♯ A≢B) ⟩
+  ≈⟨ ≈-cong-cmd (B ≔ v′ + v) (∪-comm _ _ $ singleton♯ A≢B) ⟩
     run (B ≔ (v′ + v)) (singleton (B , v′) ∪ singleton (A , v ∸ v))
   ≈⟨ update-update ⟩
     singleton (B , v′ + v) ∪ singleton (A , v ∸ v)
-  ≈⟨ ∪-comm $ singleton♯ (≢-sym A≢B) ⟩
+  ≈⟨ ∪-comm _ _ $ singleton♯ (≢-sym A≢B) ⟩
     singleton (A , v ∸ v) ∪ singleton (B , v′ + v)
   ≡⟨ cong (λ x → (singleton (A , x) ∪ singleton (B , v′ + v))) (Nat.n∸n≡0 v) ⟩
     singleton (A , 0) ∪ singleton (B , v′ + v)
@@ -184,12 +189,12 @@ transfer {A}{B}{v}{v′} A≢B =
 
 infix 0 _—→_ _—→⋆_ _—→⋆′_
 
-data _—→_ : L × S → L × S → Set where
+data _—→_ : L × S → L × S → Type where
   singleStep :
      ------------------------
      t ∷ l , s —→ l , ⟦ t ⟧ s
 
-data _—→⋆_ : L × S → L × S → Set where
+data _—→⋆_ : L × S → L × S → Type where
    base :
        ---------
        ls —→⋆ ls
@@ -200,7 +205,7 @@ data _—→⋆_ : L × S → L × S → Set where
        ----------
      → ls —→⋆ ls″
 
-_—→⋆′_ : L × S → S → Set
+_—→⋆′_ : L × S → S → Type
 ls —→⋆′ s = ls —→⋆ ([] , s)
 
 comp′ :

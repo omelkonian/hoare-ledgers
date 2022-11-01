@@ -1,20 +1,20 @@
 ---------------------------
 -- ** Axiomatic semantics
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.Maps
+open import Prelude.Maps.Abstract
 
-module ShallowHoare.HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ShallowHoare.HoareLogic (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 -- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
 open import ShallowHoare.Ledger Part ⦃ it ⦄
 
 -- ** Deeply embedded formulas/propositions for our logic.
 -- NB: this is necessary, in order to inspect the referenced participants later on.
-data Assertion : Set₁ where
+data Assertion : Type₁ where
   `emp : Assertion                          -- ^ holds for the empty ledger
   _`↦_ : Part → ℕ → Assertion               -- ^ holds for the singleton ledger { A ↦ v }
   _`∗_ : Assertion → Assertion → Assertion  -- ^ separating conjuction
@@ -46,14 +46,14 @@ _`∘⟦_⟧ₜ : Assertion → Tx → Assertion
 P `∘⟦ t ⟧ₜ = P `∘⟦ [ t ] ⟧
 
 infix 1 _`⊢_
-_`⊢_ : Assertion → Assertion → Set
+_`⊢_ : Assertion → Assertion → Type
 P `⊢ Q = ⟦ P ⟧ᵖ ⊢ ⟦ Q ⟧ᵖ
 
-_∙_ : Assertion → S → Set
+_∙_ : Assertion → S → Type
 P ∙ s = ⟦ P ⟧ᵖ s
 
 -- ** Hoare triples
-𝕆⟨_⟩_⟨_⟩ 𝔻⟨_⟩_⟨_⟩ ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set
+𝕆⟨_⟩_⟨_⟩ 𝔻⟨_⟩_⟨_⟩ ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type
 𝕆⟨ P ⟩ l ⟨ Q ⟩ = ∀ {s s′} → P ∙ s → l , s —→⋆′ s′ → Q ∙ s′
 𝔻⟨ P ⟩ l ⟨ Q ⟩ = ∀ {s} → P ∙ s → Q ∙ ⟦ l ⟧ s
 

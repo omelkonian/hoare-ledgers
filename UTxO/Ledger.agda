@@ -7,6 +7,8 @@ open import Prelude.Init
 open import Prelude.General
 open import Prelude.Sets
 open import Prelude.Membership
+open import Prelude.ToList
+open import Prelude.FromList
 
 open import UTxO.UTxO
 
@@ -46,7 +48,3 @@ variable
 comp : ∀ x → ⟦ l ++ l′ ⟧ x ≡ (⟦ l′ ⟧ ∘ ⟦ l ⟧) x
 comp {l = []}    {l′} x = refl
 comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
-
--- ** Lemmas about the transfer operation on maps.
--- transfer-helper : s₁ ♯ s₂ → B ∉ˢ s₂ → ⟦ tx ⟧ s₁ ♯ s₂
--- transfer-helper {s₁ = s₁}{s₂}{B}{A}{v} s₁♯s₂ B∉ = ♯-cong-pre [∣↦]-pre s₁♯s₂

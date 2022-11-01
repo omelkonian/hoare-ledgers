@@ -4,7 +4,7 @@ open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.Sets
+open import Prelude.Sets hiding (_↦_)
 open import Prelude.Lists hiding (_↦_)
 open import Prelude.DecLists
 

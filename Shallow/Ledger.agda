@@ -2,7 +2,7 @@ open import Prelude.Init
 open import Prelude.General
 open Integer using () renaming (_-_ to _-ℤ_; _+_ to _+ℤ_)
 open import Prelude.DecEq
-open import Prelude.Sets
+open import Prelude.Sets hiding (_↦_)
 
 module Shallow.Ledger
   (Part : Set) -- a fixed set of participants

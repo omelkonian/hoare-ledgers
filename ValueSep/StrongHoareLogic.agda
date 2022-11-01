@@ -144,12 +144,14 @@ module HoareReasoning where
   _~⟪_⟩_ {l = l} _ H PlR = mkℝ weaken {l = l} H (begin PlR)
 
   -- strengthening syntax
-  _~⟨_⟫_ : ∀ R′ → R ⊢ R′ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
-  _~⟨_⟫_ {l = l} _ H PlR = strengthen {l = l} H PlR
+  _~⟨_⟫_ : ∀ R′ → R ⊢ R′ → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P ⟩ l ⟨ R′ ⟩
+  _~⟨_⟫_ {l = l} _ H PlR = mkℝ strengthen {l = l} H (begin PlR)
 
   -- step syntax
   _~⟨_∶-_⟩_ : ∀ P′ t → ℝ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
-  _~⟨_∶-_⟩_ {l = l} {R = R} P′ t H PlR = mkℝ go
+  _~⟨_∶-_⟩_ {l = l} {R = R} P′ t H PlR =
+    -- P′ ~⟪ begin H ⟩ (mkℝ (λ {x} Px → hoare-step {l = l} {t = t} (begin PlR) {_} Px))
+    mkℝ go
     where
       go : P′ ⊢ R ↑∘ ⟦ t ∷ l ⟧
       go {s} P′s with ⟦ t ⟧ s | (begin H) P′s
