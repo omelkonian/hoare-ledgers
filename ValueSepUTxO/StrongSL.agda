@@ -112,9 +112,10 @@ instance
 -- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts
 -- and then weaken our results to the desired context.
 [FRAME] : ∀ R →
-  ⟨ P ⟩ l ⟨ Q ⟩
-  ─────────────────────
-  ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
+  ∙ l ♯ R
+  ∙ ⟨ P ⟩ l ⟨ Q ⟩
+    ─────────────────────
+    ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
 
 {- Not provable without freshness side-conditions (i.e. l ♯ R).
 
@@ -133,7 +134,7 @@ Alternatives:
   ∙ ⋯
 -}
 
-[FRAME] {P}{l}{Q} R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
+[FRAME] {l}{P}{Q} R l♯R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
   with ⟦ l ⟧ s₁ in s₁≡ | PlQ Ps₁
 ... | .just s₁′ | ret↑ Qs₁′
   with ⟦ l ⟧ s in s≡ | ⊎-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
@@ -142,7 +143,8 @@ Alternatives:
 
 open HoareReasoning
 ℝ[FRAME] : ∀ R →
-  ℝ⟨ P ⟩ l ⟨ Q ⟩
-  ─────────────────────
-  ℝ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
-ℝ[FRAME] {l = l} R PlQ = mkℝ [FRAME] {l = l} R (begin PlQ)
+  ∙ l ♯ R
+  ∙ ℝ⟨ P ⟩ l ⟨ Q ⟩
+    ─────────────────────
+    ℝ⟨ P ∗ R ⟩ l ⟨ Q ∗ R ⟩
+ℝ[FRAME] {l = l} R l♯R PlQ = mkℝ [FRAME] {l = l} R l♯R (begin PlQ)

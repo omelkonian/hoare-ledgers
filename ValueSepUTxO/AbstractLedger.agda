@@ -1,7 +1,7 @@
 ------------------------------------------
 -- ** Denotational & operational semantics
 
-module ValueSepUTxO.Ledger where
+module ValueSepUTxO.AbstractLedger where
 
 open import Prelude.Init
 open import Prelude.General
@@ -16,8 +16,8 @@ open import Prelude.Apartness
 open import Prelude.Monad
 open import Prelude.Membership
 
-open import ValueSepUTxO.Maps
-open import ValueSepUTxO.UTxO
+-- open import ValueSepUTxO.Maps
+open import ValueSepUTxO.AbstractUTxO
 
 variable
   s s′ s″ s₁ s₁′ s₁″ s₂ s₂′ s₂″ s₃ s₃′ s₃″ s₂₃ s₂₃′ s₂₃″ : S

@@ -1,6 +1,9 @@
 {-# OPTIONS --rewriting #-}
 module ValueSepUTxO.Main where
 
+-- ** Simplistic definition of the UTxO model.
+open import ValueSepUTxO.UTxO
+
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.
 -- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,
 -- and define both operational and denotational semantics.
@@ -14,6 +17,7 @@ open import ValueSepUTxO.Ledger
 -- [Proofs]
 --   * correspondence with denotational semantics and, by transitivity, operational semantics.
 --   * associativity/commutativity of separating conjuction _∗_
+open import ValueSepUTxO.SimpleHoareLogic
 open import ValueSepUTxO.StrongHoareLogic
 open import ValueSepUTxO.HoareProperties
 -- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,
@@ -21,6 +25,7 @@ open import ValueSepUTxO.HoareProperties
 -- [Proofs]
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
+-- open import ValueSepUTxO.SimpleSL
 open import ValueSepUTxO.StrongSL
 
 -- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.
