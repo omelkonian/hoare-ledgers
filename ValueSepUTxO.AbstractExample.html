@@ -1,0 +1,191 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSepUTxO.AbstractExample</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="ValueSepUTxO.AbstractExample.html" class="Module">ValueSepUTxO.AbstractExample</a> <a id="37" class="Keyword">where</a>
+
+<a id="44" class="Keyword">open</a> <a id="49" class="Keyword">import</a> <a id="56" href="Prelude.Init.html" class="Module">Prelude.Init</a>
+<a id="69" class="Keyword">open</a> <a id="74" class="Keyword">import</a> <a id="81" href="Prelude.General.html" class="Module">Prelude.General</a>
+<a id="97" class="Keyword">open</a> <a id="102" class="Keyword">import</a> <a id="109" href="Prelude.DecEq.html" class="Module">Prelude.DecEq</a>
+<a id="123" class="Keyword">open</a> <a id="128" class="Keyword">import</a> <a id="135" href="Prelude.Decidable.html" class="Module">Prelude.Decidable</a>
+<a id="153" class="Keyword">open</a> <a id="158" class="Keyword">import</a> <a id="165" href="Prelude.Sets.html" class="Module">Prelude.Sets</a> <a id="178" class="Keyword">hiding</a> <a id="185" class="Symbol">(</a><a id="186" href="Prelude.Sets.AsUniqueLists.Extra.html#6836" class="Function Operator">_↦_</a><a id="189" class="Symbol">)</a>
+<a id="191" class="Keyword">open</a> <a id="196" class="Keyword">import</a> <a id="203" href="Prelude.Lists.html" class="Module">Prelude.Lists</a> <a id="217" class="Keyword">hiding</a> <a id="224" class="Symbol">(</a><a id="225" href="Prelude.Lists.Mappings.html#708" class="Function Operator">_↦_</a><a id="228" class="Symbol">)</a>
+<a id="230" class="Keyword">open</a> <a id="235" class="Keyword">import</a> <a id="242" href="Prelude.DecLists.html" class="Module">Prelude.DecLists</a>
+
+<a id="260" class="Keyword">open</a> <a id="265" class="Keyword">import</a> <a id="272" href="Prelude.Bags.html" class="Module">Prelude.Bags</a>
+<a id="285" class="Keyword">open</a> <a id="290" class="Keyword">import</a> <a id="297" href="ValueSepUTxO.AbstractUTxO.html" class="Module">ValueSepUTxO.AbstractUTxO</a>
+<a id="323" class="Keyword">open</a> <a id="328" class="Keyword">import</a> <a id="335" href="ValueSepUTxO.AbstractLedger.html" class="Module">ValueSepUTxO.AbstractLedger</a>
+<a id="363" class="Keyword">open</a> <a id="368" class="Keyword">import</a> <a id="375" href="ValueSepUTxO.AbstractHoareLogic.html" class="Module">ValueSepUTxO.AbstractHoareLogic</a>
+<a id="407" class="Keyword">open</a> <a id="412" class="Keyword">import</a> <a id="419" href="ValueSepUTxO.AbstractSL.html" class="Module">ValueSepUTxO.AbstractSL</a>
+<a id="443" class="Keyword">open</a> <a id="448" class="Keyword">import</a> <a id="455" href="ValueSepUTxO.AbstractCSL.html" class="Module">ValueSepUTxO.AbstractCSL</a>
+
+<a id="481" class="Comment">-- t₁ = A —→⟨ 1 ⟩ B; t₂ = D —→⟨ 1 ⟩ C; t₃ = B —→⟨ 1 ⟩ A; t₄ = C —→⟨ 1 ⟩ D</a>
+<a id="555" class="Comment">-- t₁-₄ = L ∋ t₁ ∷ t₂ ∷ t₃ ∷ t₄ ∷ []</a>
+
+<a id="593" class="Comment">-- open HoareReasoning</a>
+
+<a id="617" class="Comment">-- -- 1a) proof using only SL.[FRAME]</a>
+<a id="655" class="Comment">-- _ : ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩</a>
+<a id="696" class="Comment">--     t₁-₄</a>
+<a id="708" class="Comment">--     ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩</a>
+<a id="749" class="Comment">-- _ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ ∗↝ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} ⟩</a>
+<a id="834" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟨ t₁ ∶- ℝ[FRAME] (C ↦ 0 ∗ D ↦ 1) (mkℝ A ↝⁰ B) ⟩</a>
+<a id="928" class="Comment">--           (A ↦ 0 ∗ B ↦ 1) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ ∗↔ {A ↦ 0 ∗ B ↦ 1} {C ↦ 0 ∗ D ↦ 1} ⟩</a>
+<a id="1013" class="Comment">--           (C ↦ 0 ∗ D ↦ 1) ∗ A ↦ 0 ∗ B ↦ 1 ~⟨ t₂ ∶- ℝ[FRAME] (A ↦ 0 ∗ B ↦ 1) (mkℝ C ↜⁰ D) ⟩</a>
+<a id="1107" class="Comment">--           (C ↦ 1 ∗ D ↦ 0) ∗ A ↦ 0 ∗ B ↦ 1 ~⟪ ∗↔ {C ↦ 1 ∗ D ↦ 0} {A ↦ 0 ∗ B ↦ 1} ⟩</a>
+<a id="1192" class="Comment">--           (A ↦ 0 ∗ B ↦ 1) ∗ C ↦ 1 ∗ D ↦ 0 ~⟨ t₃ ∶- ℝ[FRAME] (C ↦ 1 ∗ D ↦ 0) (mkℝ A ↜⁰ B) ⟩</a>
+<a id="1286" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 1 ∗ D ↦ 0 ~⟪ ∗↔ {A ↦ 1 ∗ B ↦ 0} {C ↦ 1 ∗ D ↦ 0} ⟩</a>
+<a id="1371" class="Comment">--           (C ↦ 1 ∗ D ↦ 0) ∗ A ↦ 1 ∗ B ↦ 0 ~⟨ t₄ ∶- ℝ[FRAME] (A ↦ 1 ∗ B ↦ 0) (mkℝ C ↝⁰ D) ⟩</a>
+<a id="1465" class="Comment">--           (C ↦ 0 ∗ D ↦ 1) ∗ A ↦ 1 ∗ B ↦ 0 ~⟪ ∗↔ {C ↦ 0 ∗ D ↦ 1} {A ↦ 1 ∗ B ↦ 0} ⟩</a>
+<a id="1550" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ ↜∗ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} ⟩</a>
+<a id="1635" class="Comment">--           A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ∎</a>
+
+<a id="1683" class="Comment">-- -- 1b) proof using CSL.[INTERLEAVE]</a>
+<a id="1722" class="Comment">-- _ : ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩</a>
+<a id="1763" class="Comment">--      t₁-₄</a>
+<a id="1776" class="Comment">--      ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩</a>
+<a id="1818" class="Comment">-- _ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ ∗↝ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} ⟩</a>
+<a id="1903" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟨ t₁-₄ ∶- ℝ[PAR] auto H₁ H₂ ⟩++</a>
+<a id="1981" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ ↜∗ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} ⟩</a>
+<a id="2066" class="Comment">--           A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ∎</a>
+<a id="2113" class="Comment">--   where</a>
+<a id="2124" class="Comment">--     H₁ : ℝ⟨ A ↦ 1 ∗ B ↦ 0 ⟩ t₁ ∷ t₃ ∷ [] ⟨ A ↦ 1 ∗ B ↦ 0 ⟩</a>
+<a id="2186" class="Comment">--     H₁ = A ↦ 1 ∗ B ↦ 0 ~⟨ t₁ ∶- mkℝ A ↝⁰ B ⟩</a>
+<a id="2234" class="Comment">--         A ↦ 0 ∗ B ↦ 1 ~⟨ t₃ ∶- mkℝ A ↜⁰ B ⟩</a>
+<a id="2281" class="Comment">--         A ↦ 1 ∗ B ↦ 0 ∎</a>
+
+<a id="2309" class="Comment">--     H₂ : ℝ⟨ C ↦ 0 ∗ D ↦ 1 ⟩ t₂ ∷ t₄ ∷ [] ⟨ C ↦ 0 ∗ D ↦ 1 ⟩</a>
+<a id="2371" class="Comment">--     H₂ = C ↦ 0 ∗ D ↦ 1 ~⟨ t₂ ∶- mkℝ C ↜⁰ D ⟩</a>
+<a id="2419" class="Comment">--               C ↦ 1 ∗ D ↦ 0 ~⟨ t₄ ∶- mkℝ C ↝⁰ D ⟩</a>
+<a id="2472" class="Comment">--               C ↦ 0 ∗ D ↦ 1 ∎</a>
+
+<a id="2506" class="Comment">-- -- 2) overlapping proof</a>
+<a id="2533" class="Comment">-- t₁′ = A —→⟨ 1 ⟩ B; t₂′ = C —→⟨ 1 ⟩ A</a>
+<a id="2573" class="Comment">-- t₁₂ = L ∋ t₁′ ∷ t₂′ ∷ []</a>
+
+<a id="2602" class="Comment">-- _ : ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0 ⟩</a>
+<a id="2643" class="Comment">--      t₁₂</a>
+<a id="2655" class="Comment">--      ⟨ A ↦ 0 ∗ B ↦ 1 ∗ C ↦ 0 ∗ A ↦ 1 ⟩</a>
+<a id="2697" class="Comment">-- _ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0     ~⟪ ∗↝ {A ↦ 1} {B ↦ 0} {C ↦ 1 ∗ A ↦ 0} ⟩</a>
+<a id="2784" class="Comment">--           (A ↦ 1 ∗ B ↦ 0) ∗ (C ↦ 1 ∗ A ↦ 0) ~⟨ t₁₂ ∶- ℝ[PAR] auto H₁ H₂ ⟩++</a>
+<a id="2863" class="Comment">--           (A ↦ 0 ∗ B ↦ 1) ∗ (C ↦ 0 ∗ A ↦ 1) ~⟪ ↜∗ {A ↦ 0} {B ↦ 1} {C ↦ 0 ∗ A ↦ 1} ⟩</a>
+<a id="2950" class="Comment">--           A ↦ 0 ∗ B ↦ 1 ∗ C ↦ 0 ∗ A ↦ 1     ∎</a>
+<a id="2999" class="Comment">--   where</a>
+<a id="3010" class="Comment">--     H₁ : ℝ⟨ A ↦ 1 ∗ B ↦ 0 ⟩ [ t₁′ ] ⟨ A ↦ 0 ∗ B ↦ 1 ⟩</a>
+<a id="3067" class="Comment">--     H₁ = mkℝ A ↝⁰ B</a>
+
+<a id="3091" class="Comment">--     H₂ : ℝ⟨ C ↦ 1 ∗ A ↦ 0 ⟩ [ t₂′ ] ⟨ C ↦ 0 ∗ A ↦ 1 ⟩</a>
+<a id="3148" class="Comment">--     H₂ = mkℝ C ↝⁰ A</a>
+
+<a id="3172" class="Comment">{-
+{-# OPTIONS --rewriting #-}
+module UTxO.Example where
+
+open import Agda.Builtin.Equality.Rewrite
+
+open import Prelude.Init
+
+open import Prelude.DecEq
+open import Prelude.Decidable
+open import Prelude.Sets
+open import Prelude.Lists
+open import Prelude.Apartness
+
+open import UTxO.UTxO
+open import UTxO.Ledger
+open import UTxO.HoareLogic
+open import UTxO.SL
+open import UTxO.CSL
+
+A B C D : Address
+A = 111; B = 222; C = 333; D = 444
+
+postulate t₀ : Tx
+t₀₀ = (t₀ ♯) indexed-at 0
+t₀₁ = (t₀ ♯) indexed-at 1
+
+postulate
+  mkValidator : TxOutputRef → (TxInfo → DATA → Bool)
+  in₁ : (mkValidator t₀₀) ♯ ≡ A
+  in₂ : (mkValidator t₀₁) ♯ ≡ D
+{-# REWRITE in₁ #-}
+{-# REWRITE in₂ #-}
+
+_—→⟨_∣_⟩_ : Address → Value → TxOutputRef → Address → Tx
+A —→⟨ v ∣ or ⟩ B = record
+  { inputs  = [ record { outputRef = or ; validator = mkValidator or; redeemer = 0 } ]
+  ; outputs = [ 1 at B ]
+  ; forge   = 0
+  }
+
+t₁ t₂ t₃ t₄ : Tx
+-- t₀ = record {inputs = []; outputs = 1 at A ∷ 1 at D ∷ []; forge = 2}
+t₁ = A —→⟨ 1 ∣ t₀₀ ⟩ B
+t₂ = D —→⟨ 1 ∣ t₀₁ ⟩ C
+
+t₁₀ = (t₁ ♯) indexed-at 0
+t₂₀ = (t₂ ♯) indexed-at 0
+postulate
+  in₃ : (mkValidator t₁₀) ♯ ≡ B
+  in₄ : (mkValidator t₂₀) ♯ ≡ C
+{-# REWRITE in₃ #-}
+{-# REWRITE in₄ #-}
+
+t₃ = B —→⟨ 1 ∣ t₁₀ ⟩ A
+t₄ = C —→⟨ 1 ∣ t₂₀ ⟩ D
+
+t₁-₄ : L
+t₁-₄ = t₁ ∷ t₂ ∷ t₃ ∷ t₄ ∷ []
+
+open HoareReasoning
+private variable v v′ : Value
+postulate
+  _↝_∶-_ : ∀ A B {or} → A ≢ B → ⟨ A `↦ v `∗ B `↦ v′ ⟩ [ A —→⟨ v ∣ or ⟩ B ] ⟨ A `↦ 0 `∗ B `↦ (v′ + v) ⟩
+  _↜_∶-_ : ∀ A B {or} → A ≢ B → ⟨ A `↦ v′ `∗ B `↦ v ⟩ [ B —→⟨ v ∣ or ⟩ A ] ⟨ A `↦ (v′ + v) `∗ B `↦ 0 ⟩
+
+-- proof using only SL.[FRAME]
+h : ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
+    t₁-₄
+    ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
+h = begin A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ~⟪ (λ {x} → ∗↝ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} {x}) ⟩
+          (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟨ t₁ ∶- ℝ[FRAME] (C `↦ 0 `∗ D `↦ 1) p₁ (A ↝ B ∶- auto) ⟩
+          (A `↦ 0 `∗ B `↦ 1) `∗ C `↦ 0 `∗ D `↦ 1 ~⟪ (λ {x} → ∗↔ {A `↦ 0 `∗ B `↦ 1} {C `↦ 0 `∗ D `↦ 1} {x}) ⟩
+          (C `↦ 0 `∗ D `↦ 1) `∗ A `↦ 0 `∗ B `↦ 1 ~⟨ t₂ ∶- ℝ[FRAME] (A `↦ 0 `∗ B `↦ 1) p₂ (C ↜ D ∶- auto) ⟩
+          (C `↦ 1 `∗ D `↦ 0) `∗ A `↦ 0 `∗ B `↦ 1 ~⟪ (λ {x} → ∗↔ {C `↦ 1 `∗ D `↦ 0} {A `↦ 0 `∗ B `↦ 1} {x}) ⟩
+          (A `↦ 0 `∗ B `↦ 1) `∗ C `↦ 1 `∗ D `↦ 0 ~⟨ t₃ ∶- ℝ[FRAME] (C `↦ 1 `∗ D `↦ 0) p₃ (A ↜ B ∶- auto) ⟩
+          (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 1 `∗ D `↦ 0 ~⟪ (λ {x} → ∗↔ {A `↦ 1 `∗ B `↦ 0} {C `↦ 1 `∗ D `↦ 0} {x}) ⟩
+          (C `↦ 1 `∗ D `↦ 0) `∗ A `↦ 1 `∗ B `↦ 0 ~⟨ t₄ ∶- ℝ[FRAME] (A `↦ 1 `∗ B `↦ 0) p₄ (C ↝ D ∶- auto) ⟩
+          (C `↦ 0 `∗ D `↦ 1) `∗ A `↦ 1 `∗ B `↦ 0 ~⟪ (λ {x} → ∗↔ {C `↦ 0 `∗ D `↦ 1} {A `↦ 1 `∗ B `↦ 0} {x}) ⟩
+          (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟪ (λ {x} → ↜∗ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} {x}) ⟩
+          A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ∎
+  where
+    postulate
+      p₁ : [ t₁ ] ♯ (C `↦ 0 `∗ D `↦ 1)
+      p₂ : [ t₂ ] ♯ (A `↦ 0 `∗ B `↦ 1)
+      p₃ : [ t₃ ] ♯ (C `↦ 1 `∗ D `↦ 0)
+      p₄ : [ t₄ ] ♯ (A `↦ 1 `∗ B `↦ 0)
+
+-- -- 2) proof using CSL.[INTERLEAVE]
+-- h₁ : ℝ⟨ A `↦ 1 `∗ B `↦ 0 ⟩ t₁ ∷ t₃ ∷ [] ⟨ A `↦ 1 `∗ B `↦ 0 ⟩
+-- h₁ = begin A `↦ 1 `∗ B `↦ 0 ~⟨ t₁ ∶- A ↝ B ∶- auto ⟩
+--            A `↦ 0 `∗ B `↦ 1 ~⟨ t₃ ∶- A ↜ B ∶- auto ⟩
+--            A `↦ 1 `∗ B `↦ 0 ∎
+
+-- h₂ : ℝ⟨ C `↦ 0 `∗ D `↦ 1 ⟩ t₂ ∷ t₄ ∷ [] ⟨ C `↦ 0 `∗ D `↦ 1 ⟩
+-- h₂ = begin C `↦ 0 `∗ D `↦ 1 ~⟨ t₂ ∶- C ↜ D ∶- auto ⟩
+--            C `↦ 1 `∗ D `↦ 0 ~⟨ t₄ ∶- C ↝ D ∶- auto ⟩
+--            C `↦ 0 `∗ D `↦ 1 ∎
+
+-- h′ : ℝ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
+--      t₁-₄
+--      ⟨ A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1 ⟩
+-- h′ = begin A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ~⟪ ∗↝ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} ⟩
+--            (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟨ t₁-₄ ∶- [PAR] inter h₁ h₂ p₁ p₂         ⟩++
+--            (A `↦ 1 `∗ B `↦ 0) `∗ C `↦ 0 `∗ D `↦ 1 ~⟪ ↜∗ {A `↦ 1} {B `↦ 0} {C `↦ 0 `∗ D `↦ 1} ⟩
+--            A `↦ 1 `∗ B `↦ 0 `∗ C `↦ 0 `∗ D `↦ 1   ∎
+--      where
+--        inter : (t₁ ∷ t₃ ∷ []) ∥ (t₂ ∷ t₄ ∷ []) ≡ t₁-₄
+--        inter = keepˡ $′ keepʳ $′ keepˡ $′ keepʳ []
+
+--        postulate
+--          p₁ : (t₁ ∷ t₃ ∷ []) ♯ (C `↦ 0 `∗ D `↦ 1)
+--          p₂ : (t₂ ∷ t₄ ∷ []) ♯ (A `↦ 1 `∗ B `↦ 0)
+-}</a>
+</pre></body></html>
