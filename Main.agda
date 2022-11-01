@@ -27,3 +27,15 @@ open import UTxO.Main
 -- ∙ P := S → Set
 -- ∙ Separation := _◇_
 open import ValueSep.Main
+
+-- Value-separated UTxO.
+
+open import ValueSepUTxO.UTxO
+open import ValueSepUTxO.Ledger
+
+open import ValueSepUTxO.AbstractUTxO
+open import ValueSepUTxO.AbstractLedger
+open import ValueSepUTxO.AbstractHoareLogic
+open import ValueSepUTxO.AbstractSL
+open import ValueSepUTxO.AbstractCSL
+open import ValueSepUTxO.AbstractExample

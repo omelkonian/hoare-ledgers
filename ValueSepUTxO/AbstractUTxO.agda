@@ -3,7 +3,7 @@
 
 module ValueSepUTxO.AbstractUTxO where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -17,41 +17,40 @@ open import Prelude.Ord
 open import Prelude.Semigroup
 open import Prelude.Monoid
 
-open import ValueSepUTxO.AbstractMaps
+-- open import ValueSepUTxO.AbstractMaps
+open import Prelude.Bags
 instance
-  Sℕ  = Semigroup-ℕ-+
-  Sℕ⁺ = SemigroupLaws-ℕ-+
-  Mℕ  = Monoid-ℕ-+
-  Mℕ⁺ = MonoidLaws-ℕ-+
+  Sℕ  = Semigroup-ℕ-+; Sℕ⁺ = SemigroupLaws-ℕ-+
+  Mℕ  = Monoid-ℕ-+;    Mℕ⁺ = MonoidLaws-ℕ-+
 
 Value   = ℕ
 HashId  = ℕ
 Address = HashId
-postulate _♯ : ∀ {A : Set ℓ} → A → HashId
+postulate _♯ : ∀ {A : Type ℓ} → A → HashId
 
 DATA = ℕ -- T0D0: more realistic data for redeemers
 
-record TxOutput : Set where
+record TxOutput : Type where
   constructor _at_
   field value   : Value
         address : Address
 open TxOutput public
 unquoteDecl DecEq-TxO = DERIVE DecEq [ quote TxOutput , DecEq-TxO ]
 
-TxOutputRef : Set
+TxOutputRef : Type
 TxOutputRef = HashId
 
-record InputInfo : Set where
+record InputInfo : Type where
   field outputRef     : TxOutputRef
         validatorHash : HashId
         redeemerHash  : HashId
 
-record TxInfo : Set where
+record TxInfo : Type where
   field inputs  : List InputInfo
         outputs : List TxOutput
         forge   : Value
 
-record TxInput : Set where
+record TxInput : Type where
   field outputRef : TxOutput
         validator : TxInfo → DATA → Bool
         redeemer  : DATA
@@ -63,7 +62,7 @@ mkInputInfo i = record
   ; validatorHash = i .validator ♯
   ; redeemerHash  = i .redeemer ♯ }
 
-record Tx : Set where
+record Tx : Type where
   field
     inputs  : List TxInput
     outputs : List TxOutput
@@ -81,28 +80,33 @@ L = List Tx
 
 -- The state of a ledger maps addresses to a value.
 
-S : Set
-S = Map⟨ Address ↦ Value ⟩
+S : Type
+S = Bag⟨ Address × Value ⟩
+
+instance
+  FromList-S : FromList TxOutput S
+  FromList-S .fromList = fromList ∘ map (λ txo → txo .address , txo .value)
 
 outputRefs : Tx → List TxOutput
 outputRefs = map outputRef ∘ inputs
 
-utxoTx : Tx → S
-utxoTx = fromList ∘ map (λ txo → txo .address , txo .value) ∘ outputRefs
+stxoTx utxoTx : Tx → S
+stxoTx = fromList ∘ outputRefs
+utxoTx = fromList ∘ outputs
 
-∑ : ∀ {A : Set} → List A → (A → Value) → Value
+∑ : ∀ {A : Type} → List A → (A → Value) → Value
 ∑ xs f = ∑ℕ (map f xs)
 
-record IsValidTx (tx : Tx) (utxos : S) : Set where
+record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
     validOutputRefs :
-      utxoTx tx ≤ᵐ utxos
+      stxoTx tx ⊆ˢ utxos
 
     preservesValues :
       tx .forge + ∑ (tx .inputs) (value ∘ outputRef) ≡ ∑ (tx .outputs) value
 
-    noDoubleSpending :
-      Unique (outputRefs tx)
+    -- noDoubleSpending :
+    --   Unique (outputRefs tx)
 
     allInputsValidate :
       All (λ i → T (validator i (mkTxInfo tx) (i .redeemer))) (tx .inputs)
@@ -120,15 +124,15 @@ isValidTx? tx utxos
   with dec
 ... | no ¬p = no (¬p ∘ preservesValues)
 ... | yes p₂
-  with dec
-... | no ¬p = no (¬p ∘ noDoubleSpending)
-... | yes p₃
+--   with dec
+-- ... | no ¬p = no (¬p ∘ noDoubleSpending)
+-- ... | yes p₃
   with dec
 ... | no ¬p = no (¬p ∘ allInputsValidate)
 ... | yes p₄
   with dec
 ... | no ¬p = no (¬p ∘ validateValidHashes)
-... | yes p₅ = yes record { validOutputRefs = p₁; preservesValues = p₂; noDoubleSpending = p₃
+... | yes p₅ = yes record { validOutputRefs = p₁; preservesValues = p₂
                           ; allInputsValidate = p₄; validateValidHashes = p₅ }
 
 isValidTx : Tx → S → Bool

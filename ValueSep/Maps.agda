@@ -86,26 +86,6 @@ KeyMonotonicᵐ KeyPreservingᵐ : Pred₀ (Map → Maybe Map)
 KeyMonotonicᵐ  f = ∀ s → M.All.All (s ⊆ᵈ_) (f s)
 KeyPreservingᵐ f = ∀ s → M.All.All (_⊆ᵈ s) (f s)
 
--- ** separation
-
-instance
-  Apart-Map : Map // Map
-  Apart-Map ._♯_ m m′ = ∀ k → ¬ ((k ∈ᵈ m) × (k ∈ᵈ m′))
-
-♯-comm : Symmetric _♯_
-♯-comm s₁♯s₂ k = s₁♯s₂ k ∘ Product.swap
-
-♯-cong : s₁ ≈ s₂ → s₁ ♯ s₃ → s₂ ♯ s₃
-♯-cong eq s₁♯s₃ k
-  with p ← s₁♯s₃ k
-  rewrite eq k = p
-
-♯-cong-pre : ∀ {s₁ s₂ : Map} {f : Map → Map}
-  → KeyPreserving f
-  → s₁ ♯ s₂
-  → f s₁ ♯ s₂
-♯-cong-pre {s₁}{s₂}{f} pre s₁♯s₂ _ (k∈₁ , k∈₂) = s₁♯s₂ _ (pre _ _ k∈₁ , k∈₂)
-
 -- ** membership
 ∈ᵈ-cong : ∀ {k s₁ s₂} → s₁ ≈ s₂ → k ∈ᵈ s₁ → k ∈ᵈ s₂
 ∈ᵈ-cong {k}{s₁}{s₂} s₁≈s₂ k∈ = subst Is-just (s₁≈s₂ k) k∈
