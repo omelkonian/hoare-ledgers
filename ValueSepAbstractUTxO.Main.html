@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSepAbstractUTxO.Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--rewriting</a> <a id="25" class="Symbol">#-}</a>
+<a id="29" class="Keyword">module</a> <a id="36" href="ValueSepAbstractUTxO.Main.html" class="Module">ValueSepAbstractUTxO.Main</a> <a id="62" class="Keyword">where</a>
+
+<a id="69" class="Comment">-- ** Simplistic definition of the UTxO model.</a>
+<a id="116" class="Keyword">open</a> <a id="121" class="Keyword">import</a> <a id="128" href="ValueSepAbstractUTxO.UTxO.html" class="Module">ValueSepAbstractUTxO.UTxO</a>
+
+<a id="155" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="240" class="Comment">-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,</a>
+<a id="362" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="421" class="Comment">-- [Proofs]</a>
+<a id="433" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="503" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="580" class="Keyword">open</a> <a id="585" class="Keyword">import</a> <a id="592" href="ValueSepAbstractUTxO.Ledger.html" class="Module">ValueSepAbstractUTxO.Ledger</a>
+
+<a id="621" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="705" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="803" class="Comment">-- [Proofs]</a>
+<a id="815" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="910" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="974" class="Keyword">open</a> <a id="979" class="Keyword">import</a> <a id="986" href="ValueSepAbstractUTxO.HoareLogic.html" class="Module">ValueSepAbstractUTxO.HoareLogic</a>
+<a id="1018" class="Keyword">open</a> <a id="1023" class="Keyword">import</a> <a id="1030" href="ValueSepAbstractUTxO.HoareProperties.html" class="Module">ValueSepAbstractUTxO.HoareProperties</a>
+
+<a id="1068" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="1187" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1258" class="Comment">-- [Proofs]</a>
+<a id="1270" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1336" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1463" class="Keyword">open</a> <a id="1468" class="Keyword">import</a> <a id="1475" href="ValueSepAbstractUTxO.SL.html" class="Module">ValueSepAbstractUTxO.SL</a>
+
+<a id="1500" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
+<a id="1607" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
+
+<a id="1695" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1802" class="Comment">-- [Proofs]</a>
+<a id="1814" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="1937" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="2032" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="2138" class="Keyword">open</a> <a id="2143" class="Keyword">import</a> <a id="2150" href="ValueSepAbstractUTxO.CSL.html" class="Module">ValueSepAbstractUTxO.CSL</a>
+
+<a id="2176" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="2241" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2316" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2375" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2480" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2571" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2635" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2721" class="Keyword">open</a> <a id="2726" class="Keyword">import</a> <a id="2733" href="ValueSepAbstractUTxO.Example.html" class="Module">ValueSepAbstractUTxO.Example</a>
+</pre></body></html>

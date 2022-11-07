@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSepSimple.Main</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="ValueSepSimple.Main.html" class="Module">ValueSepSimple.Main</a> <a id="28" class="Keyword">where</a>
+
+<a id="35" class="Comment">-- ** Concrete implementation of (shallow) maps (mostly copied from Prelude.Maps).</a>
+<a id="118" class="Comment">--    ∙ this makes the code more self-contained</a>
+<a id="166" class="Comment">--    ∙ as the implementation is not abstract anymore, we can utilize decidability in our (closed) examples</a>
+<a id="274" class="Keyword">open</a> <a id="279" class="Keyword">import</a> <a id="286" href="ValueSepSimple.Maps.html" class="Module">ValueSepSimple.Maps</a>
+
+<a id="307" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="392" class="Comment">-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSepSimple.Maps,</a>
+<a id="520" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="579" class="Comment">-- [Proofs]</a>
+<a id="591" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="661" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="738" class="Keyword">open</a> <a id="743" class="Keyword">import</a> <a id="750" href="ValueSepSimple.Ledger.html" class="Module">ValueSepSimple.Ledger</a>
+
+<a id="773" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="857" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="955" class="Comment">-- [Proofs]</a>
+<a id="967" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="1062" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="1126" class="Keyword">open</a> <a id="1131" class="Keyword">import</a> <a id="1138" href="ValueSepSimple.HoareLogic.html" class="Module">ValueSepSimple.HoareLogic</a>
+<a id="1164" class="Keyword">open</a> <a id="1169" class="Keyword">import</a> <a id="1176" href="ValueSepSimple.HoareProperties.html" class="Module">ValueSepSimple.HoareProperties</a>
+
+<a id="1208" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="1327" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1398" class="Comment">-- [Proofs]</a>
+<a id="1410" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1476" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1603" class="Keyword">open</a> <a id="1608" class="Keyword">import</a> <a id="1615" href="ValueSepSimple.SL.html" class="Module">ValueSepSimple.SL</a>
+
+<a id="1634" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
+<a id="1741" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
+
+<a id="1829" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1936" class="Comment">-- [Proofs]</a>
+<a id="1948" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="2071" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="2166" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="2272" class="Keyword">open</a> <a id="2277" class="Keyword">import</a> <a id="2284" href="ValueSepSimple.CSL.html" class="Module">ValueSepSimple.CSL</a>
+
+<a id="2304" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="2369" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2444" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2503" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2608" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2699" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2763" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2849" class="Keyword">open</a> <a id="2854" class="Keyword">import</a> <a id="2861" href="ValueSepSimple.Example.html" class="Module">ValueSepSimple.Example</a>
+</pre></body></html>

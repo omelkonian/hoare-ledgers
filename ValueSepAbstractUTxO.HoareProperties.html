@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>ValueSepAbstractUTxO.HoareProperties</title><link rel="stylesheet" href="css/Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--allow-unsolved-metas</a> <a id="36" class="Symbol">#-}</a>
+<a id="40" class="Comment">-------------------------------------</a>
+<a id="78" class="Comment">-- ** Properties for Hoare triples.</a>
+
+<a id="115" class="Keyword">module</a> <a id="122" href="ValueSepAbstractUTxO.HoareProperties.html" class="Module">ValueSepAbstractUTxO.HoareProperties</a> <a id="159" class="Keyword">where</a>
+
+<a id="166" class="Keyword">open</a> <a id="171" class="Keyword">import</a> <a id="178" href="Prelude.Init.html" class="Module">Prelude.Init</a>
+<a id="191" class="Keyword">open</a> <a id="196" class="Keyword">import</a> <a id="203" href="Prelude.General.html" class="Module">Prelude.General</a>
+<a id="219" class="Keyword">open</a> <a id="224" class="Keyword">import</a> <a id="231" href="Prelude.DecEq.html" class="Module">Prelude.DecEq</a>
+<a id="245" class="Keyword">open</a> <a id="250" class="Keyword">import</a> <a id="257" href="Prelude.Decidable.html" class="Module">Prelude.Decidable</a>
+<a id="275" class="Keyword">open</a> <a id="280" class="Keyword">import</a> <a id="287" href="Prelude.InferenceRules.html" class="Module">Prelude.InferenceRules</a>
+<a id="310" class="Keyword">open</a> <a id="315" class="Keyword">import</a> <a id="322" href="Prelude.Setoid.html" class="Module">Prelude.Setoid</a>
+<a id="337" class="Keyword">open</a> <a id="342" class="Keyword">import</a> <a id="349" href="Prelude.Semigroup.html" class="Module">Prelude.Semigroup</a>
+
+<a id="368" class="Keyword">open</a> <a id="373" class="Keyword">import</a> <a id="380" href="Prelude.Bags.html" class="Module">Prelude.Bags</a>
+<a id="393" class="Keyword">open</a> <a id="398" class="Keyword">import</a> <a id="405" href="ValueSepAbstractUTxO.UTxO.html" class="Module">ValueSepAbstractUTxO.UTxO</a>
+<a id="431" class="Keyword">open</a> <a id="436" class="Keyword">import</a> <a id="443" href="ValueSepAbstractUTxO.Ledger.html" class="Module">ValueSepAbstractUTxO.Ledger</a>
+<a id="471" class="Keyword">open</a> <a id="476" class="Keyword">import</a> <a id="483" href="ValueSepAbstractUTxO.HoareLogic.html" class="Module">ValueSepAbstractUTxO.HoareLogic</a>
+
+<a id="516" class="Comment">-- ** Lemmas about separating conjunction.</a>
+
+<a id="560" class="Comment">-- commutativity</a>
+<a id="∗↔"></a><a id="577" href="ValueSepAbstractUTxO.HoareProperties.html#577" class="Function">∗↔</a> <a id="580" class="Symbol">:</a> <a id="582" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a> <a id="584" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="586" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a> <a id="588" href="Prelude.General.html#1680" class="Function Operator">⊢</a> <a id="590" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a> <a id="592" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="594" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a>
+<a id="596" href="ValueSepAbstractUTxO.HoareProperties.html#577" class="Function">∗↔</a> <a id="599" class="Symbol">{</a><a id="600" class="Argument">x</a> <a id="602" class="Symbol">=</a> <a id="604" href="ValueSepAbstractUTxO.HoareProperties.html#604" class="Bound">s</a><a id="605" class="Symbol">}</a> <a id="607" class="Symbol">(</a><a id="608" href="ValueSepAbstractUTxO.HoareProperties.html#608" class="Bound">s₁</a> <a id="611" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="613" href="ValueSepAbstractUTxO.HoareProperties.html#613" class="Bound">s₂</a> <a id="616" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="618" href="ValueSepAbstractUTxO.HoareProperties.html#618" class="Bound">≡s</a> <a id="621" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="623" href="ValueSepAbstractUTxO.HoareProperties.html#623" class="Bound">Ps₁</a> <a id="627" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="629" href="ValueSepAbstractUTxO.HoareProperties.html#629" class="Bound">Qs₂</a><a id="632" class="Symbol">)</a> <a id="634" class="Symbol">=</a> <a id="636" href="ValueSepAbstractUTxO.HoareProperties.html#613" class="Bound">s₂</a> <a id="639" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="641" href="ValueSepAbstractUTxO.HoareProperties.html#608" class="Bound">s₁</a> <a id="644" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="646" href="Prelude.Bags.AsLists.html#4483" class="Function">◇≡-comm</a> <a id="654" class="Symbol">{</a><a id="655" class="Argument">s</a> <a id="657" class="Symbol">=</a> <a id="659" href="ValueSepAbstractUTxO.HoareProperties.html#604" class="Bound">s</a><a id="660" class="Symbol">}{</a><a id="662" href="ValueSepAbstractUTxO.HoareProperties.html#608" class="Bound">s₁</a><a id="664" class="Symbol">}{</a><a id="666" href="ValueSepAbstractUTxO.HoareProperties.html#613" class="Bound">s₂</a><a id="668" class="Symbol">}</a> <a id="670" href="ValueSepAbstractUTxO.HoareProperties.html#618" class="Bound">≡s</a> <a id="673" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="675" href="ValueSepAbstractUTxO.HoareProperties.html#629" class="Bound">Qs₂</a> <a id="679" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="681" href="ValueSepAbstractUTxO.HoareProperties.html#623" class="Bound">Ps₁</a>
+
+<a id="686" class="Comment">-- associativity</a>
+<a id="∗↝"></a><a id="703" href="ValueSepAbstractUTxO.HoareProperties.html#703" class="Function">∗↝</a> <a id="706" class="Symbol">:</a> <a id="708" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a> <a id="710" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="712" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a> <a id="714" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="716" href="ValueSepAbstractUTxO.HoareLogic.html#564" class="Generalizable">R</a> <a id="718" href="Prelude.General.html#1680" class="Function Operator">⊢</a> <a id="720" class="Symbol">(</a><a id="721" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a> <a id="723" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="725" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a><a id="726" class="Symbol">)</a> <a id="728" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="730" href="ValueSepAbstractUTxO.HoareLogic.html#564" class="Generalizable">R</a>
+<a id="732" href="ValueSepAbstractUTxO.HoareProperties.html#703" class="Function">∗↝</a> <a id="735" class="Symbol">{</a><a id="736" class="Argument">x</a> <a id="738" class="Symbol">=</a> <a id="740" href="ValueSepAbstractUTxO.HoareProperties.html#740" class="Bound">s</a><a id="741" class="Symbol">}</a> <a id="743" class="Symbol">(</a><a id="744" href="ValueSepAbstractUTxO.HoareProperties.html#744" class="Bound">s₁</a> <a id="747" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="749" href="ValueSepAbstractUTxO.HoareProperties.html#749" class="Bound">s₂₃</a> <a id="753" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="755" href="ValueSepAbstractUTxO.HoareProperties.html#755" class="Bound">≡s</a> <a id="758" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="760" href="ValueSepAbstractUTxO.HoareProperties.html#760" class="Bound">Ps₁</a> <a id="764" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="766" class="Symbol">(</a><a id="767" href="ValueSepAbstractUTxO.HoareProperties.html#767" class="Bound">s₂</a> <a id="770" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="772" href="ValueSepAbstractUTxO.HoareProperties.html#772" class="Bound">s₃</a> <a id="775" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="777" href="ValueSepAbstractUTxO.HoareProperties.html#777" class="Bound">≡s₂₃</a> <a id="782" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="784" href="ValueSepAbstractUTxO.HoareProperties.html#784" class="Bound">Qs₂</a> <a id="788" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="790" href="ValueSepAbstractUTxO.HoareProperties.html#790" class="Bound">Rs₃</a><a id="793" class="Symbol">))</a> <a id="796" class="Symbol">=</a>
+  <a id="800" class="Keyword">let</a> <a id="804" href="ValueSepAbstractUTxO.HoareProperties.html#804" class="Bound">≡s₁₂</a> <a id="809" class="Symbol">=</a> <a id="811" href="Prelude.Bags.AsLists.html#5200" class="Function">◇≈-assocʳ</a> <a id="821" class="Symbol">{</a><a id="822" class="Argument">s₁</a> <a id="825" class="Symbol">=</a> <a id="827" href="ValueSepAbstractUTxO.HoareProperties.html#744" class="Bound">s₁</a><a id="829" class="Symbol">}{</a><a id="831" href="ValueSepAbstractUTxO.HoareProperties.html#749" class="Bound">s₂₃</a><a id="834" class="Symbol">}{</a><a id="836" href="ValueSepAbstractUTxO.HoareProperties.html#740" class="Bound">s</a><a id="837" class="Symbol">}{</a><a id="839" href="ValueSepAbstractUTxO.HoareProperties.html#767" class="Bound">s₂</a><a id="841" class="Symbol">}{</a><a id="843" href="ValueSepAbstractUTxO.HoareProperties.html#772" class="Bound">s₃</a><a id="845" class="Symbol">}</a> <a id="847" href="ValueSepAbstractUTxO.HoareProperties.html#755" class="Bound">≡s</a> <a id="850" href="ValueSepAbstractUTxO.HoareProperties.html#777" class="Bound">≡s₂₃</a> <a id="855" class="Keyword">in</a>
+  <a id="860" class="Symbol">(</a><a id="861" href="ValueSepAbstractUTxO.HoareProperties.html#744" class="Bound">s₁</a> <a id="864" href="Prelude.Semigroup.html#176" class="Field Operator">◇</a> <a id="866" href="ValueSepAbstractUTxO.HoareProperties.html#767" class="Bound">s₂</a><a id="868" class="Symbol">)</a> <a id="870" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="872" href="ValueSepAbstractUTxO.HoareProperties.html#772" class="Bound">s₃</a> <a id="875" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="877" href="ValueSepAbstractUTxO.HoareProperties.html#804" class="Bound">≡s₁₂</a> <a id="882" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="884" class="Symbol">(</a><a id="885" href="ValueSepAbstractUTxO.HoareProperties.html#744" class="Bound">s₁</a> <a id="888" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="890" href="ValueSepAbstractUTxO.HoareProperties.html#767" class="Bound">s₂</a> <a id="893" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="895" href="Prelude.Setoid.html#683" class="Function">≈-refl</a> <a id="902" class="Symbol">{</a><a id="903" class="Argument">x</a> <a id="905" class="Symbol">=</a> <a id="907" href="ValueSepAbstractUTxO.HoareProperties.html#744" class="Bound">s₁</a> <a id="910" href="Prelude.Bags.AsLists.html#2132" class="Function Operator">∪</a> <a id="912" href="ValueSepAbstractUTxO.HoareProperties.html#767" class="Bound">s₂</a><a id="914" class="Symbol">}</a> <a id="916" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="918" href="ValueSepAbstractUTxO.HoareProperties.html#760" class="Bound">Ps₁</a> <a id="922" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="924" href="ValueSepAbstractUTxO.HoareProperties.html#784" class="Bound">Qs₂</a><a id="927" class="Symbol">)</a> <a id="929" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="931" href="ValueSepAbstractUTxO.HoareProperties.html#790" class="Bound">Rs₃</a>
+
+<a id="↜∗"></a><a id="936" href="ValueSepAbstractUTxO.HoareProperties.html#936" class="Function">↜∗</a> <a id="939" class="Symbol">:</a> <a id="941" class="Symbol">(</a><a id="942" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a> <a id="944" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="946" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a><a id="947" class="Symbol">)</a> <a id="949" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="951" href="ValueSepAbstractUTxO.HoareLogic.html#564" class="Generalizable">R</a> <a id="953" href="Prelude.General.html#1680" class="Function Operator">⊢</a> <a id="955" href="ValueSepAbstractUTxO.HoareLogic.html#542" class="Generalizable">P</a> <a id="957" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="959" href="ValueSepAbstractUTxO.HoareLogic.html#553" class="Generalizable">Q</a> <a id="961" href="ValueSepAbstractUTxO.HoareLogic.html#649" class="Function Operator">∗</a> <a id="963" href="ValueSepAbstractUTxO.HoareLogic.html#564" class="Generalizable">R</a>
+<a id="965" href="ValueSepAbstractUTxO.HoareProperties.html#936" class="Function">↜∗</a> <a id="968" class="Symbol">{</a><a id="969" class="Argument">x</a> <a id="971" class="Symbol">=</a> <a id="973" href="ValueSepAbstractUTxO.HoareProperties.html#973" class="Bound">s</a><a id="974" class="Symbol">}</a> <a id="976" class="Symbol">(</a><a id="977" href="ValueSepAbstractUTxO.HoareProperties.html#977" class="Bound">s₁₂</a> <a id="981" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="983" href="ValueSepAbstractUTxO.HoareProperties.html#983" class="Bound">s₃</a> <a id="986" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="988" href="ValueSepAbstractUTxO.HoareProperties.html#988" class="Bound">≡s</a> <a id="991" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="993" class="Symbol">(</a><a id="994" href="ValueSepAbstractUTxO.HoareProperties.html#994" class="Bound">s₁</a> <a id="997" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="999" href="ValueSepAbstractUTxO.HoareProperties.html#999" class="Bound">s₂</a> <a id="1002" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1004" href="ValueSepAbstractUTxO.HoareProperties.html#1004" class="Bound">≡s₁₂</a> <a id="1009" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1011" href="ValueSepAbstractUTxO.HoareProperties.html#1011" class="Bound">Ps₁</a> <a id="1015" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1017" href="ValueSepAbstractUTxO.HoareProperties.html#1017" class="Bound">Qs₂</a><a id="1020" class="Symbol">)</a> <a id="1022" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1024" href="ValueSepAbstractUTxO.HoareProperties.html#1024" class="Bound">Rs₃</a><a id="1027" class="Symbol">)</a> <a id="1029" class="Symbol">=</a>
+  <a id="1033" class="Keyword">let</a> <a id="1037" href="ValueSepAbstractUTxO.HoareProperties.html#1037" class="Bound">≡s₂₃</a> <a id="1042" class="Symbol">=</a> <a id="1044" href="Prelude.Bags.AsLists.html#4891" class="Function">◇≈-assocˡ</a> <a id="1054" class="Symbol">{</a><a id="1055" class="Argument">s₁₂</a> <a id="1059" class="Symbol">=</a> <a id="1061" href="ValueSepAbstractUTxO.HoareProperties.html#977" class="Bound">s₁₂</a><a id="1064" class="Symbol">}{</a><a id="1066" href="ValueSepAbstractUTxO.HoareProperties.html#983" class="Bound">s₃</a><a id="1068" class="Symbol">}{</a><a id="1070" href="ValueSepAbstractUTxO.HoareProperties.html#973" class="Bound">s</a><a id="1071" class="Symbol">}{</a><a id="1073" href="ValueSepAbstractUTxO.HoareProperties.html#994" class="Bound">s₁</a><a id="1075" class="Symbol">}{</a><a id="1077" href="ValueSepAbstractUTxO.HoareProperties.html#999" class="Bound">s₂</a><a id="1079" class="Symbol">}</a> <a id="1081" href="ValueSepAbstractUTxO.HoareProperties.html#988" class="Bound">≡s</a> <a id="1084" href="ValueSepAbstractUTxO.HoareProperties.html#1004" class="Bound">≡s₁₂</a> <a id="1089" class="Keyword">in</a>
+  <a id="1094" href="ValueSepAbstractUTxO.HoareProperties.html#994" class="Bound">s₁</a> <a id="1097" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1099" href="ValueSepAbstractUTxO.HoareProperties.html#999" class="Bound">s₂</a> <a id="1102" href="Prelude.Semigroup.html#176" class="Field Operator">◇</a> <a id="1104" href="ValueSepAbstractUTxO.HoareProperties.html#983" class="Bound">s₃</a> <a id="1107" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1109" href="ValueSepAbstractUTxO.HoareProperties.html#1037" class="Bound">≡s₂₃</a> <a id="1114" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1116" href="ValueSepAbstractUTxO.HoareProperties.html#1011" class="Bound">Ps₁</a> <a id="1120" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1122" class="Symbol">(</a><a id="1123" href="ValueSepAbstractUTxO.HoareProperties.html#999" class="Bound">s₂</a> <a id="1126" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1128" href="ValueSepAbstractUTxO.HoareProperties.html#983" class="Bound">s₃</a> <a id="1131" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1133" href="Prelude.Setoid.html#683" class="Function">≈-refl</a> <a id="1140" class="Symbol">{</a><a id="1141" class="Argument">x</a> <a id="1143" class="Symbol">=</a> <a id="1145" href="ValueSepAbstractUTxO.HoareProperties.html#999" class="Bound">s₂</a> <a id="1148" href="Prelude.Bags.AsLists.html#2132" class="Function Operator">∪</a> <a id="1150" href="ValueSepAbstractUTxO.HoareProperties.html#983" class="Bound">s₃</a><a id="1152" class="Symbol">}</a><a id="1153" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1155" href="ValueSepAbstractUTxO.HoareProperties.html#1017" class="Bound">Qs₂</a> <a id="1159" href="Agda.Builtin.Sigma.html#236" class="InductiveConstructor Operator">,</a> <a id="1161" href="ValueSepAbstractUTxO.HoareProperties.html#1024" class="Bound">Rs₃</a><a id="1164" class="Symbol">)</a>
+
+
+<a id="1168" class="Comment">-- -- ** Useful lemmas when transferring a value between participants in the minimal context.</a>
+<a id="1262" class="Comment">-- postulate</a>
+<a id="1275" class="Comment">--   transfer : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutput} {rdm : DATA} {val : TxInfo → DATA → Bool} →</a>
+<a id="1389" class="Comment">--     ∙ T (val (mkTxInfo tx) rdm)</a>
+<a id="1424" class="Comment">--     ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]</a>
+<a id="1518" class="Comment">--                   ; outputs = [ v at B ]</a>
+<a id="1562" class="Comment">--                   ; forge   = 0 }</a>
+<a id="1599" class="Comment">--       ────────────────────────────────────</a>
+<a id="1645" class="Comment">--       ⟨ (val ♯) ↦ v ⟩</a>
+<a id="1670" class="Comment">--       [ tx ]</a>
+<a id="1686" class="Comment">--       ⟨ B ↦ v ⟩</a>
+
+<a id="1706" class="Comment">-- open HoareReasoning</a>
+<a id="1729" class="Comment">-- transferℝ : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutput} {rdm : DATA} {val : TxInfo → DATA → Bool} →</a>
+<a id="1842" class="Comment">--   ∙ T (val (mkTxInfo tx) rdm)</a>
+<a id="1875" class="Comment">--   ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]</a>
+<a id="1967" class="Comment">--                 ; outputs = [ v at B ]</a>
+<a id="2009" class="Comment">--                 ; forge   = 0 }</a>
+<a id="2044" class="Comment">--     ────────────────────────────────────</a>
+<a id="2088" class="Comment">--     ℝ⟨ (val ♯) ↦ v ⟩</a>
+<a id="2112" class="Comment">--     [ tx ]</a>
+<a id="2126" class="Comment">--     ⟨ B ↦ v ⟩</a>
+<a id="2143" class="Comment">-- transferℝ val tx≡ = mkℝ transfer val tx≡</a>
+
+<a id="2188" class="Comment">-- -- -- _↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} → ⟨ A ↦ vᵃ ∗ B ↦ vᵇ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ (vᵃ ∸ v) ∗ B ↦ (vᵇ + v) ⟩</a>
+<a id="2306" class="Comment">-- -- -- (A ↝⟨ v ⟩ B) {vᵃ}{vᵇ}{vᵃ≤v} {s} (s₁ , s₂ , ≡s , As₁ , Bs₂)</a>
+<a id="2374" class="Comment">-- -- --   with s₁ A | As₁ | ↦-⊎ˡ {s₁ = s₁}{A}{vᵃ}{s₂} As₁ | ≡s A</a>
+<a id="2440" class="Comment">-- -- -- ... | .(just vᵃ) | refl | .(s₂ ⁉⁰ A) , refl , p | sA≡</a>
+<a id="2503" class="Comment">-- -- --   with s₂ B | Bs₂ | ↦-⊎ʳ {s₂ = s₂}{B}{vᵇ}{s₁} Bs₂ | ≡s B</a>
+<a id="2569" class="Comment">-- -- -- ... | .(just vᵇ) | refl | .(s₁ ⁉⁰ B) , refl , q | sB≡</a>
+<a id="2632" class="Comment">-- -- --   with s A | trans (sym sA≡) p</a>
+<a id="2672" class="Comment">-- -- -- ... | .(just (vᵃ ⊎ (s₂ ⁉⁰ A))) | refl</a>
+<a id="2719" class="Comment">-- -- --   with s B | trans (sym sB≡) q</a>
+<a id="2759" class="Comment">-- -- -- ... | .(just ((s₁ ⁉⁰ B) ⊎ vᵇ)) | refl</a>
+<a id="2806" class="Comment">-- -- --   with v ≤? vᵃ ⊎ (s₂ ⁉⁰ A)</a>
+<a id="2842" class="Comment">-- -- -- ... | no  v≰ = ⊥-elim $ v≰ $ Nat.≤-stepsʳ (s₂ ⁉⁰ A) $ vᵃ≤v</a>
+<a id="2910" class="Comment">-- -- -- ... | yes v≤</a>
+<a id="2932" class="Comment">-- -- --   = ret↑ (_s₁′ , _s₂′ , ≡s′ , As₁′ , Bs₂′)</a>
+<a id="2984" class="Comment">-- -- --   where</a>
+<a id="3001" class="Comment">-- -- --     sA≡′ : s A ≡ just (vᵃ ⊎ (s₂ ⁉⁰ A))</a>
+<a id="3049" class="Comment">-- -- --     sA≡′ = trans (sym sA≡) p</a>
+
+<a id="3088" class="Comment">-- -- --     sB≡′ : s B ≡ just ((s₁ ⁉⁰ B) ⊎ vᵇ)</a>
+<a id="3136" class="Comment">-- -- --     sB≡′ = trans (sym sB≡) q</a>
+
+<a id="3175" class="Comment">-- -- --     _s₁′ = s₁ [ A ↝ (_∸ v) ]</a>
+<a id="3213" class="Comment">-- -- --     _s₂′ = s₂ [ B ↝ (_+ v) ]</a>
+
+<a id="3252" class="Comment">-- -- --     _s′ = s [ A ↝ (_∸ v) ]</a>
+<a id="3288" class="Comment">-- -- --             [ B ↝ (_+ v) ]</a>
+
+<a id="3325" class="Comment">-- -- --     As₁′ : _s₁′ A ≡ just (vᵃ ∸ v)</a>
+<a id="3368" class="Comment">-- -- --     As₁′ rewrite As₁ | ≟-refl A = refl</a>
+
+<a id="3417" class="Comment">-- -- --     Bs₂′ : _s₂′ B ≡ just (vᵇ + v)</a>
+<a id="3460" class="Comment">-- -- --     Bs₂′ rewrite Bs₂ | ≟-refl B = refl</a>
+
+<a id="3509" class="Comment">-- -- --     ≡s′ : ⟨ _s₁′ ⊎ _s₂′ ⟩≡ _s′</a>
+<a id="3549" class="Comment">-- -- --     ≡s′ k</a>
+<a id="3568" class="Comment">-- -- --       rewrite sym $ ≡s k</a>
+<a id="3602" class="Comment">-- -- --       with k ≟ A | k ≟ B</a>
+<a id="3636" class="Comment">-- -- --     ≡s′ k | yes refl | yes refl -- ∙ k ≡ A ≡ B</a>
+<a id="3692" class="Comment">-- -- --       rewrite ≟-refl A | ≟-refl B | As₁ | Bs₂</a>
+<a id="3747" class="Comment">-- -- --       = cong just</a>
+<a id="3774" class="Comment">-- -- --       $ begin (vᵃ ∸ v) + (vᵇ + v) ≡⟨ sym $ Nat.+-∸-comm _ vᵃ≤v ⟩</a>
+<a id="3848" class="Comment">-- -- --               vᵃ + (vᵇ + v) ∸ v   ≡⟨ cong (_∸ v) $ sym $ Nat.+-assoc _ vᵇ v ⟩</a>
+<a id="3935" class="Comment">-- -- --               (vᵃ + vᵇ) + v ∸ v   ≡⟨ Nat.m+n∸n≡m _ v ⟩</a>
+<a id="3999" class="Comment">-- -- --               (vᵃ + vᵇ)           ≡⟨ sym $ Nat.m∸n+n≡m v≤ ⟩</a>
+<a id="4068" class="Comment">-- -- --               (vᵃ + vᵇ) ∸ v + v   ∎ where open ≡-Reasoning</a>
+<a id="4136" class="Comment">-- -- --     ≡s′ k | yes refl | no k≢B -- ∙ k ≡ A</a>
+<a id="4186" class="Comment">-- -- --       rewrite ≟-refl A | As₁</a>
+<a id="4224" class="Comment">-- -- --       with s₂ A</a>
+<a id="4249" class="Comment">-- -- --     ... | nothing = refl</a>
+<a id="4283" class="Comment">-- -- --     ... | just _  = cong just $ sym $ Nat.+-∸-comm _ vᵃ≤v</a>
+<a id="4350" class="Comment">-- -- --     ≡s′ k | no k≢A   | yes refl -- ∙ k ≡ B</a>
+<a id="4402" class="Comment">-- -- --       rewrite ≟-refl B | Bs₂</a>
+<a id="4440" class="Comment">-- -- --       with s₁ B</a>
+<a id="4465" class="Comment">-- -- --     ... | nothing  = refl</a>
+<a id="4500" class="Comment">-- -- --     ... | just _   = cong just $ sym $ Nat.+-assoc _ vᵇ v</a>
+<a id="4567" class="Comment">-- -- --     ≡s′ k | no k≢A   | no k≢B -- ∙ k ∉ {A, B}</a>
+<a id="4622" class="Comment">-- -- --       rewrite M.map-id (s₁ k) | M.map-id (s₂ k) | M.map-id (s₁ k ⊎ s₂ k) | M.map-id (s₁ k ⊎ s₂ k)</a>
+<a id="4729" class="Comment">-- -- --       = refl</a>
+
+<a id="4752" class="Comment">-- -- -- _↝⁰_ : ∀ A B → ⟨ A ↦ v ∗ B ↦ v′ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ 0 ∗ B ↦ (v′ + v) ⟩</a>
+<a id="4836" class="Comment">-- -- -- _↝⁰_ {v = v} {v′ = v′} A B with p ← (A ↝⟨ v ⟩ B) {vᵇ = v′} {v≤ = ≤-refl {x = v}} rewrite Nat.n∸n≡0 v = p</a>
+
+<a id="4951" class="Comment">-- -- -- _↜⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵇ} → ⟨ A ↦ vᵃ ∗ B ↦ vᵇ ⟩ [ B —→⟨ v ⟩ A ] ⟨ A ↦ (vᵃ + v) ∗ B ↦ (vᵇ ∸ v) ⟩</a>
+<a id="5069" class="Comment">-- -- -- (A ↜⟨ v ⟩ B) {vᵃ}{vᵇ}{v≤} (s₁ , s₂ , ≡s , As₁ , Bs₂)</a>
+<a id="5131" class="Comment">-- -- --   = map↑ (λ where (s₁′ , s₂′ , ≡s′ , As₁′ , Bs₂′) → s₂′ , s₁′ , ⊎≡-comm {x = s₁′} ≡s′ , Bs₂′ , As₁′)</a>
+<a id="5241" class="Comment">-- -- --          ((B ↝⟨ v ⟩ A) {v≤ = v≤} (s₂ , s₁ , ⊎≡-comm {x = s₁} ≡s , Bs₂ , As₁))</a>
+
+<a id="5329" class="Comment">-- -- -- _↜⁰_ : ∀ A B → ⟨ A ↦ v′ ∗ B ↦ v ⟩ [ B —→⟨ v ⟩ A ] ⟨ A ↦ (v′ + v) ∗ B ↦ 0 ⟩</a>
+<a id="5413" class="Comment">-- -- -- _↜⁰_ {v′ = v′} {v = v} A B with p ← (A ↜⟨ v ⟩ B) {vᵃ = v′} {v≤ = ≤-refl {x = v}} rewrite Nat.n∸n≡0 v = p</a>
+</pre></body></html>
