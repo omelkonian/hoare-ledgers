@@ -13,7 +13,7 @@ open import Prelude.InferenceRules
 open import ValueSepUTxO.Maps
 open import ValueSepUTxO.UTxO
 open import ValueSepUTxO.Ledger
-open import ValueSepUTxO.StrongHoareLogic
+open import ValueSepUTxO.HoareLogic
 
 -- ** Lemmas about separating conjunction.
 

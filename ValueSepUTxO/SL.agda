@@ -2,7 +2,7 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-module ValueSepUTxO.StrongSL where
+module ValueSepUTxO.SL where
 
 open import Prelude.Init
 open import Prelude.DecEq
@@ -19,7 +19,7 @@ open import Prelude.Membership
 open import ValueSepUTxO.Maps
 open import ValueSepUTxO.UTxO
 open import ValueSepUTxO.Ledger
-open import ValueSepUTxO.StrongHoareLogic
+open import ValueSepUTxO.HoareLogic
 
 ⊎-⟦⟧ᵗ : ∀ s₁′ →
   ∙ ⟦ t ⟧ s₁ ≡ just s₁′

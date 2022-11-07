@@ -5,7 +5,6 @@
 module ValueSepUTxO.SimpleHoareLogic where
 
 open import Prelude.Init
-open Unary using () renaming (_⊆_ to _⊆¹_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable

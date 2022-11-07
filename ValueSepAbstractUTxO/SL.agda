@@ -2,7 +2,7 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-module ValueSepUTxO.AbstractSL where
+module ValueSepAbstractUTxO.SL where
 
 open import Prelude.Init
 open import Prelude.DecEq
@@ -17,9 +17,9 @@ open import Prelude.Monoid
 open import Prelude.Membership
 
 open import Prelude.Bags
-open import ValueSepUTxO.AbstractUTxO
-open import ValueSepUTxO.AbstractLedger
-open import ValueSepUTxO.AbstractHoareLogic
+open import ValueSepAbstractUTxO.UTxO
+open import ValueSepAbstractUTxO.Ledger
+open import ValueSepAbstractUTxO.HoareLogic
 
 ◇-⟦⟧ᵗ : ∀ s₁′ →
   ∙ ⟦ t ⟧ s₁ ≡ just s₁′
@@ -46,14 +46,13 @@ postulate
     lift↑ (⟨ s₁′ ◇ s₂ ⟩≡_) (⟦ l ⟧ s)
 ◇-⟦⟧ {l = []} _ refl p = ret↑ p
 ◇-⟦⟧ {l = t ∷ l} {s₁ = s₁} {s₂} {s} s₁″ eq ≡s
-  = {!!}
---   with ⟦ t ⟧ s₁ in ⟦t⟧s≡
--- ... | just s₁′
---   with ⟦ t ⟧ s | ◇-⟦⟧ᵗ {t = t} {s₁ = s₁} {s₂ = s₂} s₁′ ⟦t⟧s≡ ≡s
--- ... | just s′  | ret↑ s₁′◇s₂≡s′
---   with ⟦ l ⟧ s₁′ in ⟦l⟧s≡ | eq
--- ... | just .s₁″           | refl
---   = ◇-⟦⟧ {l = l} {s₁ = s₁′} {s₂ = s₂} s₁″ ⟦l⟧s≡ s₁′◇s₂≡s′
+  with ⟦ t ⟧ s₁ in ⟦t⟧s≡
+... | just s₁′
+  with ⟦ t ⟧ s | ◇-⟦⟧ᵗ {t}{s₁}{s₂}{s} s₁′ ⟦t⟧s≡ ≡s
+... | just s′  | ret↑ s₁′◇s₂≡s′
+  with ⟦ l ⟧ s₁′ in ⟦l⟧s≡ | eq
+... | just .s₁″           | refl
+  = ◇-⟦⟧ {l}{s₁′}{s₂}{s′} s₁″ ⟦l⟧s≡ s₁′◇s₂≡s′
 
 -- The proof of the frame rule from separation logic, allowing us to prove formulas in minimal contexts
 -- and then weaken our results to the desired context.
@@ -65,18 +64,9 @@ postulate
 [FRAME] {P}{l}{Q} R PlQ {s} (s₁ , s₂ , ≡s , Ps₁ , Rs₂)
   with ⟦ l ⟧ s₁ in s₁≡ | PlQ Ps₁
 ... | .just s₁′ | ret↑ Qs₁′
-  = {!!}
-
---   with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
--- ... | nothing | _
---   = {!!}
--- ... | just s′ | ret↑ ≡s′
--- -- ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
---   = ret↑ (s₁′ , s₂ , {! !} , Qs₁′ , Rs₂)
-
---   with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l = l} {s₁ = s₁} {s₂ = s₂} s₁′ s₁≡ ≡s
--- ... | .just s′ | ret↑ ≡s′
---   = ret↑ (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
+  with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l}{s₁}{s₂}{s} s₁′ s₁≡ ≡s
+... | .just s′ | ret↑ ≡s′
+  = ret↑ (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
 
 open HoareReasoning
 ℝ[FRAME] : ∀ R →

@@ -2,12 +2,9 @@
 -- ** Axiomatic semantics
 
 open import Prelude.Init
-open Unary using () renaming (_⊆_ to _⊆¹_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
--- open import Prelude.Maps
-open import ValueSep.Maps
 open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
@@ -15,6 +12,7 @@ open import Prelude.Ord
 
 module ValueSep.WeakHoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
+open import ValueSep.Maps
 -- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
 open import ValueSep.Ledger Part ⦃ it ⦄
 

@@ -28,14 +28,20 @@ open import UTxO.Main
 -- ∙ Separation := _◇_
 open import ValueSep.Main
 
+-- Simplified version of above.
+-- ∙ S := K → ℕ
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+open import ValueSepSimple.Main
+
 -- Value-separated UTxO.
+-- ∙ S := Bag⟨ Address × Value ⟩
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+open import ValueSepUTxO.Main
 
-open import ValueSepUTxO.UTxO
-open import ValueSepUTxO.Ledger
-
-open import ValueSepUTxO.AbstractUTxO
-open import ValueSepUTxO.AbstractLedger
-open import ValueSepUTxO.AbstractHoareLogic
-open import ValueSepUTxO.AbstractSL
-open import ValueSepUTxO.AbstractCSL
-open import ValueSepUTxO.AbstractExample
+-- Value-separated **abstract** UTxO.
+-- ∙ S := Bag⟨ Address × Value ⟩
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+open import ValueSepAbstractUTxO.Main

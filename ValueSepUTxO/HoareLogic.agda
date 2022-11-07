@@ -1,6 +1,8 @@
 -------------------------
 -- ** Axiomatic semantics
 
+module ValueSepUTxO.HoareLogic where
+
 open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
@@ -9,26 +11,30 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
+open import Prelude.Functor
+open import Prelude.Bifunctor
 open import Prelude.Monad
+open import Prelude.Apartness
 
-module ValueSep.StrongHoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
-
-open import ValueSep.Maps
-open import ValueSep.Ledger Part
+open import ValueSepUTxO.Maps
+open import ValueSepUTxO.UTxO
+open import ValueSepUTxO.Ledger
 
 -- ** Shallow embedding of logic formulas/propositions.
 Assertion = Pred₀ S
 
 variable P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
 
+private variable K V₁ V₂ : Set
+
 emp : Assertion
 emp m = ∀ k → k ∉ᵈ m
 
 _∗_ : Op₂ Assertion
-(P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ◇ s₂ ⟩≡ s × P s₁ × Q s₂
+(P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ⊎ s₂ ⟩≡ s × P s₁ × Q s₂
 
-_↦_ : Part → ℕ → Assertion
-p ↦ n = _[ p ↦ n ]
+_↦_ : TxOutputRef → TxOutput → Assertion
+or ↦ o = _[ or ↦ o ]
 
 infixr 10 _∗_
 infix  11 _↦_
@@ -142,14 +148,12 @@ module HoareReasoning where
   _~⟪_⟩_ {l = l} _ H PlR = mkℝ weaken {l = l} H (begin PlR)
 
   -- strengthening syntax
-  _~⟨_⟫_ : ∀ R′ → R ⊢ R′ → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P ⟩ l ⟨ R′ ⟩
-  _~⟨_⟫_ {l = l} _ H PlR = mkℝ strengthen {l = l} H (begin PlR)
+  _~⟨_⟫_ : ∀ R′ → R ⊢ R′ → ⟨ P ⟩ l ⟨ R ⟩ → ⟨ P ⟩ l ⟨ R′ ⟩
+  _~⟨_⟫_ {l = l} _ H PlR = strengthen {l = l} H PlR
 
   -- step syntax
   _~⟨_∶-_⟩_ : ∀ P′ t → ℝ⟨ P′ ⟩ [ t ] ⟨ P ⟩ → ℝ⟨ P ⟩ l ⟨ R ⟩ → ℝ⟨ P′ ⟩ t ∷ l ⟨ R ⟩
-  _~⟨_∶-_⟩_ {l = l} {R = R} P′ t H PlR =
-    -- P′ ~⟪ begin H ⟩ (mkℝ (λ {x} Px → hoare-step {l = l} {t = t} (begin PlR) {_} Px))
-    mkℝ go
+  _~⟨_∶-_⟩_ {l = l} {R = R} P′ t H PlR = mkℝ go
     where
       go : P′ ⊢ R ↑∘ ⟦ t ∷ l ⟧
       go {s} P′s with ⟦ t ⟧ s | (begin H) P′s

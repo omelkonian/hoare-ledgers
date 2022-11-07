@@ -1,31 +1,32 @@
-{-# OPTIONS --rewriting #-}
-module ValueSepUTxO.Main where
+module ValueSepSimple.Main where
 
--- ** Simplistic definition of the UTxO model.
-open import ValueSepUTxO.UTxO
+-- ** Concrete implementation of (shallow) maps (mostly copied from Prelude.Maps).
+--    ∙ this makes the code more self-contained
+--    ∙ as the implementation is not abstract anymore, we can utilize decidability in our (closed) examples
+open import ValueSepSimple.Maps
 
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.
--- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,
+-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSepSimple.Maps,
 -- and define both operational and denotational semantics.
 -- [Proofs]
 --    * correspondence between operational and denotational semantics
 --    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`
-open import ValueSepUTxO.Ledger
+open import ValueSepSimple.Ledger
 
 -- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.
 -- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.
 -- [Proofs]
 --   * correspondence with denotational semantics and, by transitivity, operational semantics.
 --   * associativity/commutativity of separating conjuction _∗_
-open import ValueSepUTxO.HoareLogic
-open import ValueSepUTxO.HoareProperties
+open import ValueSepSimple.HoareLogic
+open import ValueSepSimple.HoareProperties
 
 -- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,
 -- which allows us to express the frame rule of Separation Logic (SL).
 -- [Proofs]
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
-open import ValueSepUTxO.SL
+open import ValueSepSimple.SL
 
 -- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.
 -- **SOLUTION** Change domain to incorporate failure, i.e. `S -> S` to `S -> Maybe S`.
@@ -35,7 +36,7 @@ open import ValueSepUTxO.SL
 --  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,
 -- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)
 -- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.
-open import ValueSepUTxO.CSL
+open import ValueSepSimple.CSL
 
 -- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,
 --    recording that values are correctly updated in pre-/post-conditions.
@@ -44,4 +45,4 @@ open import ValueSepUTxO.CSL
 --    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.
 -- 2. the second proof h′ utilizes modular reasoning via [PAR];
 --    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.
-open import ValueSepUTxO.Example
+open import ValueSepSimple.Example

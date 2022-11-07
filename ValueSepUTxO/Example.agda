@@ -1,5 +1,5 @@
 {-# OPTIONS --rewriting #-}
-module ValueSepUTxO.StrongExample where
+module ValueSepUTxO.Example where
 
 open import Agda.Builtin.Equality.Rewrite
 
@@ -9,14 +9,15 @@ open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists hiding (_↦_)
 open import Prelude.DecLists
+open import Prelude.Apartness
 
 open import ValueSepUTxO.Maps
 open import ValueSepUTxO.UTxO
 open import ValueSepUTxO.Ledger
-open import ValueSepUTxO.StrongHoareLogic
+open import ValueSepUTxO.HoareLogic
 open import ValueSepUTxO.HoareProperties
-open import ValueSepUTxO.StrongSL
-open import ValueSepUTxO.StrongCSL
+open import ValueSepUTxO.SL
+open import ValueSepUTxO.CSL
 
 A B C D : Address
 A = 111; B = 222; C = 333; D = 444
@@ -86,21 +87,26 @@ _ : ⟨ t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ⟩
     t₁-₄
     ⟨ t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ⟩
 _ = begin
-  t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁ ∶- ℝ[FRAME] (t₀₁ ↦ 1 at D) (transferℝ val₁ refl) ⟩
+  t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁ ∶- ℝ[FRAME] (t₀₁ ↦ 1 at D) t₁♯ (transferℝ val₁ refl) ⟩
   t₁₀ ↦ 1 at B ∗ t₀₁ ↦ 1 at D ~⟪ ∗↔ ⟩
-  t₀₁ ↦ 1 at D ∗ t₁₀ ↦ 1 at B ~⟨ t₂ ∶- ℝ[FRAME] (t₁₀ ↦ 1 at B) (transferℝ val₂ refl) ⟩
+  t₀₁ ↦ 1 at D ∗ t₁₀ ↦ 1 at B ~⟨ t₂ ∶- ℝ[FRAME] (t₁₀ ↦ 1 at B) t₂♯ (transferℝ val₂ refl) ⟩
   t₂₀ ↦ 1 at C ∗ t₁₀ ↦ 1 at B ~⟪ ∗↔ ⟩
-  t₁₀ ↦ 1 at B ∗ t₂₀ ↦ 1 at C ~⟨ t₃ ∶- ℝ[FRAME] (t₂₀ ↦ 1 at C) (transferℝ val₃ refl) ⟩
+  t₁₀ ↦ 1 at B ∗ t₂₀ ↦ 1 at C ~⟨ t₃ ∶- ℝ[FRAME] (t₂₀ ↦ 1 at C) t₃♯ (transferℝ val₃ refl) ⟩
   t₃₀ ↦ 1 at A ∗ t₂₀ ↦ 1 at C ~⟪ ∗↔ ⟩
-  t₂₀ ↦ 1 at C ∗ t₃₀ ↦ 1 at A ~⟨ t₄ ∶- ℝ[FRAME] (t₃₀ ↦ 1 at A) (transferℝ val₄ refl) ⟩
+  t₂₀ ↦ 1 at C ∗ t₃₀ ↦ 1 at A ~⟨ t₄ ∶- ℝ[FRAME] (t₃₀ ↦ 1 at A) t₄♯ (transferℝ val₄ refl) ⟩
   t₄₀ ↦ 1 at D ∗ t₃₀ ↦ 1 at A ~⟪ ∗↔ ⟩
   t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ∎
+  where postulate
+    t₁♯ : [ t₁ ] ♯ (t₀₁ ↦ 1 at D)
+    t₂♯ : [ t₂ ] ♯ (t₁₀ ↦ 1 at B)
+    t₃♯ : [ t₃ ] ♯ (t₂₀ ↦ 1 at C)
+    t₄♯ : [ t₄ ] ♯ (t₃₀ ↦ 1 at A)
 
 -- 1b) proof using CSL.[INTERLEAVE]
 _ : ⟨ t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ⟩
     t₁-₄
     ⟨ t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ⟩
-_ = begin t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁-₄ ∶- ℝ[PAR] (keepˡ $′ keepʳ $′ keepˡ $′ keepʳ []) H₁ H₂ ⟩++
+_ = begin t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁-₄ ∶- ℝ[PAR] (keepˡ keepʳ keepˡ keepʳ []) H₁ H₂ ⟩++
           t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ∎
   where
     H₁ : ℝ⟨ t₀₀ ↦ 1 at A ⟩ t₁ ∷ t₃ ∷ [] ⟨ t₃₀ ↦ 1 at A ⟩

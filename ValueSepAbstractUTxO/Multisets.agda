@@ -13,7 +13,7 @@ open import Prelude.Monoid
 open import Prelude.Ord
 open import Prelude.Measurable
 
-module ValueSepUTxO.AbstractMaps {K V : Set} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
+module ValueSepUTxO.Multisets {K V : Set} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
 
 import Prelude.Sets.Concrete as S
 

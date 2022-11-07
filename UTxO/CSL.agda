@@ -27,3 +27,14 @@ open import UTxO.SL
     ---------------------------
   → ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
 [PAR] = {!!}
+
+open HoareReasoning
+ℝ[PAR] :
+    l₁ ∥ l₂ ≡ l
+  → ⟨ P₁ ⟩ l₁ ⟨ Q₁ ⟩
+  → ⟨ P₂ ⟩ l₂ ⟨ Q₂ ⟩
+  → l₁ ♯ P₂
+  → l₂ ♯ P₁
+    ---------------------------
+  → ℝ⟨ P₁ `∗ P₂ ⟩ l ⟨ Q₁ `∗ Q₂ ⟩
+ℝ[PAR] eq PlQ PlQ′ p q = mkℝ [PAR] eq PlQ PlQ′ p q

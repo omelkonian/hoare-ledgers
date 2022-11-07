@@ -5,17 +5,17 @@ open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import ValueSep.Maps
 open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
+open import Prelude.Setoid
 
-module ValueSep.HoareProperties (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSepSimple.HoareProperties (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
-open import ValueSep.Ledger Part ⦃ it ⦄
-open import ValueSep.StrongHoareLogic Part ⦃ it ⦄
--- open import ValueSep.WeakHoareLogic Part ⦃ it ⦄
+open import ValueSepSimple.Maps {K = Part}
+open import ValueSepSimple.Ledger Part ⦃ it ⦄
+open import ValueSepSimple.HoareLogic Part ⦃ it ⦄
 
 -- ** Examples
 _ :  (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
@@ -32,10 +32,8 @@ _ = ↝ , ↜
   ↜ : (A ↦ 1 ∗ C ↦ 1)
     ⊢ (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
   ↜ (sᵃ , sᶜ , ≡s , A↦1 , C↦1)
-    = sᵃ , sᶜ , ≡s , A↦1 , ∅ , sᶜ , (λ k → refl) , IMPOSSIBLE
-    , (sᶜ , ∅ , (λ _ → IMPOSSIBLE) , C↦1 , IMPOSSIBLE)
-    where postulate IMPOSSIBLE : ∀ {X} → X
-
+    = sᵃ , sᶜ , ≡s , A↦1 , ∅ , sᶜ , (λ k → refl) , refl , (sᶜ , ∅ ,
+    (λ _ → Nat.+-identityʳ _) , C↦1 , refl )
 
 -- ** Lemmas about separating conjunction.
 
@@ -53,38 +51,31 @@ _ = ↝ , ↜
   s₁ , s₂ ◇ s₃ , ◇≈-assocˡ {m₁ = s₁}{s₂} ≡s ≡s₁₂  , Ps₁ , (s₂ , s₃ , ≈-refl , Qs₂ , Rs₃)
 
 -- ** Useful lemmas when transferring a value between participants in the minimal context.
-_↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} → ⟨ A ↦ vᵃ ∗ B ↦ vᵇ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ (vᵃ ∸ v) ∗ B ↦ (vᵇ + v) ⟩
-(A ↝⟨ v ⟩ B) {vᵃ}{vᵇ}{vᵃ≤v} {s} (s₁ , s₂ , ≡s , As₁ , Bs₂)
-  with s₁ A | As₁ | ↦-◇ˡ {s₁ = s₁}{A}{vᵃ}{s₂} As₁ | ≡s A
-... | .(just vᵃ) | refl | .(s₂ ⁉⁰ A) , refl , p | sA≡
-  with s₂ B | Bs₂ | ↦-◇ʳ {s₂ = s₂}{B}{vᵇ}{s₁} Bs₂ | ≡s B
-... | .(just vᵇ) | refl | .(s₁ ⁉⁰ B) , refl , q | sB≡
-  with s A | trans (sym sA≡) p
-... | .(just (vᵃ ◇ (s₂ ⁉⁰ A))) | refl
-  with s B | trans (sym sB≡) q
-... | .(just ((s₁ ⁉⁰ B) ◇ vᵇ)) | refl
-  with v ≤? vᵃ ◇ (s₂ ⁉⁰ A)
-... | no  v≰ = ⊥-elim $ v≰ $ Nat.≤-stepsʳ (s₂ ⁉⁰ A) $ vᵃ≤v
+_↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} →
+  ⟨ A ↦ vᵃ ∗ B ↦ vᵇ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ (vᵃ ∸ v) ∗ B ↦ (vᵇ + v) ⟩
+(A ↝⟨ v ⟩ B) {vᵃ}{vᵇ}{v≤ᵃ} {s} (s₁ , s₂ , ≡s , As₁ , Bs₂)
+  with v ≤? s A
+... | no v≰
+  = ⊥-elim $ v≰ $ subst (v ≤_) (≡s A)
+                $ subst (λ ◆ → v ≤ ◆ + s₂ A) (sym As₁)
+                $ Nat.≤-stepsʳ (s₂ A) v≤ᵃ
 ... | yes v≤
   = ret↑ (_s₁′ , _s₂′ , ≡s′ , As₁′ , Bs₂′)
   where
-    sA≡′ : s A ≡ just (vᵃ ◇ (s₂ ⁉⁰ A))
-    sA≡′ = trans (sym sA≡) p
-
-    sB≡′ : s B ≡ just ((s₁ ⁉⁰ B) ◇ vᵇ)
-    sB≡′ = trans (sym sB≡) q
-
     _s₁′ = s₁ [ A ↝ (_∸ v) ]
     _s₂′ = s₂ [ B ↝ (_+ v) ]
 
     _s′ = s [ A ↝ (_∸ v) ]
             [ B ↝ (_+ v) ]
 
-    As₁′ : _s₁′ A ≡ just (vᵃ ∸ v)
+    As₁′ : _s₁′ A ≡ vᵃ ∸ v
     As₁′ rewrite As₁ | ≟-refl A = refl
 
-    Bs₂′ : _s₂′ B ≡ just (vᵇ + v)
+    Bs₂′ : _s₂′ B ≡ vᵇ + v
     Bs₂′ rewrite Bs₂ | ≟-refl B = refl
+
+    v≤′ : v ≤ vᵃ + vᵇ
+    v≤′ rewrite sym As₁ | sym Bs₂ = Nat.≤-stepsʳ (s₂ B) v≤ᵃ
 
     ≡s′ : ⟨ _s₁′ ◇ _s₂′ ⟩≡ _s′
     ≡s′ k
@@ -92,24 +83,18 @@ _↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} → ⟨ A ↦ vᵃ ∗ 
       with k ≟ A | k ≟ B
     ≡s′ k | yes refl | yes refl -- ∙ k ≡ A ≡ B
       rewrite ≟-refl A | ≟-refl B | As₁ | Bs₂
-      = cong just
-      $ begin (vᵃ ∸ v) + (vᵇ + v) ≡⟨ sym $ Nat.+-∸-comm _ vᵃ≤v ⟩
+      = begin (vᵃ ∸ v) + (vᵇ + v) ≡˘⟨ Nat.+-∸-comm _ v≤ᵃ ⟩
               vᵃ + (vᵇ + v) ∸ v   ≡⟨ cong (_∸ v) $ sym $ Nat.+-assoc _ vᵇ v ⟩
               (vᵃ + vᵇ) + v ∸ v   ≡⟨ Nat.m+n∸n≡m _ v ⟩
-              (vᵃ + vᵇ)           ≡⟨ sym $ Nat.m∸n+n≡m v≤ ⟩
+              (vᵃ + vᵇ)           ≡˘⟨ Nat.m∸n+n≡m v≤′ ⟩
               (vᵃ + vᵇ) ∸ v + v   ∎ where open ≡-Reasoning
     ≡s′ k | yes refl | no k≢B -- ∙ k ≡ A
       rewrite ≟-refl A | As₁
-      with s₂ A
-    ... | nothing = refl
-    ... | just _  = cong just $ sym $ Nat.+-∸-comm _ vᵃ≤v
+      = sym $ Nat.+-∸-comm _ v≤ᵃ
     ≡s′ k | no k≢A   | yes refl -- ∙ k ≡ B
       rewrite ≟-refl B | Bs₂
-      with s₁ B
-    ... | nothing  = refl
-    ... | just _   = cong just $ sym $ Nat.+-assoc _ vᵇ v
+      = sym $ Nat.+-assoc _ vᵇ v
     ≡s′ k | no k≢A   | no k≢B -- ∙ k ∉ {A, B}
-      rewrite M.map-id (s₁ k) | M.map-id (s₂ k) | M.map-id (s₁ k ◇ s₂ k) | M.map-id (s₁ k ◇ s₂ k)
       = refl
 
 _↝⁰_ : ∀ A B → ⟨ A ↦ v ∗ B ↦ v′ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ 0 ∗ B ↦ (v′ + v) ⟩

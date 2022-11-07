@@ -3,12 +3,9 @@
 -- Alternative using simple predicates.
 
 open import Prelude.Init
-open Unary using () renaming (_⊆_ to _⊆¹_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
--- open import Prelude.Maps
-open import ValueSep.Maps
 open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
@@ -17,6 +14,7 @@ open import Prelude.Monad
 
 module ValueSep.SimpleHoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
 
+open import ValueSep.Maps
 open import ValueSep.Ledger Part
 
 -- ** Shallow embedding of logic formulas/propositions.

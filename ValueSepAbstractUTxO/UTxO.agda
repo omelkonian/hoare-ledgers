@@ -1,7 +1,7 @@
 ----------------------------------------------
 -- ** Abstract definition for UTxO-based ledgers.
 
-module ValueSepUTxO.AbstractUTxO where
+module ValueSepAbstractUTxO.UTxO where
 
 open import Prelude.Init; open SetAsType
 open import Prelude.General
@@ -17,7 +17,6 @@ open import Prelude.Ord
 open import Prelude.Semigroup
 open import Prelude.Monoid
 
--- open import ValueSepUTxO.AbstractMaps
 open import Prelude.Bags
 instance
   Sℕ  = Semigroup-ℕ-+; Sℕ⁺ = SemigroupLaws-ℕ-+
@@ -44,11 +43,13 @@ record InputInfo : Type where
   field outputRef     : TxOutputRef
         validatorHash : HashId
         redeemerHash  : HashId
+unquoteDecl DecEq-InputInfo = DERIVE DecEq [ quote InputInfo , DecEq-InputInfo ]
 
 record TxInfo : Type where
   field inputs  : List InputInfo
         outputs : List TxOutput
         forge   : Value
+unquoteDecl DecEq-TxInfo = DERIVE DecEq [ quote TxInfo , DecEq-TxInfo ]
 
 record TxInput : Type where
   field outputRef : TxOutput

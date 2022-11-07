@@ -1,23 +1,22 @@
-module ValueSep.StrongExample where
+module ValueSepSimple.Example where
 
 open import Prelude.Init
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
--- open import Prelude.Sets hiding (_↦_)
--- open import Prelude.Lists hiding (_↦_)
 open import Prelude.DecLists
+open import Prelude.Monoid
 
 data Part : Set where
   A B C D : Part
 unquoteDecl DecEq-Part = DERIVE DecEq [ quote Part , DecEq-Part ]
 
-open import ValueSep.Maps
-open import ValueSep.Ledger Part hiding (A; B; C; D)
-open import ValueSep.StrongHoareLogic Part
-open import ValueSep.HoareProperties Part
-open import ValueSep.StrongSL Part
-open import ValueSep.StrongCSL Part
+open import ValueSepSimple.Maps
+open import ValueSepSimple.Ledger Part hiding (A; B; C; D)
+open import ValueSepSimple.HoareLogic Part
+open import ValueSepSimple.HoareProperties Part
+open import ValueSepSimple.SL Part
+open import ValueSepSimple.CSL Part
 
 t₁ = A —→⟨ 1 ⟩ B; t₂ = D —→⟨ 1 ⟩ C; t₃ = B —→⟨ 1 ⟩ A; t₄ = C —→⟨ 1 ⟩ D
 t₁-₄ = L ∋ t₁ ∷ t₂ ∷ t₃ ∷ t₄ ∷ []

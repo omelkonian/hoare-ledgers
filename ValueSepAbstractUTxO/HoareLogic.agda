@@ -1,10 +1,7 @@
 -------------------------
 -- ** Axiomatic semantics
 
-module ValueSepUTxO.StrongHoareLogic where
-
 open import Prelude.Init
-open Unary using () renaming (_⊆_ to _⊆¹_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -12,14 +9,13 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
-open import Prelude.Functor
-open import Prelude.Bifunctor
 open import Prelude.Monad
-open import Prelude.Apartness
 
-open import ValueSepUTxO.Maps
-open import ValueSepUTxO.UTxO
-open import ValueSepUTxO.Ledger
+module ValueSepAbstractUTxO.HoareLogic where
+
+open import Prelude.Bags
+open import ValueSepAbstractUTxO.UTxO
+open import ValueSepAbstractUTxO.Ledger
 
 -- ** Shallow embedding of logic formulas/propositions.
 Assertion = Pred₀ S
@@ -29,13 +25,13 @@ variable P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
 private variable K V₁ V₂ : Set
 
 emp : Assertion
-emp m = ∀ k → k ∉ᵈ m
+emp m = ∀ k → k ∉ˢ m
 
 _∗_ : Op₂ Assertion
-(P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ⊎ s₂ ⟩≡ s × P s₁ × Q s₂
+(P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ◇ s₂ ⟩≡ s × P s₁ × Q s₂
 
-_↦_ : TxOutputRef → TxOutput → Assertion
-or ↦ o = _[ or ↦ o ]
+_↦_ : Address → Value → Assertion
+f ↦ v = (f , v) ∈ˢ_
 
 infixr 10 _∗_
 infix  11 _↦_
