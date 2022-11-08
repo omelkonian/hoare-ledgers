@@ -45,6 +45,13 @@ open import ValueSep.Main
 -- ∙ Separation := _◇_
 open import ValueSepSimple.Main
 
+-- <ValueSepSimple>, but with exact maps-to/↦ predicate.
+-- ∙ S := K → ℕ
+-- ∙ ⟦_⟧ := S → Maybe S
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+open import ValueSepExact.Main
+
 -----------------------------
 -- ** UTxO blockchain ledgers
 -------------------------

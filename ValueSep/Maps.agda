@@ -115,12 +115,6 @@ module _ ⦃ _ : DecEq K ⦄ where
   -- m [ k′ ↝ f ] = λ k → if k == k′ then f <$> m k else m k
   m [ k′ ↝ f ] = λ k → (if k == k′ then f else id) <$> m k
 
-  _[_≔_] : Map → K → V → Map
-  m [ k′ ≔ v ] = λ k → if k == k′ then just v else m k
-
-  ≔⇒↦ : (m [ k ≔ v ]) [ k ↦ v ]
-  ≔⇒↦ {k = k} rewrite ≟-refl k = refl
-
   [↝]-mono : ∀ k (f : Op₁ V) → KeyMonotonic (_[ k ↝ f ])
   [↝]-mono k′ f m k k∈ with k ≟ k′
   ... | no _ = subst Is-just (sym $ M.map-id (m k)) k∈
