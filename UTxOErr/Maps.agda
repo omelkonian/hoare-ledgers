@@ -14,7 +14,7 @@ open import Prelude.Membership
 
 import Relation.Binary.Reasoning.Setoid as BinSetoid
 
-module ValueSepUTxO.Maps {K V : Type} where
+module UTxOErr.Maps {K V : Type} where
 
 Map = K → Maybe V
 syntax Map {K = K} {V = V} = Map⟨ K ↦ V ⟩

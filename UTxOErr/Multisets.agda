@@ -13,7 +13,7 @@ open import Prelude.Monoid
 open import Prelude.Ord
 open import Prelude.Measurable
 
-module ValueSepUTxO.Multisets {K V : Type} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
+module UTxOErr.Multisets {K V : Type} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
 
 import Prelude.Sets.Concrete as S
 

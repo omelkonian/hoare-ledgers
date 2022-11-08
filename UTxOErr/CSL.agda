@@ -1,7 +1,7 @@
 ---------------------------------------
 -- ** Concurrent separation logic (CSL)
 
-module ValueSepAbstractUTxO.CSL where
+module UTxOErr.CSL where
 
 open import Prelude.Init
 open import Prelude.DecEq
@@ -9,34 +9,34 @@ open import Prelude.Decidable
 open import Prelude.Lists
 open import Prelude.InferenceRules
 
-open import Prelude.Bags
-open import ValueSepAbstractUTxO.UTxO
-open import ValueSepAbstractUTxO.Ledger
-open import ValueSepAbstractUTxO.HoareLogic
-open import ValueSepAbstractUTxO.SL
+open import UTxOErr.Maps
+open import UTxOErr.UTxO
+open import UTxOErr.Ledger
+open import UTxOErr.HoareLogic
+open import UTxOErr.SL
 
-◇-interleave :
+⊎-interleave :
   ∙ (l₁ ∥ l₂ ≡ l)
-  ∙ ⟨ s₁ ◇ s₂ ⟩≡ s
+  ∙ ⟨ s₁ ⊎ s₂ ⟩≡ s
   ∙ ⟦ l₁ ⟧ s₁ ≡ just s₁′
   ∙ ⟦ l₂ ⟧ s₂ ≡ just s₂′
     ───────────────────────────
     ∃ λ s′ → (⟦ l ⟧ s ≡ just s′)
-           × (⟨ s₁′ ◇ s₂′ ⟩≡ s′)
-◇-interleave {.[]}    {.[]}    {.[]}    {s₁} {s₂} {s} {.s₁} {.s₂} []         ≡s refl refl
+           × (⟨ s₁′ ⊎ s₂′ ⟩≡ s′)
+⊎-interleave {.[]}    {.[]}    {.[]}    {s₁} {s₂} {s} {.s₁} {.s₂} []         ≡s refl refl
   = s , refl , ≡s
-◇-interleave {t ∷ l₁} {l₂}     {.t ∷ l} {s₁} {s₂} {s} {s₁′} {s₂′} (keepˡ ≡l) ≡s ls₁  ls₂
+⊎-interleave {t ∷ l₁} {l₂}     {.t ∷ l} {s₁} {s₂} {s} {s₁′} {s₂′} (keepˡ ≡l) ≡s ls₁  ls₂
   with ⟦ t ⟧ s₁ in ⟦t⟧s≡
 ... | just ⟦t⟧s₁
-  with ⟦ t ⟧ s | ◇-⟦⟧ᵗ {t}{s₁}{s₂}{s} ⟦t⟧s₁ ⟦t⟧s≡ ≡s
+  with ⟦ t ⟧ s | ⊎-⟦⟧ᵗ {t = t} {s₁ = s₁} {s₂ = s₂} ⟦t⟧s₁ ⟦t⟧s≡ ≡s
 ... | just ⟦t⟧s | ret↑ ≡s′
-  = ◇-interleave ≡l ≡s′ ls₁ ls₂
-◇-interleave {l₁}     {t ∷ l₂} {.t ∷ l} {s₁} {s₂} {s} {s₁′} {s₂′} (keepʳ ≡l) ≡s ls₁  ls₂
+  = ⊎-interleave ≡l ≡s′ ls₁ ls₂
+⊎-interleave {l₁}     {t ∷ l₂} {.t ∷ l} {s₁} {s₂} {s} {s₁′} {s₂′} (keepʳ ≡l) ≡s ls₁  ls₂
   with ⟦ t ⟧ s₂ in ⟦t⟧s≡
 ... | just ⟦t⟧s₂
-  with ⟦ t ⟧ s | ◇-⟦⟧ᵗ˘ {t}{s₂}{s₁}{s} ⟦t⟧s₂ ⟦t⟧s≡ ≡s
+  with ⟦ t ⟧ s | ⊎-⟦⟧ᵗ˘ {t = t} {s₂ = s₂} {s₁ = s₁} ⟦t⟧s₂ ⟦t⟧s≡ ≡s
 ... | just ⟦t⟧s | ret↑ ≡s′
-  = ◇-interleave ≡l ≡s′ ls₁ ls₂
+  = ⊎-interleave ≡l ≡s′ ls₁ ls₂
 
 -- ** Proof of CSL's [PAR] rule, which allows for modular reasoning.
 [PAR] :
@@ -50,7 +50,7 @@ open import ValueSepAbstractUTxO.SL
 ... | just s₁′ | M.Any.just Qs₁′
   with ⟦ l₂ ⟧ s₂ in ls₂ | Pl₂Q Ps₂
 ... | just s₂′ | M.Any.just Qs₂′
-  with s′ , ls , ≡s′ ← ◇-interleave {s = s} ≡l ≡s ls₁ ls₂
+  with s′ , ls , ≡s′ ← ⊎-interleave ≡l ≡s ls₁ ls₂
   rewrite ls
   = M.Any.just (s₁′ , s₂′ , ≡s′ , Qs₁′ , Qs₂′)
 

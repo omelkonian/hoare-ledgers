@@ -1,7 +1,7 @@
 ----------------------------------------------
 -- ** Basic definition for UTxO-based ledgers.
 
-module UTxO.UTxO where
+module UTxOErr.UTxO where
 
 open import Prelude.Init; open SetAsType
 open import Prelude.General
@@ -12,9 +12,8 @@ open import Prelude.Lists
 open import Prelude.DecLists
 open import Prelude.Functor
 open import Prelude.Applicative
-open import Prelude.ToList
 
-open import Prelude.Sets
+open import UTxOErr.Maps
 
 Value   = ℕ
 HashId  = ℕ
@@ -75,36 +74,26 @@ mkTxInfo tx = record
 -- A ledger is a list of transactions.
 L = List Tx
 
-record UTXO : Type where
-  field outRef : TxOutputRef
-        out    : TxOutput
-unquoteDecl DecEq-UTXO = DERIVE DecEq [ quote UTXO , DecEq-UTXO ]
+-- The state of a ledger maps output references locked by a validator to a value.
 
--- The state of a ledger is a collection of unspent transaction outputs.
 S : Type
-S = Set⟨ UTXO ⟩
-
-mkUtxo : ∀ {out} tx → out L.Mem.∈ outputs tx → UTXO
-mkUtxo {out} tx out∈ = λ where
-  .UTXO.outRef → (tx ♯) indexed-at toℕ (L.Any.index out∈)
-  .UTXO.out    → out
+S = Map⟨ TxOutputRef ↦ TxOutput ⟩
 
 outputRefs : Tx → List TxOutputRef
 outputRefs = map outputRef ∘ inputs
 
-getSpentOutputRef : S → TxOutputRef → Maybe TxOutput
-getSpentOutputRef s oRef = go (toList s)
-  where
-    go : List UTXO → Maybe TxOutput
-    go [] = nothing
-    go (record {outRef = or; out = o} ∷ xs) =
-      if oRef == or then
-        just o
-      else
-        go xs
+mkUtxo : ∀ {out} tx → out L.Mem.∈ outputs tx → TxOutputRef × TxOutput
+mkUtxo {out} tx out∈ = (tx ♯) indexed-at toℕ (L.Any.index out∈)
+                     , out
+
+utxoTx : Tx → List (TxOutputRef × TxOutput)
+utxoTx tx = L.Mem.mapWith∈ (tx .outputs) (mkUtxo tx)
+
+utxoTxS : Tx → S
+utxoTxS = mkMap ∘ utxoTx
 
 getSpentOutput : S → TxInput → Maybe TxOutput
-getSpentOutput s i = getSpentOutputRef s (i .outputRef)
+getSpentOutput s i = s (i .outputRef)
 
 ∑ : ∀ {A : Type} → List A → (A → Value) → Value
 ∑ xs f = ∑ℕ (map f xs)
@@ -120,7 +109,7 @@ getSpentOutput s i = getSpentOutputRef s (i .outputRef)
 record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
     validOutputRefs :
-      outputRefs tx ⊆ map UTXO.outRef (toList utxos)
+      All (_∈ᵈ utxos) (outputRefs tx)
 
     preservesValues :
       M.Any.Any (λ q → tx .forge + q ≡ ∑ (tx .outputs) value)
@@ -141,7 +130,7 @@ open IsValidTx public
 
 isValidTx? : ∀ tx s → Dec (IsValidTx tx s)
 isValidTx? tx utxos
-  with outputRefs tx ⊆? map UTXO.outRef (toList utxos)
+  with all? (_∈ᵈ? utxos) (outputRefs tx)
 ... | no ¬p = no (¬p ∘ validOutputRefs )
 ... | yes p₁
   with M.Any.dec (λ q → tx .forge + q ≟ ∑ (tx .outputs) value)

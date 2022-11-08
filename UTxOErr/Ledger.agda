@@ -1,7 +1,7 @@
 ------------------------------------------
 -- ** Denotational & operational semantics
 
-module ValueSepAbstractUTxO.Ledger where
+module UTxOErr.Ledger where
 
 open import Prelude.Init; open SetAsType
 open import Prelude.General
@@ -16,8 +16,8 @@ open import Prelude.Apartness
 open import Prelude.Monad
 open import Prelude.Membership
 
-open import Prelude.Bags
-open import ValueSepAbstractUTxO.UTxO
+open import UTxOErr.Maps
+open import UTxOErr.UTxO
 
 variable
   s s′ s″ s₁ s₁′ s₁″ s₂ s₂′ s₂″ s₃ s₃′ s₃″ s₂₃ s₂₃′ s₂₃″ : S
@@ -48,7 +48,7 @@ open Denotable₀ ⦃...⦄ public
 instance
   -- we denote a transaction as simply running the transaction based on the transfer operation above
   ⟦Tx⟧₀ : Denotable₀ Tx
-  ⟦Tx⟧₀ .⟦_⟧₀ tx utxos = (utxos ─ stxoTx tx) ∪ utxoTx tx
+  ⟦Tx⟧₀ .⟦_⟧₀ tx utxos = (utxos ─ outputRefs tx) ∪ utxoTxS tx
 
   ⟦Tx⟧ : Denotable Tx
   ⟦Tx⟧ .⟦_⟧ tx s = M.when (isValidTx tx s) (⟦ tx ⟧₀ s)
@@ -80,20 +80,20 @@ infix 0 _—→_
 data _—→_ : L × S → S → Type where
 
   base :
-    ──────────
+    ────────────
     ε , s —→ s
 
   step :
 
     ∙ IsValidTx t s
-    ∙ l , (s ─ stxoTx t ∪ utxoTx t) —→ s′
-      ───────────────────────────────────
+    ∙ l , ((s ─ outputRefs t) ∪ utxoTxS t) —→ s′
+      ────────────────────────────────────────────
       t ∷ l , s —→ s′
 
 oper-comp :
   ∙ l       , s  —→ s′
   ∙ l′      , s′ —→ s″
-    ──────────────────
+    ────────────────────
     l ++ l′ , s  —→ s″
 oper-comp {l = []}    base              s′→s″ = s′→s″
 oper-comp {l = _ ∷ _} (step valid s→s′) s′→s″ = step valid (oper-comp s→s′ s′→s″)

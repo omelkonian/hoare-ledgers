@@ -5,11 +5,11 @@ module UTxO.Ledger where
 
 open import Prelude.Init; open SetAsType
 open import Prelude.General
-open import Prelude.Sets
 open import Prelude.Membership
 open import Prelude.ToList
 open import Prelude.FromList
 
+open import Prelude.Sets
 open import UTxO.UTxO
 
 -- ** Denotational semantics

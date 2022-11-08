@@ -1,5 +1,5 @@
 ----------------------------------------------
--- ** Basic definition for UTxO-based ledgers.
+-- ** Abstract definition for UTxO-based ledgers.
 
 module ValueSepUTxO.UTxO where
 
@@ -12,8 +12,15 @@ open import Prelude.Lists
 open import Prelude.DecLists
 open import Prelude.Functor
 open import Prelude.Applicative
+open import Prelude.FromList
+open import Prelude.Ord
+open import Prelude.Semigroup
+open import Prelude.Monoid
 
-open import ValueSepUTxO.Maps
+open import Prelude.Bags
+instance
+  Sℕ  = Semigroup-ℕ-+; Sℕ⁺ = SemigroupLaws-ℕ-+
+  Mℕ  = Monoid-ℕ-+;    Mℕ⁺ = MonoidLaws-ℕ-+
 
 Value   = ℕ
 HashId  = ℕ
@@ -22,39 +29,37 @@ postulate _♯ : ∀ {A : Type ℓ} → A → HashId
 
 DATA = ℕ -- T0D0: more realistic data for redeemers
 
-record TxOutputRef : Type where
-  constructor _indexed-at_
-  field txId  : HashId
-        index : ℕ
-open TxOutputRef public
-unquoteDecl DecEq-TxOR = DERIVE DecEq [ quote TxOutputRef , DecEq-TxOR ]
-
 record TxOutput : Type where
   constructor _at_
-  field value    : Value
-        address  : Address
+  field value   : Value
+        address : Address
 open TxOutput public
 unquoteDecl DecEq-TxO = DERIVE DecEq [ quote TxOutput , DecEq-TxO ]
+
+TxOutputRef : Type
+TxOutputRef = HashId
 
 record InputInfo : Type where
   field outputRef     : TxOutputRef
         validatorHash : HashId
         redeemerHash  : HashId
+unquoteDecl DecEq-InputInfo = DERIVE DecEq [ quote InputInfo , DecEq-InputInfo ]
 
 record TxInfo : Type where
   field inputs  : List InputInfo
         outputs : List TxOutput
         forge   : Value
+unquoteDecl DecEq-TxInfo = DERIVE DecEq [ quote TxInfo , DecEq-TxInfo ]
 
 record TxInput : Type where
-  field outputRef : TxOutputRef
+  field outputRef : TxOutput
         validator : TxInfo → DATA → Bool
         redeemer  : DATA
 open TxInput public
 
 mkInputInfo : TxInput → InputInfo
 mkInputInfo i = record
-  { outputRef     = i .outputRef
+  { outputRef     = i .outputRef ♯
   ; validatorHash = i .validator ♯
   ; redeemerHash  = i .redeemer ♯ }
 
@@ -74,80 +79,62 @@ mkTxInfo tx = record
 -- A ledger is a list of transactions.
 L = List Tx
 
--- The state of a ledger maps output references locked by a validator to a value.
+-- The state of a ledger maps addresses to a value.
 
 S : Type
-S = Map⟨ TxOutputRef ↦ TxOutput ⟩
+S = Bag⟨ Address × Value ⟩
 
-outputRefs : Tx → List TxOutputRef
+instance
+  FromList-S : FromList TxOutput S
+  FromList-S .fromList = fromList ∘ map (λ txo → txo .address , txo .value)
+
+outputRefs : Tx → List TxOutput
 outputRefs = map outputRef ∘ inputs
 
-mkUtxo : ∀ {out} tx → out L.Mem.∈ outputs tx → TxOutputRef × TxOutput
-mkUtxo {out} tx out∈ = (tx ♯) indexed-at toℕ (L.Any.index out∈)
-                     , out
-
-utxoTx : Tx → List (TxOutputRef × TxOutput)
-utxoTx tx = L.Mem.mapWith∈ (tx .outputs) (mkUtxo tx)
-
-utxoTxS : Tx → S
-utxoTxS = mkMap ∘ utxoTx
-
-getSpentOutput : S → TxInput → Maybe TxOutput
-getSpentOutput s i = s (i .outputRef)
+stxoTx utxoTx : Tx → S
+stxoTx = fromList ∘ outputRefs
+utxoTx = fromList ∘ outputs
 
 ∑ : ∀ {A : Type} → List A → (A → Value) → Value
 ∑ xs f = ∑ℕ (map f xs)
 
-∑M : ∀ {A : Type} → List (Maybe A) → (A → Value) → Maybe Value
-∑M xs f = (flip ∑ f) <$> seqM xs
-  where
-    -- if one fails everything fails
-    seqM : ∀ {A : Type} → List (Maybe A) → Maybe (List A)
-    seqM []       = just []
-    seqM (x ∷ xs) = ⦇ x ∷ seqM xs ⦈
-
 record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
     validOutputRefs :
-      All (_∈ᵈ utxos) (outputRefs tx)
+      stxoTx tx ⊆ˢ utxos
 
     preservesValues :
-      M.Any.Any (λ q → tx .forge + q ≡ ∑ (tx .outputs) value)
-                (∑M (map (getSpentOutput utxos) (tx .inputs)) value)
+      tx .forge + ∑ (tx .inputs) (value ∘ outputRef) ≡ ∑ (tx .outputs) value
 
-    noDoubleSpending :
-      Unique (outputRefs tx)
+    -- noDoubleSpending :
+    --   Unique (outputRefs tx)
 
     allInputsValidate :
-      All (λ i → T (validator i (mkTxInfo tx) (i .redeemer)))
-          (tx .inputs)
+      All (λ i → T (validator i (mkTxInfo tx) (i .redeemer))) (tx .inputs)
 
     validateValidHashes :
-      All (λ i → M.Any.Any (λ o → o .address ≡ i .validator ♯) (getSpentOutput utxos i))
-          (tx .inputs)
+      All (λ i → i .outputRef .address ≡ i .validator ♯) (tx .inputs)
 
 open IsValidTx public
 
 isValidTx? : ∀ tx s → Dec (IsValidTx tx s)
 isValidTx? tx utxos
-  with all? (_∈ᵈ? utxos) (outputRefs tx)
-... | no ¬p = no (¬p ∘ validOutputRefs )
+  with dec
+... | no ¬p = no (¬p ∘ validOutputRefs)
 ... | yes p₁
-  with M.Any.dec (λ q → tx .forge + q ≟ ∑ (tx .outputs) value)
-                 (∑M (map (getSpentOutput utxos) (tx .inputs)) value)
+  with dec
 ... | no ¬p = no (¬p ∘ preservesValues)
 ... | yes p₂
-  with unique? (outputRefs tx)
-... | no ¬p = no (¬p ∘ noDoubleSpending)
-... | yes p₃
-  with all? (λ i → T? (validator i (mkTxInfo tx) (i .redeemer)))
-            (tx .inputs)
+--   with dec
+-- ... | no ¬p = no (¬p ∘ noDoubleSpending)
+-- ... | yes p₃
+  with dec
 ... | no ¬p = no (¬p ∘ allInputsValidate)
 ... | yes p₄
-  with all? (λ i → M.Any.dec (λ o → o .address ≟ i .validator ♯) (getSpentOutput utxos i))
-            (tx .inputs)
+  with dec
 ... | no ¬p = no (¬p ∘ validateValidHashes)
-... | yes p₅ = yes record {validOutputRefs = p₁; preservesValues = p₂; noDoubleSpending = p₃; allInputsValidate = p₄; validateValidHashes = p₅}
+... | yes p₅ = yes record { validOutputRefs = p₁; preservesValues = p₂
+                          ; allInputsValidate = p₄; validateValidHashes = p₅ }
 
 isValidTx : Tx → S → Bool
 isValidTx tx s = ⌊ isValidTx? tx s ⌋
