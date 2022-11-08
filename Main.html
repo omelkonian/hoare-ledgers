@@ -22,28 +22,31 @@
 <a id="437" class="Keyword">open</a> <a id="442" class="Keyword">import</a> <a id="449" href="ShallowHoare.Main.html" class="Module">ShallowHoare.Main</a>
 
 <a id="468" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
-<a id="521" class="Keyword">open</a> <a id="526" class="Keyword">import</a> <a id="533" href="UTxO.Main.html" class="Module">UTxO.Main</a>
+<a id="521" class="Comment">-- ∙ S := Set⟨ UTXO ⟩</a>
+<a id="543" class="Comment">-- ∙ P := S → Set</a>
+<a id="561" class="Keyword">open</a> <a id="566" class="Keyword">import</a> <a id="573" href="UTxO.Main.html" class="Module">UTxO.Main</a>
 
-<a id="544" class="Comment">-- ∙ S := Map⟨ K ↦ Value ⟩</a>
-<a id="571" class="Comment">-- ∙ P := S → Set</a>
-<a id="589" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="612" class="Keyword">open</a> <a id="617" class="Keyword">import</a> <a id="624" href="ValueSep.Main.html" class="Module">ValueSep.Main</a>
+<a id="584" class="Comment">-- Monoidal separatation on values instead of participants.</a>
+<a id="644" class="Comment">-- ∙ S := Map⟨ K ↦ Value ⟩</a>
+<a id="671" class="Comment">-- ∙ P := S → Set</a>
+<a id="689" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="712" class="Keyword">open</a> <a id="717" class="Keyword">import</a> <a id="724" href="ValueSep.Main.html" class="Module">ValueSep.Main</a>
 
-<a id="639" class="Comment">-- Simplified version of above.</a>
-<a id="671" class="Comment">-- ∙ S := K → ℕ</a>
-<a id="687" class="Comment">-- ∙ P := S → Set</a>
-<a id="705" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="728" class="Keyword">open</a> <a id="733" class="Keyword">import</a> <a id="740" href="ValueSepSimple.Main.html" class="Module">ValueSepSimple.Main</a>
+<a id="739" class="Comment">-- Simplified version of `ValueSep`.</a>
+<a id="776" class="Comment">-- ∙ S := K → ℕ</a>
+<a id="792" class="Comment">-- ∙ P := S → Set</a>
+<a id="810" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="833" class="Keyword">open</a> <a id="838" class="Keyword">import</a> <a id="845" href="ValueSepSimple.Main.html" class="Module">ValueSepSimple.Main</a>
 
-<a id="761" class="Comment">-- Value-separated UTxO.</a>
-<a id="786" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
-<a id="819" class="Comment">-- ∙ P := S → Set</a>
-<a id="837" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="860" class="Keyword">open</a> <a id="865" class="Keyword">import</a> <a id="872" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
+<a id="866" class="Comment">-- Value-separated UTxO.</a>
+<a id="891" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="931" class="Comment">-- ∙ P := S → Set</a>
+<a id="949" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="972" class="Keyword">open</a> <a id="977" class="Keyword">import</a> <a id="984" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
 
-<a id="891" class="Comment">-- Value-separated **abstract** UTxO.</a>
-<a id="929" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
-<a id="962" class="Comment">-- ∙ P := S → Set</a>
-<a id="980" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="1003" class="Keyword">open</a> <a id="1008" class="Keyword">import</a> <a id="1015" href="ValueSepAbstractUTxO.Main.html" class="Module">ValueSepAbstractUTxO.Main</a>
+<a id="1003" class="Comment">-- Value-separated **abstract** UTxO.</a>
+<a id="1041" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
+<a id="1074" class="Comment">-- ∙ P := S → Set</a>
+<a id="1092" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="1115" class="Keyword">open</a> <a id="1120" class="Keyword">import</a> <a id="1127" href="ValueSepAbstractUTxO.Main.html" class="Module">ValueSepAbstractUTxO.Main</a>
 </pre></body></html>
