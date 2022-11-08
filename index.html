@@ -46,28 +46,35 @@
 <a id="989" class="Comment">-- ∙ Separation := _◇_</a>
 <a id="1012" class="Keyword">open</a> <a id="1017" class="Keyword">import</a> <a id="1024" href="ValueSepSimple.Main.html" class="Module">ValueSepSimple.Main</a>
 
-<a id="1045" class="Comment">-----------------------------</a>
-<a id="1075" class="Comment">-- ** UTxO blockchain ledgers</a>
-<a id="1105" class="Comment">-------------------------</a>
+<a id="1045" class="Comment">-- &lt;ValueSepSimple&gt;, but with exact maps-to/↦ predicate.</a>
+<a id="1102" class="Comment">-- ∙ S := K → ℕ</a>
+<a id="1118" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1142" class="Comment">-- ∙ P := S → Set</a>
+<a id="1160" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="1183" class="Keyword">open</a> <a id="1188" class="Keyword">import</a> <a id="1195" href="ValueSepExact.Main.html" class="Module">ValueSepExact.Main</a>
 
-<a id="1132" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
-<a id="1185" class="Comment">-- ∙ S := Set⟨ UTXO ⟩</a>
-<a id="1207" class="Comment">-- ∙ ⟦_⟧ := S → S</a>
-<a id="1225" class="Comment">-- ∙ P := S → Set</a>
-<a id="1243" class="Comment">-- ∙ Separation := _⊎_</a>
-<a id="1266" class="Keyword">open</a> <a id="1271" class="Keyword">import</a> <a id="1278" href="UTxO.Main.html" class="Module">UTxO.Main</a>
+<a id="1215" class="Comment">-----------------------------</a>
+<a id="1245" class="Comment">-- ** UTxO blockchain ledgers</a>
+<a id="1275" class="Comment">-------------------------</a>
 
-<a id="1289" class="Comment">-- &lt;UTxO&gt; variant that explicitly errors/invalidity.</a>
-<a id="1342" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
-<a id="1382" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
-<a id="1406" class="Comment">-- ∙ P := S → Set</a>
-<a id="1424" class="Comment">-- ∙ Separation := _⊎_</a>
-<a id="1447" class="Keyword">open</a> <a id="1452" class="Keyword">import</a> <a id="1459" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a>
+<a id="1302" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
+<a id="1355" class="Comment">-- ∙ S := Set⟨ UTXO ⟩</a>
+<a id="1377" class="Comment">-- ∙ ⟦_⟧ := S → S</a>
+<a id="1395" class="Comment">-- ∙ P := S → Set</a>
+<a id="1413" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="1436" class="Keyword">open</a> <a id="1441" class="Keyword">import</a> <a id="1448" href="UTxO.Main.html" class="Module">UTxO.Main</a>
 
-<a id="1473" class="Comment">-- Value-separated **abstract** UTxO.</a>
-<a id="1511" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
-<a id="1544" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
-<a id="1568" class="Comment">-- ∙ P := S → Set</a>
-<a id="1586" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="1609" class="Keyword">open</a> <a id="1614" class="Keyword">import</a> <a id="1621" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
+<a id="1459" class="Comment">-- &lt;UTxO&gt; variant that explicitly errors/invalidity.</a>
+<a id="1512" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="1552" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1576" class="Comment">-- ∙ P := S → Set</a>
+<a id="1594" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="1617" class="Keyword">open</a> <a id="1622" class="Keyword">import</a> <a id="1629" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a>
+
+<a id="1643" class="Comment">-- Value-separated **abstract** UTxO.</a>
+<a id="1681" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
+<a id="1714" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1738" class="Comment">-- ∙ P := S → Set</a>
+<a id="1756" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="1779" class="Keyword">open</a> <a id="1784" class="Keyword">import</a> <a id="1791" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
 </pre></body></html>
