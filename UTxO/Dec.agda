@@ -1,9 +1,9 @@
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.Sets
 open import Prelude.DecEq
 open import Prelude.Decidable
 
-module Dec (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module Dec (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import Ledger     Part ⦃ it ⦄
 open import HoareLogic Part ⦃ it ⦄

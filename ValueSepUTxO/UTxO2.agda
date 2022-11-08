@@ -7,7 +7,7 @@
 
 module ValueSepUTxO.UTxO2 where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -21,29 +21,29 @@ open import ValueSepUTxO.Maps
 
 HashId  = ℕ
 Address = HashId
-postulate _♯ : ∀ {A : Set ℓ} → A → HashId
+postulate _♯ : ∀ {A : Type ℓ} → A → HashId
 
 DATA = ℕ -- T0D0: more realistic data for redeemers
-record Value : Set where
+record Value : Type where
   constructor _at_
   field value     : ℕ
         validator : DATA → Bool
 open Value public
 -- unquoteDecl DecEq-Value = DERIVE DecEq [ quote Value , DecEq-Value ]
 
-record TxRef : Set where
+record TxRef : Type where
   constructor _indexed-at_
   field txId  : HashId
         index : ℕ
 open TxRef public
 unquoteDecl DecEq-TxOR = DERIVE DecEq [ quote TxRef , DecEq-TxOR ]
 
-record TxInput : Set where
+record TxInput : Type where
   field ref : TxRef
         redeemer  : DATA
 open TxInput public
 
-record Tx : Set where
+record Tx : Type where
   field
     inputs  : List TxInput
     outputs : List Value
@@ -55,7 +55,7 @@ L = List Tx
 
 -- The state of a ledger maps output references locked by a validator to a value.
 
-S : Set
+S : Type
 S = Map⟨ TxRef ↦ Value ⟩
 
 refs : Tx → List TxRef
@@ -74,18 +74,18 @@ utxoTxS = mkMap ∘ utxoTx
 getSpentOutput : S → TxInput → Maybe Value
 getSpentOutput s i = s (i .ref)
 
-∑ : ∀ {A : Set} → List A → (A → ℕ) → ℕ
+∑ : ∀ {A : Type} → List A → (A → ℕ) → ℕ
 ∑ xs f = ∑ℕ (map f xs)
 
-∑M : ∀ {A : Set} → List (Maybe A) → (A → ℕ) → Maybe ℕ
+∑M : ∀ {A : Type} → List (Maybe A) → (A → ℕ) → Maybe ℕ
 ∑M xs f = (flip ∑ f) <$> seqM xs
   where
     -- if one fails everything fails
-    seqM : ∀ {A : Set} → List (Maybe A) → Maybe (List A)
+    seqM : ∀ {A : Type} → List (Maybe A) → Maybe (List A)
     seqM []       = just []
     seqM (x ∷ xs) = ⦇ x ∷ seqM xs ⦈
 
-record IsValidTx (tx : Tx) (utxos : S) : Set where
+record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
     validRefs :
       All (_∈ᵈ utxos) (refs tx)

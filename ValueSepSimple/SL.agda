@@ -1,7 +1,7 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -13,7 +13,7 @@ open import Prelude.Functor
 open import Prelude.Monoid
 open import Prelude.Setoid
 
-module ValueSepSimple.SL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSepSimple.SL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSepSimple.Maps {K = Part}
 open import ValueSepSimple.Ledger Part ⦃ it ⦄

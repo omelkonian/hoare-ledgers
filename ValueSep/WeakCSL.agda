@@ -2,6 +2,7 @@
 -- ** Concurrent separation logic (CSL)
 
 open import Prelude.Init hiding (_∷ʳ_)
+open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
@@ -9,7 +10,7 @@ open import Prelude.InferenceRules
 -- open import Prelude.Maps renaming (_♯_ to _♯′_)
 open import ValueSep.Maps
 
-module ValueSep.WeakCSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.WeakCSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.WeakHoareLogic Part ⦃ it ⦄

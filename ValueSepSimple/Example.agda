@@ -1,13 +1,13 @@
 module ValueSepSimple.Example where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.DecLists
 open import Prelude.Monoid
 
-data Part : Set where
+data Part : Type where
   A B C D : Part
 unquoteDecl DecEq-Part = DERIVE DecEq [ quote Part , DecEq-Part ]
 

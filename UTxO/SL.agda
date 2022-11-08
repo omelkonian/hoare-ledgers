@@ -4,7 +4,7 @@
 
 module UTxO.SL where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -18,11 +18,11 @@ open import UTxO.Ledger
 open import UTxO.HoareLogic
 
 -- Which addresses does a ledger modify?
-mod : Address → L → Set
+mod : Address → L → Type
 mod A = Any λ tx → A ∈ (address <$> tx .outputs)
 
 -- Which addresses does an assertion refer to?
-addr : Address → Assertion → Set
+addr : Address → Assertion → Type
 addr A `emp     = ⊥
 addr A (B `↦ _) = A ≡ B
 addr A (P `∗ Q) = addr A P ⊎ addr A Q

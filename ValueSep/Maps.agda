@@ -1,6 +1,6 @@
 -- Mostly copied from Prelude.Maps.
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Applicative
@@ -13,9 +13,9 @@ open import Prelude.Functor
 
 import Relation.Binary.Reasoning.Setoid as BinSetoid
 
-module ValueSep.Maps {K V : Set} where
+module ValueSep.Maps {K V : Type} where
 
-Map : Set
+Map : Type
 Map = K → Maybe V
 
 syntax Map {K = K} {V = V} = Map⟨ K ↦ V ⟩
@@ -30,7 +30,7 @@ private variable
 ∅ = const nothing
 
 infix 3 _∈ᵈ_ _∉ᵈ_ _∈ᵈ?_ _∉ᵈ?_
-_∈ᵈ_ _∉ᵈ_ : K → Map → Set
+_∈ᵈ_ _∉ᵈ_ : K → Map → Type
 k ∈ᵈ m = Is-just (m k)
 k ∉ᵈ m = ¬ (k ∈ᵈ m)
 
@@ -69,13 +69,13 @@ m ≈ m′ = ∀ k → m k ≡ m′ k
 
 module ≈-Reasoning = BinSetoid ≈-setoid
 
-≈-cong : ∀ {P : K → Maybe V → Set}
+≈-cong : ∀ {P : K → Maybe V → Type}
   → s₁ ≈ s₂
   → (∀ k → P k (s₁ k))
   → (∀ k → P k (s₂ k))
 ≈-cong {P = P} eq p k = subst (P k) (eq k) (p k)
 
-_⁺ : ∀ {X : Set} → Pred₀ X → Pred₀ (Maybe X)
+_⁺ : ∀ {X : Type} → Pred₀ X → Pred₀ (Maybe X)
 _⁺ = M.All.All
 
 KeyMonotonic KeyPreserving : Pred₀ (Map → Map)
@@ -104,10 +104,10 @@ module _ {s k} where
 
 _[_↦∅] = _∉ᵈ_
 
-_[_↦_] : Map → K → V → Set
+_[_↦_] : Map → K → V → Type
 m [ k ↦ v ] = m k ≡ just v
 
-_[_↦_]∅ : Map → K → V → Set
+_[_↦_]∅ : Map → K → V → Type
 m [ k ↦ v ]∅ = m [ k ↦ v ] × ∀ k′ → k′ ≢ k → k′ ∉ᵈ m
 
 module _ ⦃ _ : DecEq K ⦄ where
@@ -238,7 +238,7 @@ module _ ⦃ _ : Monoid V ⦄ ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws�
   _⁉⁰_ : Map → K → V
   m ⁉⁰ k = fromMaybe ε (m k)
 
-  _[_↦⁰_] : Map → K → V → Set
+  _[_↦⁰_] : Map → K → V → Type
   m [ k ↦⁰ v ] = m ⁉⁰ k ≡ v
 
   ↦⇒↦⁰ : s [ k ↦ v ] → s [ k ↦⁰ v ]

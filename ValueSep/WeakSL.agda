@@ -1,7 +1,7 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -15,14 +15,14 @@ open import Prelude.Semigroup
 open import Prelude.Functor
 open import Prelude.Monoid
 
-module ValueSep.WeakSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.WeakSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.WeakHoareLogic Part ⦃ it ⦄
 
 instance
   -- extensional version of disjointness
-  Denotable//Assertion : ∀ {A : Set} → ⦃ Denotable A ⦄ → A // Assertion
+  Denotable//Assertion : ∀ {A : Type} → ⦃ Denotable A ⦄ → A // Assertion
   Denotable//Assertion ._♯_ x P = ∀ s → P s ⇔ lift↑ P (⟦ x ⟧ s)
 
 ≈-[↝] : ∀ (k A : Part) s s′ {f : Op₁ ℕ} →

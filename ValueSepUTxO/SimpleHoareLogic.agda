@@ -4,7 +4,7 @@
 
 module ValueSepUTxO.SimpleHoareLogic where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -26,7 +26,7 @@ Assertion = Pred₀ S
 
 variable P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
 
-private variable K V₁ V₂ : Set
+private variable K V₁ V₂ : Type
 
 emp : Assertion
 emp m = ∀ k → k ∉ᵈ m
@@ -40,7 +40,7 @@ or ↦ o = _[ or ↦ o ]
 infixr 10 _∗_
 infix  11 _↦_
 
-⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set
+⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type
 ⟨ P ⟩ l ⟨ Q ⟩ = P ⊢ Q ∘ ⟦ l ⟧₀
 
 hoare-base :

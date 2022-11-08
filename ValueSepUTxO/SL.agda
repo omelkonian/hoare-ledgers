@@ -4,7 +4,7 @@
 
 module ValueSepUTxO.SL where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Ord
@@ -96,7 +96,7 @@ open import ValueSepUTxO.HoareLogic
 ... | just _ | ret↑ ≡s′ = ret↑ (⊎≡-comm {x = s₂′}{s₁} ≡s′)
 
 
-_-supports-_ : List TxOutputRef → Assertion → Set
+_-supports-_ : List TxOutputRef → Assertion → Type
 sup -supports- P = ∀ (s : S) → P s ↔ P (filterKeys (_∈? sup) s)
 
 instance

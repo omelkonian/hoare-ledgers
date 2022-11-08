@@ -3,7 +3,7 @@
 
 module UTxO.UTxO where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -18,35 +18,35 @@ open import Prelude.ToList
 Value   = ℕ
 HashId  = ℕ
 Address = HashId
-postulate _♯ : ∀ {A : Set ℓ} → A → HashId
+postulate _♯ : ∀ {A : Type ℓ} → A → HashId
 
 DATA = ℕ -- T0D0: more realistic data for redeemers
 
-record TxOutputRef : Set where
+record TxOutputRef : Type where
   constructor _indexed-at_
   field txId  : HashId
         index : ℕ
 open TxOutputRef public
 unquoteDecl DecEq-TxOR = DERIVE DecEq [ quote TxOutputRef , DecEq-TxOR ]
 
-record TxOutput : Set where
+record TxOutput : Type where
   constructor _at_
   field value    : Value
         address  : Address
 open TxOutput public
 unquoteDecl DecEq-TxO = DERIVE DecEq [ quote TxOutput , DecEq-TxO ]
 
-record InputInfo : Set where
+record InputInfo : Type where
   field outputRef     : TxOutputRef
         validatorHash : HashId
         redeemerHash  : HashId
 
-record TxInfo : Set where
+record TxInfo : Type where
   field inputs  : List InputInfo
         outputs : List TxOutput
         forge   : Value
 
-record TxInput : Set where
+record TxInput : Type where
   field outputRef : TxOutputRef
         validator : TxInfo → DATA → Bool
         redeemer  : DATA
@@ -58,7 +58,7 @@ mkInputInfo i = record
   ; validatorHash = i .validator ♯
   ; redeemerHash  = i .redeemer ♯ }
 
-record Tx : Set where
+record Tx : Type where
   field
     inputs  : List TxInput
     outputs : List TxOutput
@@ -74,13 +74,13 @@ mkTxInfo tx = record
 -- A ledger is a list of transactions.
 L = List Tx
 
-record UTXO : Set where
+record UTXO : Type where
   field outRef : TxOutputRef
         out    : TxOutput
 unquoteDecl DecEq-UTXO = DERIVE DecEq [ quote UTXO , DecEq-UTXO ]
 
 -- The state of a ledger is a collection of unspent transaction outputs.
-S : Set
+S : Type
 S = Set⟨ UTXO ⟩
 
 mkUtxo : ∀ {out} tx → out L.Mem.∈ outputs tx → UTXO
@@ -105,18 +105,18 @@ getSpentOutputRef s oRef = go (toList s)
 getSpentOutput : S → TxInput → Maybe TxOutput
 getSpentOutput s i = getSpentOutputRef s (i .outputRef)
 
-∑ : ∀ {A : Set} → List A → (A → Value) → Value
+∑ : ∀ {A : Type} → List A → (A → Value) → Value
 ∑ xs f = ∑ℕ (map f xs)
 
-∑M : ∀ {A : Set} → List (Maybe A) → (A → Value) → Maybe Value
+∑M : ∀ {A : Type} → List (Maybe A) → (A → Value) → Maybe Value
 ∑M xs f = (flip ∑ f) <$> seqM xs
   where
     -- if one fails everything fails
-    seqM : ∀ {A : Set} → List (Maybe A) → Maybe (List A)
+    seqM : ∀ {A : Type} → List (Maybe A) → Maybe (List A)
     seqM []       = just []
     seqM (x ∷ xs) = ⦇ x ∷ seqM xs ⦈
 
-record IsValidTx (tx : Tx) (utxos : S) : Set where
+record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
     validOutputRefs :
       outputRefs tx ⊆ map UTXO.outRef (toList utxos)

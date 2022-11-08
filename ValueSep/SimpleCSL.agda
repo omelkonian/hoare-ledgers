@@ -1,14 +1,14 @@
 ---------------------------------------
 -- ** Concurrent separation logic (CSL)
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
 open import Prelude.InferenceRules
 open import ValueSep.Maps
 
-module ValueSep.SimpleCSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.SimpleCSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.SimpleHoareLogic Part ⦃ it ⦄

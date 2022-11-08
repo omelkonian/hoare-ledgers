@@ -21,23 +21,26 @@ open import Deep.Main
 open import ShallowHoare.Main
 
 -- Initial prototype for extending to the UTxO case.
+-- ∙ S := Set⟨ UTXO ⟩
+-- ∙ P := S → Set
 open import UTxO.Main
 
+-- Monoidal separatation on values instead of participants.
 -- ∙ S := Map⟨ K ↦ Value ⟩
 -- ∙ P := S → Set
 -- ∙ Separation := _◇_
 open import ValueSep.Main
 
--- Simplified version of above.
+-- Simplified version of `ValueSep`.
 -- ∙ S := K → ℕ
 -- ∙ P := S → Set
 -- ∙ Separation := _◇_
 open import ValueSepSimple.Main
 
 -- Value-separated UTxO.
--- ∙ S := Bag⟨ Address × Value ⟩
+-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩
 -- ∙ P := S → Set
--- ∙ Separation := _◇_
+-- ∙ Separation := _⊎_
 open import ValueSepUTxO.Main
 
 -- Value-separated **abstract** UTxO.

@@ -1,11 +1,11 @@
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open Integer using () renaming (_-_ to _-ℤ_; _+_ to _+ℤ_)
 open import Prelude.DecEq
 open import Prelude.Sets hiding (_↦_)
 
 module Shallow.Ledger
-  (Part : Set) -- a fixed set of participants
+  (Part : Type) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where
 
@@ -13,7 +13,7 @@ module Shallow.Ledger
 S = Part → ℤ
 
 -- A transaction is transferring money from one participant to another
-data Tx : Set where
+data Tx : Type where
   _—→⟨_⟩_ : Part → ℤ → Part → Tx
 
 -- A ledger is a list of transactions
@@ -29,7 +29,7 @@ variable
 
 Domain = S → S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field
     ⟦_⟧ : A → Domain
 open Denotable {{...}} public
@@ -62,17 +62,17 @@ comp {l = t ∷ l} {l′} x rewrite lem {t}{l} x | comp {l}{l′} (⟦ t ⟧ x) 
 
 infix 0 _—→_ _—→⋆_ _—→⋆′_
 
-data _—→_ : L × S → L × S → Set where
+data _—→_ : L × S → L × S → Type where
   singleStep :
     ------------------------
     t ∷ l , s —→ l , ⟦ t ⟧ s
 
-data _—→′_ : L × S → S → Set where
+data _—→′_ : L × S → S → Type where
   finalStep :
     --------------
     ([] , s) —→′ s
 
-data _—→⋆_ : L × S → L × S → Set where
+data _—→⋆_ : L × S → L × S → Type where
    base :
        ---------
        ls —→⋆ ls
@@ -83,7 +83,7 @@ data _—→⋆_ : L × S → L × S → Set where
        ----------
      → ls —→⋆ ls″
 
-_—→⋆′_ : L × S → S → Set
+_—→⋆′_ : L × S → S → Type
 ls —→⋆′ s = ls —→⋆ ([] , s)
 
 comp′ : l       , s  —→⋆′ s′
@@ -115,7 +115,7 @@ Predˢ = Pred S 0ℓ
 variable
   P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Predˢ
 
-data ⟨_⟩_⟨_⟩ : Predˢ → L → Predˢ → Set₁ where
+data ⟨_⟩_⟨_⟩ : Predˢ → L → Predˢ → Type₁ where
 
   base :
     --------------
@@ -192,7 +192,7 @@ mod : L → Set⟨ Part ⟩
 mod [] = ∅
 mod (p₁ —→⟨ _ ⟩ p₂ ∷ l) = singleton p₁ ∪ singleton p₂ ∪ mod l
 
-■_ : Set → Predˢ
+■_ : Type → Predˢ
 ■_ = const
 
 _↦_ : Part → ℤ → Predˢ
@@ -201,7 +201,7 @@ _↦_ : Part → ℤ → Predˢ
 _`∧_ : Predˢ → Predˢ → Predˢ
 (P `∧ Q) s = P s × Q s
 
--- _♯_←_ : S → S → S → Set
+-- _♯_←_ : S → S → S → Type
 -- s₁ ♯ s₂ ← s = {!!}
 -- (s₁ ♯ s₂) × (s ≡ union s₁ s₂)
 -- [STUCK] cannot express this using *shallow* Agda functions, need *deep* finite maps

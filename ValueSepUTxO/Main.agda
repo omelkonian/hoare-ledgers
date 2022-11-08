@@ -1,7 +1,11 @@
 {-# OPTIONS --rewriting #-}
 module ValueSepUTxO.Main where
 
+-- ** Maps as `K → Maybe V`.
+open import ValueSepUTxO.Maps
+
 -- ** Simplistic definition of the UTxO model.
+-- S := Map⟨ TxOutputRef ↦ TxOutput ⟩
 open import ValueSepUTxO.UTxO
 
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.

@@ -1,17 +1,15 @@
 -- Mostly copied from Prelude.Maps.
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.InferenceRules
 open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.Setoid
 
-import Relation.Binary.Reasoning.Setoid as BinSetoid
+module ValueSepSimple.Maps {K : Type} where
 
-module ValueSepSimple.Maps {K : Set} where
-
-Map : Set
+Map : Type
 Map = K → ℕ
 
 syntax Map {K = K} = Map⟨ K ↦ℕ⟩
@@ -42,17 +40,17 @@ instance
 
 V = ℕ
 
-≈-cong : ∀ {P : K → V → Set}
+≈-cong : ∀ {P : K → V → Type}
   → s₁ ≈ s₂
   → (∀ k → P k (s₁ k))
   → (∀ k → P k (s₂ k))
 ≈-cong {P = P} eq p k = subst (P k) (eq k) (p k)
 
-_⁺ : ∀ {X : Set} → Pred₀ X → Pred₀ (Maybe X)
+_⁺ : ∀ {X : Type} → Pred₀ X → Pred₀ (Maybe X)
 _⁺ = M.All.All
 
 -- ** membership
-_[_↦_] : Map → K → V → Set
+_[_↦_] : Map → K → V → Type
 m [ k ↦ v ] = m k ≡ v
 
 module _ ⦃ _ : DecEq K ⦄ where

@@ -1,6 +1,10 @@
 {-# OPTIONS --rewriting #-}
 module UTxO.Main where
 
+-- ** Simplistic definition of the UTxO model.
+-- S := Set⟨ UTXO ⟩
+open import UTxO.UTxO
+
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.
 -- We model the ledger state as maps from participants to balances, using the abstract map interface in Prelude.Maps,
 -- and define both operational and denotational semantics.

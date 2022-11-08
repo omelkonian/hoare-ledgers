@@ -3,7 +3,7 @@
 
 module ValueSepUTxO.Ledger where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -34,14 +34,14 @@ variable
 -- i.e. a function from the current state to the updated one that may produce an error.
 Domain = S → Maybe S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
 
 -- pure fragment without error-handling
 Domain₀ = S → S
 
-record Denotable₀ (A : Set) : Set where
+record Denotable₀ (A : Type) : Type where
   field ⟦_⟧₀ : A → Domain₀
 open Denotable₀ ⦃...⦄ public
 
@@ -77,7 +77,7 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 -- ** Operational semantics
 
 infix 0 _—→_
-data _—→_ : L × S → S → Set where
+data _—→_ : L × S → S → Type where
 
   base :
     ────────────

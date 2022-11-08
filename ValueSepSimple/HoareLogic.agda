@@ -1,7 +1,7 @@
 -------------------------
 -- ** Axiomatic semantics
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -11,7 +11,7 @@ open import Prelude.InferenceRules
 open import Prelude.Ord
 open import Prelude.Monad
 
-module ValueSepSimple.HoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSepSimple.HoareLogic (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSepSimple.Maps
 open import ValueSepSimple.Ledger Part
@@ -48,7 +48,7 @@ pattern ret↑ x = M.Any.just x
 map↑ : P ⊆¹ Q → lift↑ P ⊆¹ lift↑ Q
 map↑ = M.Any.map
 
-⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set
+⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type
 ⟨ P ⟩ l ⟨ Q ⟩ = P ⊢ Q ↑∘ ⟦ l ⟧
 
 hoare-base :
@@ -128,7 +128,7 @@ hoare-step′ {P}{l}{Q}{l′}{R} PlQ QlR
 -- ** Reasoning syntax for Hoare triples.
 module HoareReasoning where
   -- Reasoning newtype (for better type inference).
-  record ℝ⟨_⟩_⟨_⟩ (P : Assertion) (l : L) (Q : Assertion) : Set where
+  record ℝ⟨_⟩_⟨_⟩ (P : Assertion) (l : L) (Q : Assertion) : Type where
     constructor mkℝ_
     field begin_ : ⟨ P ⟩ l ⟨ Q ⟩
     infix -2 begin_

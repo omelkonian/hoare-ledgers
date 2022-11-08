@@ -3,7 +3,7 @@
 
 module UTxO.Ledger where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.Sets
 open import Prelude.Membership
@@ -18,7 +18,7 @@ open import UTxO.UTxO
 -- i.e. function from the current state to the updated one.
 Domain = S → S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
 

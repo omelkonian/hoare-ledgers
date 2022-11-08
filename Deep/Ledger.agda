@@ -1,5 +1,5 @@
 {-# OPTIONS --allow-unsolved-metas #-}
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open Integer using () renaming (_-_ to _-ℤ_; _+_ to _+ℤ_)
 open import Prelude.DecEq
@@ -12,18 +12,18 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 
 module Deep.Ledger
-  (Part : Set) -- a fixed set of participants
+  (Part : Type) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where
 
 instance _ = Semigroup-ℤ-+; _ = SemigroupLaws-ℤ-+; _ = Monoid-ℤ-+; _ = MonoidLaws-ℤ-+
 
 -- The state of a ledger is a collection of participants, along with their balance.
-S : Set
+S : Type
 S = Map⟨ Part ↦ ℤ ⟩
 
 -- A transaction is transferring money from one participant to another
-data Tx : Set where
+data Tx : Type where
   _—→⟨_⟩_ : Part → ℤ → Part → Tx
 
 -- A ledger is a list of transactions
@@ -39,7 +39,7 @@ variable
 
 Domain = S → S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field
     ⟦_⟧ : A → Domain
 open Denotable {{...}} public
@@ -60,17 +60,17 @@ comp {l = t ∷ l} {l′} x rewrite comp {l}{l′} (⟦ t ⟧ x) = refl
 
 infix 0 _—→_ _—→⋆_ _—→⋆′_
 
-data _—→_ : L × S → L × S → Set where
+data _—→_ : L × S → L × S → Type where
   singleStep :
      ------------------------
      t ∷ l , s —→ l , ⟦ t ⟧ s
 
-data _—→′_ : L × S → S → Set where
+data _—→′_ : L × S → S → Type where
   finalStep :
       --------------
       ([] , s) —→′ s
 
-data _—→⋆_ : L × S → L × S → Set where
+data _—→⋆_ : L × S → L × S → Type where
    base :
        ---------
        ls —→⋆ ls
@@ -81,7 +81,7 @@ data _—→⋆_ : L × S → L × S → Set where
        ----------
      → ls —→⋆ ls″
 
-_—→⋆′_ : L × S → S → Set
+_—→⋆′_ : L × S → S → Type
 ls —→⋆′ s = ls —→⋆ ([] , s)
 
 comp′ :
@@ -118,7 +118,7 @@ fv : Predˢ → Set⟨ Part ⟩
 fv P = {!!}
 -}
 
-data Assertion : Set where
+data Assertion : Type where
   `emp `⊥ : Assertion
   -- _`≡_ : ℤ → ℤ → Assertion
   _`↦_ : Part → ℤ → Assertion
@@ -139,7 +139,7 @@ fv (P `∘ _)  = fv P
 emp : Predˢ
 emp s = ∀ k → k ∉ᵈ s
 
-_♯_←_ : S → S → S → Set
+_♯_←_ : S → S → S → Type
 s₁ ♯ s₂ ← s = ⟨ s₁ ⊎ s₂ ⟩≡ s
 
 _∗_ : Predˢ → Predˢ → Predˢ
@@ -158,16 +158,16 @@ _—∗_ : Predˢ → Predˢ → Predˢ
 ⟦ P `∘ f  ⟧ᵖ = ⟦ P ⟧ᵖ ∘ f
 
 infix 1 _`⊢_
-_`⊢_ : Assertion → Assertion → Set
+_`⊢_ : Assertion → Assertion → Type
 P `⊢ Q = ⟦ P ⟧ᵖ ⊢ ⟦ Q ⟧ᵖ
 
-_∙_ : Assertion → S → Set
+_∙_ : Assertion → S → Type
 P ∙ s = ⟦ P ⟧ᵖ s
 
 variable
   P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
 
-data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set₁ where
+data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type₁ where
 
   base :
     --
@@ -327,7 +327,7 @@ frame = {!!}
 
 -- ** Concurrent separation logic
 open import Data.List.Relation.Ternary.Interleaving
-_∥_←_ : L → L → L → Set
+_∥_←_ : L → L → L → Type
 l₁ ∥ l₂ ← l = Interleaving _≡_ _≡_ l₁ l₂ l
 
 h :

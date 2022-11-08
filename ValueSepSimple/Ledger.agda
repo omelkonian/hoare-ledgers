@@ -1,7 +1,7 @@
 ------------------------------------------
 -- ** Denotational & operational semantics
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -14,7 +14,7 @@ open import Prelude.Apartness
 open import Prelude.Monad
 
 module ValueSepSimple.Ledger
-  (Part : Set) -- a fixed set of participants
+  (Part : Type) -- a fixed set of participants
   ⦃ _ : DecEq Part ⦄
   where
 
@@ -25,11 +25,11 @@ variable
 open import ValueSepSimple.Maps
 
 -- The state of a ledger is a collection of participants, along with their balance.
-S : Set
+S : Type
 S = Map⟨ Part ↦ℕ⟩
 
 -- A transaction is transferring money from one participant to another.
-record Tx : Set where
+record Tx : Type where
   constructor _—→⟨_⟩_
   field
     sender   : Part
@@ -56,21 +56,21 @@ variable
 -- i.e. a function from the current state to the updated one that may produce an error.
 Domain = S → Maybe S
 
-record Denotable (A : Set) : Set where
+record Denotable (A : Type) : Type where
   field ⟦_⟧ : A → Domain
 open Denotable ⦃...⦄ public
 
 -- pure fragment without error-handling
 Domain₀ = S → S
 
-record Denotable₀ (A : Set) : Set where
+record Denotable₀ (A : Type) : Type where
   field ⟦_⟧₀ : A → Domain₀
 open Denotable₀ ⦃...⦄ public
 
-IsValidTx : Tx → S → Set
+IsValidTx : Tx → S → Type
 IsValidTx (A —→⟨ v ⟩ _) s = v ≤ s A
 
-data IsValidTx′ : Tx → S → Set where
+data IsValidTx′ : Tx → S → Type where
 
   mkValid :
 
@@ -121,7 +121,7 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 -- We model configurations of the transition system as pairs of a ledger and its current state.
 
 infix 0 _—→_
-data _—→_ : L × S → S → Set where
+data _—→_ : L × S → S → Type where
 
   base :
     ────────────

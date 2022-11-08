@@ -1,4 +1,4 @@
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
@@ -13,11 +13,11 @@ open import Prelude.Monoid
 open import Prelude.Ord
 open import Prelude.Measurable
 
-module ValueSepUTxO.Multisets {K V : Set} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
+module ValueSepUTxO.Multisets {K V : Type} ⦃ _ : DecEq K ⦄ ⦃ _ : DecEq V ⦄ where
 
 import Prelude.Sets.Concrete as S
 
-record Map : Set where
+record Map : Type where
   constructor _⊣_
   field
     kvs   : S.Set⟨ K × V ⟩                    -- NB: redundant proof `kvs .uniq`
@@ -39,7 +39,7 @@ instance
 singleton : K × V → Map
 singleton (k , v) = S.singleton (k , v) ⊣ auto
 
-module _ {a b} {A : Set a} {B : Set b} ⦃ _ : DecEq A ⦄ ⦃ _ : DecEq B ⦄ (f : A → B) where
+module _ {a b} {A : Type a} {B : Type b} ⦃ _ : DecEq A ⦄ ⦃ _ : DecEq B ⦄ (f : A → B) where
 
   nub∘nubBy≗nubBy : ∀ (xs : List A) → nub (nubBy f xs) ≡ nubBy f xs
   nub∘nubBy≗nubBy = nub-from∘to ∘ Unique-nubBy f
@@ -55,7 +55,7 @@ _∪_ : Op₂ Map
   ⊣ Unique-map∘nub∘nubBy proj₁ (kvs ∙toList ++ kvs′ ∙toList)
 
 infix 3 _∈ᵈ_
-_∈ᵈ_ : K → Map → Set
+_∈ᵈ_ : K → Map → Type
 k ∈ᵈ m = k ∈ (proj₁ <$> m .kvs ∙toList)
 
 _∈ᵈ?_ : Decidable² _∈ᵈ_
@@ -70,7 +70,7 @@ m ⁉ᵐ k with k ∈ᵈ? m
 ... | no _   = nothing
 ... | yes k∈ = just (L.Mem.∈-map⁻ proj₁ k∈ .proj₁ .proj₂)
 
-_[_↦_] : Map → K → V → Set
+_[_↦_] : Map → K → V → Type
 m [ k ↦ v ] = (k , v) S.∈ˢ m .kvs
 
 _[_↦?_] : Decidable³ _[_↦_]
@@ -91,7 +91,7 @@ instance
   Semigroup-Map : ⦃ Semigroup V ⦄ → Semigroup Map
   Semigroup-Map ._◇_ m m′ = unionWith _◇_ m m′
 
-module _ {A B : Set} (f : A → B) {P : Pred₀ A} (P? : Decidable¹ P) where
+module _ {A B : Type} (f : A → B) {P : Pred₀ A} (P? : Decidable¹ P) where
   All-map∘filter : ∀ (Q : Pred₀ B) (xs : List A) →
     All Q (map f xs) → All Q (map f $ filter P? xs)
   All-map∘filter Q []       _          = []

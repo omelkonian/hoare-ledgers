@@ -1,7 +1,7 @@
 ---------------------------
 -- ** Separation logic (SL)
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -14,7 +14,7 @@ open import Prelude.Semigroup
 open import Prelude.Functor
 open import Prelude.Monoid
 
-module ValueSep.StrongSL (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.StrongSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 -- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
 open import ValueSep.Ledger Part ⦃ it ⦄

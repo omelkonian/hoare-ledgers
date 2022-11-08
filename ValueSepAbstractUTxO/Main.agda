@@ -2,6 +2,7 @@
 module ValueSepAbstractUTxO.Main where
 
 -- ** Simplistic definition of the UTxO model.
+-- S := Bag⟨ Address × Value ⟩
 open import ValueSepAbstractUTxO.UTxO
 
 -- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.

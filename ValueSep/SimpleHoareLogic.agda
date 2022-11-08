@@ -2,7 +2,7 @@
 -- ** Axiomatic semantics
 -- Alternative using simple predicates.
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -12,7 +12,7 @@ open import Prelude.InferenceRules
 open import Prelude.Ord
 open import Prelude.Monad
 
-module ValueSep.SimpleHoareLogic (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.SimpleHoareLogic (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSep.Maps
 open import ValueSep.Ledger Part
@@ -35,7 +35,7 @@ infixr 10 _∗_
 infix  11 _↦_
 
 -- ** Hoare triples.
-⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set
+⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type
 ⟨ P ⟩ l ⟨ Q ⟩ = P ⊢ Q ∘ ⟦ l ⟧₀
 
 hoare-base :

@@ -1,7 +1,7 @@
 -------------------------------------
 -- ** Properties for Hoare triples.
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -11,7 +11,7 @@ open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
 
-module ValueSep.HoareProperties (Part : Set) ⦃ _ : DecEq Part ⦄ where
+module ValueSep.HoareProperties (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.StrongHoareLogic Part ⦃ it ⦄

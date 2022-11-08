@@ -10,7 +10,7 @@ open import Prelude.Sets
 
 import SL as SL
 
-data Part : Set where
+data Part : Type where
   A B C D : Part
 unquoteDecl DecEq-Part = DERIVE DecEq [ quote Part , DecEq-Part ]
 

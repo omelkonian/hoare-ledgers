@@ -4,7 +4,7 @@
 
 module UTxO.HoareLogic where
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -17,7 +17,7 @@ open import UTxO.Ledger
 
 -- ** Deeply embedded formulas/propositions for our logic.
 -- NB: this is necessary, in order to inspect the referenced participants later on.
-data Assertion : Set₁ where
+data Assertion : Type₁ where
   `emp : Assertion                          -- ^ holds for the empty ledger
   _`↦_ : Address → Value → Assertion        -- ^ holds for the singleton UTXO { A ↦ v }
   _`∗_ : Assertion → Assertion → Assertion  -- ^ separating conjuction
@@ -29,13 +29,13 @@ infix 11 _`↦_
 
 variable P P′ P₁ P₂ Q Q′ Q₁ Q₂ R : Assertion
 
-⟨_⊎_⟩≡_ : S → S → S → Set
+⟨_⊎_⟩≡_ : S → S → S → Type
 ⟨ s ⊎ s′ ⟩≡ s″ = (s ♯ s′) × ((s ∪ s′) ≈ˢ s″)
 
-_[_↦_] : S → Address → Value → Set
+_[_↦_] : S → Address → Value → Type
 s [ addr ↦ v ] = ∃ λ or → record {outRef = or; out = v at addr} ∈ˢ s
 
-_[_↦_]∅ : S → Address → Value → Set
+_[_↦_]∅ : S → Address → Value → Type
 s [ addr ↦ v ]∅ = s [ addr ↦ v ]
                 × ∃ λ or → s ≈ˢ singleton (record {outRef = or; out = v at addr})
 
@@ -60,14 +60,14 @@ _`∘⟦_⟧ₜ : Assertion → Tx → Assertion
 P `∘⟦ t ⟧ₜ = P `∘⟦ [ t ] ⟧
 
 infix 1 _`⊢_
-_`⊢_ : Assertion → Assertion → Set
+_`⊢_ : Assertion → Assertion → Type
 P `⊢ Q = ⟦ P ⟧ᵖ ⊢ ⟦ Q ⟧ᵖ
 
-_∙_ : Assertion → S → Set
+_∙_ : Assertion → S → Type
 P ∙ s = ⟦ P ⟧ᵖ s
 
 -- ** Hoare triples: both strengthening/weakening are captured by consequence.
-data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Set₁ where
+data ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type₁ where
 
   base :
     --------------
@@ -128,7 +128,7 @@ step′ {P} {t ∷ l} {Q} {l′} {R} (consequence {P = P′}{Q = Q′} pre post 
 module HoareReasoning where
 
   -- Reasoning newtype (for better type inference).
-  record ℝ⟨_⟩_⟨_⟩ (P : Assertion) (l : L) (Q : Assertion) : Set₁ where
+  record ℝ⟨_⟩_⟨_⟩ (P : Assertion) (l : L) (Q : Assertion) : Type₁ where
     constructor mkℝ_
     field begin_ : ⟨ P ⟩ l ⟨ Q ⟩
     infix -2 begin_
