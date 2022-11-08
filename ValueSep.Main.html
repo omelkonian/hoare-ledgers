@@ -19,35 +19,34 @@
 <a id="931" class="Comment">-- [Proofs]</a>
 <a id="943" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
 <a id="1038" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
-<a id="1102" class="Keyword">open</a> <a id="1107" class="Keyword">import</a> <a id="1114" href="ValueSep.SimpleHoareLogic.html" class="Module">ValueSep.SimpleHoareLogic</a>
-<a id="1140" class="Keyword">open</a> <a id="1145" class="Keyword">import</a> <a id="1152" href="ValueSep.StrongHoareLogic.html" class="Module">ValueSep.StrongHoareLogic</a>
-<a id="1178" class="Keyword">open</a> <a id="1183" class="Keyword">import</a> <a id="1190" href="ValueSep.WeakHoareLogic.html" class="Module">ValueSep.WeakHoareLogic</a>
-<a id="1214" class="Keyword">open</a> <a id="1219" class="Keyword">import</a> <a id="1226" href="ValueSep.HoareProperties.html" class="Module">ValueSep.HoareProperties</a>
+<a id="1102" class="Keyword">open</a> <a id="1107" class="Keyword">import</a> <a id="1114" href="ValueSep.StrongHoareLogic.html" class="Module">ValueSep.StrongHoareLogic</a>
+<a id="1140" class="Keyword">open</a> <a id="1145" class="Keyword">import</a> <a id="1152" href="ValueSep.WeakHoareLogic.html" class="Module">ValueSep.WeakHoareLogic</a>
+<a id="1176" class="Keyword">open</a> <a id="1181" class="Keyword">import</a> <a id="1188" href="ValueSep.HoareProperties.html" class="Module">ValueSep.HoareProperties</a>
 
-<a id="1252" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
-<a id="1371" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
-<a id="1442" class="Comment">-- [Proofs]</a>
-<a id="1454" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
-<a id="1520" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
-<a id="1647" class="Comment">-- open import ValueSep.SimpleSL</a>
-<a id="1680" class="Keyword">open</a> <a id="1685" class="Keyword">import</a> <a id="1692" href="ValueSep.StrongSL.html" class="Module">ValueSep.StrongSL</a>
+<a id="1214" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="1333" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1404" class="Comment">-- [Proofs]</a>
+<a id="1416" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1482" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1609" class="Keyword">open</a> <a id="1614" class="Keyword">import</a> <a id="1621" href="ValueSep.WeakSL.html" class="Module">ValueSep.WeakSL</a>
+<a id="1637" class="Keyword">open</a> <a id="1642" class="Keyword">import</a> <a id="1649" href="ValueSep.StrongSL.html" class="Module">ValueSep.StrongSL</a>
 
-<a id="1711" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
-<a id="1818" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
+<a id="1668" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
+<a id="1775" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
 
-<a id="1906" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
-<a id="2013" class="Comment">-- [Proofs]</a>
-<a id="2025" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
-<a id="2148" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
-<a id="2243" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
-<a id="2349" class="Keyword">open</a> <a id="2354" class="Keyword">import</a> <a id="2361" href="ValueSep.StrongCSL.html" class="Module">ValueSep.StrongCSL</a>
+<a id="1863" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1970" class="Comment">-- [Proofs]</a>
+<a id="1982" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="2105" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="2200" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="2306" class="Keyword">open</a> <a id="2311" class="Keyword">import</a> <a id="2318" href="ValueSep.StrongCSL.html" class="Module">ValueSep.StrongCSL</a>
 
-<a id="2381" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
-<a id="2446" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
-<a id="2521" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
-<a id="2580" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
-<a id="2685" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
-<a id="2776" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
-<a id="2840" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
-<a id="2926" class="Keyword">open</a> <a id="2931" class="Keyword">import</a> <a id="2938" href="ValueSep.StrongExample.html" class="Module">ValueSep.StrongExample</a>
+<a id="2338" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="2403" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2478" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2537" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2642" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2733" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2797" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2883" class="Keyword">open</a> <a id="2888" class="Keyword">import</a> <a id="2895" href="ValueSep.StrongExample.html" class="Module">ValueSep.StrongExample</a>
 </pre></body></html>
