@@ -18,7 +18,6 @@ open import ValueSep.Ledger
 -- [Proofs]
 --   * correspondence with denotational semantics and, by transitivity, operational semantics.
 --   * associativity/commutativity of separating conjuction _∗_
-open import ValueSep.SimpleHoareLogic
 open import ValueSep.StrongHoareLogic
 open import ValueSep.WeakHoareLogic
 open import ValueSep.HoareProperties
@@ -28,7 +27,7 @@ open import ValueSep.HoareProperties
 -- [Proofs]
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
--- open import ValueSep.SimpleSL
+open import ValueSep.WeakSL
 open import ValueSep.StrongSL
 
 -- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.

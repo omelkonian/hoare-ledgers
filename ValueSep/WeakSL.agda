@@ -1,12 +1,10 @@
 ---------------------------
 -- ** Separation logic (SL)
-
+{-# OPTIONS --allow-unsolved #-}
 open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
--- open import Prelude.Maps
-open import ValueSep.Maps
 open import Prelude.Ord
 open import Prelude.General
 open import Prelude.InferenceRules
@@ -17,6 +15,7 @@ open import Prelude.Monoid
 
 module ValueSep.WeakSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
+open import ValueSep.Maps
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.WeakHoareLogic Part ⦃ it ⦄
 

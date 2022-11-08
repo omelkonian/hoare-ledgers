@@ -5,7 +5,6 @@ open import Prelude.Init; open SetAsType
 open L.Mem
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import ValueSep.Maps
 open import Prelude.Ord
 open import Prelude.General
 open import Prelude.InferenceRules
@@ -16,7 +15,7 @@ open import Prelude.Monoid
 
 module ValueSep.StrongSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
--- NB. ⦃ it ⦄ required due to Agda bug, reported at https://github.com/agda/agda/issues/5093
+open import ValueSep.Maps
 open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.StrongHoareLogic Part ⦃ it ⦄
 
