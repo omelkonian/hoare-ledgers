@@ -44,19 +44,27 @@ open import ValueSepExact.HoareLogic Part ⦃ it ⦄
         | sym $ Nat.+-assoc v₁ v₂ v = refl
 ... | no _ = refl
 
-◇≡-[↝∸] : ∀ A v vᵃ →
-  ∙ (_[_↦_] s₁ A vᵃ)
-  ∙ v ≤ vᵃ
+-- ◇≡-[↝∸] : ∀ A v vᵃ →
+--   ∙ (_[_↦_] s₁ A vᵃ)
+--   ∙ v ≤ vᵃ
+--     ────────────────────────────────────────────────────────
+--     ⟨ (s₁ [ A ↝ (_∸ v) ]) ◇ s₂ ⟩≡ ((s₁ ◇ s₂) [ A ↝ (_∸ v) ])
+-- ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ A∈ v≤ k
+--   with k ≟ A
+-- ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ (A∈ , _) v≤ k | yes refl
+--   with s₁ A | A∈
+-- ... | .vᵃ | refl
+--   = sym $ Nat.+-∸-comm _ v≤
+-- ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ A∈ v≤ k | no _
+--   = refl
+
+◇≡-[↝∸] : ∀ A v →
+  ∙ v ≤ s₁ A
     ────────────────────────────────────────────────────────
     ⟨ (s₁ [ A ↝ (_∸ v) ]) ◇ s₂ ⟩≡ ((s₁ ◇ s₂) [ A ↝ (_∸ v) ])
-◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ A∈ v≤ k
-  with k ≟ A
-◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ A∈ v≤ k | yes refl
-  with s₁ A | A∈
-... | .vᵃ | refl
-  = sym $ Nat.+-∸-comm _ v≤
-◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v vᵃ A∈ v≤ k | no _
-  = refl
+◇≡-[↝∸] A _ v≤ k with k ≟ A
+... | yes refl = sym $ Nat.+-∸-comm _ v≤
+... | no  _    = refl
 
 ◇-⟦⟧ᵗ : ∀ s₁′ →
   ∙ ⟦ t ⟧ s₁ ≡ just s₁′
@@ -83,7 +91,9 @@ open import ValueSepExact.HoareLogic Part ⦃ it ⦄
         _s₁′ ◇ s₂
       ≈⟨ ◇≡-[↝+] {s₁ = s₁ [ A ↝ (_∸ v) ]} {s₂ = s₂} B v ⟩
         ((s₁ [ A ↝ (_∸ v) ]) ◇ s₂) [ B ↝ (_+ v) ]
-      ≈⟨ (λ k → cong (if k == B then _+ v else id) (◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v _ refl (subst (v ≤_) (sym s₁≡) v≤) k)) ⟩
+      ≈⟨ (λ k → cong (if k == B then _+ v else id)
+              $ ◇≡-[↝∸] {s₁ = s₁} {s₂ = s₂} A v
+                  (subst (v ≤_) (sym s₁≡) v≤) k) ⟩
         (s₁ ◇ s₂) [ A ↝ (_∸ v) ] [ B ↝ (_+ v) ]
       ≈⟨ ≈-[↝]² A B (s₁ ◇ s₂) s ≡s ⟩
         _s′

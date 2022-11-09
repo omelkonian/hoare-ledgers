@@ -18,16 +18,31 @@ open import ValueSepExact.Ledger Part ⦃ it ⦄
 open import ValueSepExact.HoareLogic Part ⦃ it ⦄
 
 -- ** Examples
+↦0 : (A ↦ 0) s
+   → s ≈ ∅
+↦0 {A}{s} (sA≡ , A∅) k
+  with k ≟ A
+... | yes refl = sA≡
+... | no  k≢A  = A∅ _ k≢A
+
 _ :  (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
   ⊣⊢ (A ↦ 1 ∗ C ↦ 1)
 _ = ↝ , ↜
   where
   ↝ : (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
     ⊢ (A ↦ 1 ∗ C ↦ 1)
-  ↝ (sᵃ , _ , ab≡ , A↦1 , (sᵇ  , _ , bc≡ , B↦0 , (sᶜ , sᵈ , cd≡ , C↦1 , A↦0)))
-    = (sᵃ ◇ sᵇ) , (sᶜ ◇ sᵈ) , IMPOSSIBLE
-    -- doesn't work, the state satisfying `B ↦ 0` may also contain resources for `A`
-    where postulate IMPOSSIBLE : ∀ {X} → X
+  ↝ {x = s} (sᵃ , sᵇᶜᵈ , ≡abcd , A↦1 , (sᵇ  , sᶜᵈ , ≡bcd , B↦0 , (sᶜ , sᵈ , ≡cd , C↦1 , A↦0)))
+    = sᵃ , sᶜ
+    , (let open ≈-Reasoning in
+       begin sᵃ ◇ sᶜ         ≈˘⟨ ◇-congʳ {m₁ = sᵃ} $ ε-identityʳ sᶜ ⟩
+             sᵃ ◇ (sᶜ ◇ ∅)   ≈˘⟨ ◇-congʳ {m₁ = sᵃ} $ ◇-congʳ {m₁ = sᶜ} $ ↦0 A↦0 ⟩
+             sᵃ ◇ (sᶜ ◇ sᵈ)  ≈⟨ ◇-congʳ {m₁ = sᵃ} ≡cd ⟩
+             sᵃ ◇ sᶜᵈ        ≈˘⟨ ◇-congʳ {m₁ = sᵃ} $ ε-identityˡ sᶜᵈ ⟩
+             sᵃ ◇ (∅ ◇ sᶜᵈ)  ≈⟨ ◇-congʳ {m₁ = sᵃ} $ ◇-congˡ {m₃ = sᶜᵈ} $ ≈-sym $ ↦0 B↦0 ⟩
+             sᵃ ◇ (sᵇ ◇ sᶜᵈ) ≈⟨ ◇-congʳ {m₁ = sᵃ} ≡bcd ⟩
+             sᵃ ◇ sᵇᶜᵈ       ≈⟨ ≡abcd ⟩
+             s               ∎)
+    , A↦1 , C↦1
 
   ↜ : (A ↦ 1 ∗ C ↦ 1)
     ⊢ (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)

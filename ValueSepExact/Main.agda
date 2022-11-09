@@ -26,7 +26,7 @@ open import ValueSepExact.HoareProperties
 -- [Proofs]
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
--- open import ValueSepExact.SL
+open import ValueSepExact.SL
 
 -- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.
 -- **SOLUTION** Change domain to incorporate failure, i.e. `S -> S` to `S -> Maybe S`.
@@ -36,7 +36,7 @@ open import ValueSepExact.HoareProperties
 --  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,
 -- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)
 -- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.
--- open import ValueSepExact.CSL
+open import ValueSepExact.CSL
 
 -- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,
 --    recording that values are correctly updated in pre-/post-conditions.
@@ -45,4 +45,4 @@ open import ValueSepExact.HoareProperties
 --    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.
 -- 2. the second proof h′ utilizes modular reasoning via [PAR];
 --    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.
--- open import ValueSepExact.Example
+open import ValueSepExact.Example
