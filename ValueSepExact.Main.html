@@ -27,24 +27,24 @@
 <a id="1392" class="Comment">-- [Proofs]</a>
 <a id="1404" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
 <a id="1470" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
-<a id="1597" class="Comment">-- open import ValueSepExact.SL</a>
+<a id="1597" class="Keyword">open</a> <a id="1602" class="Keyword">import</a> <a id="1609" href="ValueSepExact.SL.html" class="Module">ValueSepExact.SL</a>
 
-<a id="1630" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
-<a id="1737" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
+<a id="1627" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
+<a id="1734" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
 
-<a id="1825" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
-<a id="1932" class="Comment">-- [Proofs]</a>
-<a id="1944" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
-<a id="2067" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
-<a id="2162" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
-<a id="2268" class="Comment">-- open import ValueSepExact.CSL</a>
+<a id="1822" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1929" class="Comment">-- [Proofs]</a>
+<a id="1941" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="2064" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="2159" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="2265" class="Keyword">open</a> <a id="2270" class="Keyword">import</a> <a id="2277" href="ValueSepExact.CSL.html" class="Module">ValueSepExact.CSL</a>
 
-<a id="2302" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
-<a id="2367" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
-<a id="2442" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
-<a id="2501" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
-<a id="2606" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
-<a id="2697" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
-<a id="2761" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
-<a id="2847" class="Comment">-- open import ValueSepExact.Example</a>
+<a id="2296" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="2361" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2436" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2495" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2600" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2691" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2755" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2841" class="Keyword">open</a> <a id="2846" class="Keyword">import</a> <a id="2853" href="ValueSepExact.Example.html" class="Module">ValueSepExact.Example</a>
 </pre></body></html>
