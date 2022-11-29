@@ -29,6 +29,7 @@ _∗_ : Op₂ Assertion
 
 _↦_ : Part → ℕ → Assertion
 p ↦ n = _[ p ↦ n ]
+-- T0D0: fix to _[ p ↦ n ]∅
 
 infixr 10 _∗_
 infix  11 _↦_

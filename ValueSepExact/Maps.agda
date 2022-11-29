@@ -50,8 +50,8 @@ _⁺ : ∀ {X : Type} → Pred₀ X → Pred₀ (Maybe X)
 _⁺ = M.All.All
 
 -- ** membership
-_[_↦_] : Map → K → V → Type
-m [ k ↦ v ] = (m k ≡ v) × ∀ k′ → k′ ≢ k → m k′ ≡ 0
+_[_↦_]∅ : Map → K → V → Type
+m [ k ↦ v ]∅ = (m k ≡ v) × ∀ k′ → k′ ≢ k → m k′ ≡ 0
 
 module _ ⦃ _ : DecEq K ⦄ where
   _[_↝_] : Map → K → (Op₁ V) → Map

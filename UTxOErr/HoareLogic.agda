@@ -34,7 +34,7 @@ _∗_ : Op₂ Assertion
 (P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ⊎ s₂ ⟩≡ s × P s₁ × Q s₂
 
 _↦_ : TxOutputRef → TxOutput → Assertion
-or ↦ o = _[ or ↦ o ]
+or ↦ o = _[ or ↦ o ]∅
 
 infixr 10 _∗_
 infix  11 _↦_

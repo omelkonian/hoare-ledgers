@@ -17,6 +17,8 @@ open import ValueSep.Ledger Part ⦃ it ⦄
 open import ValueSep.StrongHoareLogic Part ⦃ it ⦄
 -- open import ValueSep.WeakHoareLogic Part ⦃ it ⦄
 
+private postulate TODO IMPOSSIBLE : ∀ {X : Type ℓ} → X
+
 -- ** Examples
 _ :  (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
   ⊣⊢ (A ↦ 1 ∗ C ↦ 1)
@@ -25,17 +27,13 @@ _ = ↝ , ↜
   ↝ : (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
     ⊢ (A ↦ 1 ∗ C ↦ 1)
   ↝ (sᵃ , _ , ab≡ , A↦1 , (sᵇ  , _ , bc≡ , B↦0 , (sᶜ , sᵈ , cd≡ , C↦1 , A↦0)))
-    = (sᵃ ◇ sᵇ) , (sᶜ ◇ sᵈ) , IMPOSSIBLE
-    -- doesn't work, the state satisfying `B ↦ 0` may also contain resources for `A`
-    where postulate IMPOSSIBLE : ∀ {X} → X
+    = (sᵃ ◇ sᵇ) , (sᶜ ◇ sᵈ) , TODO
 
   ↜ : (A ↦ 1 ∗ C ↦ 1)
     ⊢ (A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 1 ∗ A ↦ 0)
   ↜ (sᵃ , sᶜ , ≡s , A↦1 , C↦1)
     = sᵃ , sᶜ , ≡s , A↦1 , ∅ , sᶜ , (λ k → refl) , IMPOSSIBLE
     , (sᶜ , ∅ , (λ _ → IMPOSSIBLE) , C↦1 , IMPOSSIBLE)
-    where postulate IMPOSSIBLE : ∀ {X} → X
-
 
 -- ** Lemmas about separating conjunction.
 
@@ -54,7 +52,7 @@ _ = ↝ , ↜
 
 -- ** Useful lemmas when transferring a value between participants in the minimal context.
 _↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} → ⟨ A ↦ vᵃ ∗ B ↦ vᵇ ⟩ [ A —→⟨ v ⟩ B ] ⟨ A ↦ (vᵃ ∸ v) ∗ B ↦ (vᵇ + v) ⟩
-(A ↝⟨ v ⟩ B) {vᵃ}{vᵇ}{vᵃ≤v} {s} (s₁ , s₂ , ≡s , As₁ , Bs₂)
+(A ↝⟨ v ⟩ B) {vᵃ}{vᵇ}{vᵃ≤v} {s} (s₁ , s₂ , ≡s , (As₁ , _) , (Bs₂ , _))
   with s₁ A | As₁ | ↦-◇ˡ {s₁ = s₁}{A}{vᵃ}{s₂} As₁ | ≡s A
 ... | .(just vᵃ) | refl | .(s₂ ⁉⁰ A) , refl , p | sA≡
   with s₂ B | Bs₂ | ↦-◇ʳ {s₂ = s₂}{B}{vᵇ}{s₁} Bs₂ | ≡s B
@@ -66,7 +64,7 @@ _↝⟨_⟩_ : ∀ A v B {vᵃ}{vᵇ}{v≤ : v ≤ vᵃ} → ⟨ A ↦ vᵃ ∗ 
   with v ≤? vᵃ ◇ (s₂ ⁉⁰ A)
 ... | no  v≰ = ⊥-elim $ v≰ $ Nat.≤-stepsʳ (s₂ ⁉⁰ A) $ vᵃ≤v
 ... | yes v≤
-  = ret↑ (_s₁′ , _s₂′ , ≡s′ , As₁′ , Bs₂′)
+  = ret↑ (_s₁′ , _s₂′ , ≡s′ , (As₁′ , TODO) , (Bs₂′ , TODO))
   where
     sA≡′ : s A ≡ just (vᵃ ◇ (s₂ ⁉⁰ A))
     sA≡′ = trans (sym sA≡) p
