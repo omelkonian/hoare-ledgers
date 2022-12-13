@@ -31,7 +31,7 @@ instance
     .relℓ → _
     ._≈_ m m′ → ∀ k → m k ≡ m′ k
 
-  SetoidLaws-Map : Setoid-Laws Map
+  SetoidLaws-Map : SetoidLaws Map
   SetoidLaws-Map .isEquivalence = record
     { refl  = λ _ → refl
     ; sym   = λ p k → sym (p k)
@@ -82,15 +82,15 @@ open Alg (Rel₀ Map ∋ _≈_)
 ⟨ m₁ ◇ m₂ ⟩≡ m = m₁ ◇ m₂ ≈ m
 
 instance
-  SemigroupLaws-Map : SemigroupLaws Map _≈_
+  SemigroupLaws-Map : SemigroupLaws Map
   SemigroupLaws-Map = λ where
-    .◇-comm   → λ m m′ k   → ◇-comm (m k) (m′ k)
-    .◇-assocʳ → λ m₁ _ _ k → ◇-assocʳ (m₁ k) _ _
+    .◇-comm   → λ m m′ k   → ◇-comm≡ (m k) (m′ k)
+    .◇-assocʳ → λ m₁ _ _ k → ◇-assocʳ≡ (m₁ k) _ _
 
-  MonoidLaws-Map : MonoidLaws Map _≈_
+  MonoidLaws-Map : MonoidLaws Map
   MonoidLaws-Map .ε-identity = λ where
-    .proj₁ → λ m k → ε-identityˡ (m k)
-    .proj₂ → λ m k → ε-identityʳ (m k)
+    .proj₁ → λ m k → ε-identityˡ≡ (m k)
+    .proj₂ → λ m k → ε-identityʳ≡ (m k)
 
 ◇≡-comm : Symmetric (⟨_◇_⟩≡ m)
 ◇≡-comm {x = m₁}{m₂} ≈m = ≈-trans (◇-comm m₂ m₁) ≈m

@@ -47,27 +47,40 @@ m ⊆ᵈ m′ = ∀ k → k ∈ᵈ m → k ∈ᵈ m′
 k ⊈ᵈ m = ¬ (k ⊆ᵈ m)
 
 -- ** equivalence
+open import Prelude.Setoid
+instance
+  Setoid-Map : ISetoid Map
+  Setoid-Map = λ where
+    .relℓ → _
+    ._≈_ m m′ → ∀ k → m k ≡ m′ k
 
-infix 3 _≈_
-_≈_ : Rel₀ Map
-m ≈ m′ = ∀ k → m k ≡ m′ k
+  SetoidLaws-Map : SetoidLaws Map
+  SetoidLaws-Map .isEquivalence = record
+    { refl = λ _ → refl
+    ; sym = λ p k → sym (p k)
+    ; trans = λ p q k → trans (p k) (q k)
+    }
 
-≈-refl : Reflexive _≈_
-≈-refl _ = refl
+-- infix 3 _≈_
+-- _≈_ : Rel₀ Map
+-- m ≈ m′ = ∀ k → m k ≡ m′ k
 
-≈-sym : Symmetric _≈_
-≈-sym p k = sym (p k)
+-- ≈-refl : Reflexive _≈_
+-- ≈-refl _ = refl
 
-≈-trans : Transitive _≈_
-≈-trans p q k = trans (p k) (q k)
+-- ≈-sym : Symmetric _≈_
+-- ≈-sym p k = sym (p k)
 
-≈-equiv : IsEquivalence _≈_
-≈-equiv = record {refl = ≈-refl; sym = ≈-sym; trans = ≈-trans}
+-- ≈-trans : Transitive _≈_
+-- ≈-trans p q k = trans (p k) (q k)
 
-≈-setoid : Setoid 0ℓ 0ℓ
-≈-setoid = record {Carrier = Map; _≈_ = _≈_; isEquivalence = ≈-equiv}
+-- ≈-equiv : IsEquivalence _≈_
+-- ≈-equiv = record {refl = ≈-refl; sym = ≈-sym; trans = ≈-trans}
 
-module ≈-Reasoning = BinSetoid ≈-setoid
+-- ≈-setoid : Setoid 0ℓ 0ℓ
+-- ≈-setoid = record {Carrier = Map; _≈_ = _≈_; isEquivalence = ≈-equiv}
+
+-- module ≈-Reasoning = BinSetoid ≈-setoid
 
 ≈-cong : ∀ {P : K → Maybe V → Type}
   → s₁ ≈ s₂
@@ -129,7 +142,10 @@ module _ ⦃ _ : DecEq K ⦄ where
   ... | nothing = k∈
   ... | just _  = auto
 
-module _ ⦃ _ : Monoid V ⦄ ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws≡ V ⦄ where
+module _ ⦃ _ : Semigroup V ⦄ ⦃ _ : Monoid V ⦄
+         -- ⦃ _ : ISetoid V ⦄ ⦃ _ : SetoidLaws V ⦄
+         -- ⦃ _ : SemigroupLaws V ⦄ ⦃ _ : MonoidLaws V ⦄ where
+         ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws≡ V ⦄ where
   instance
     Semigroup-Map : Semigroup Map
     Semigroup-Map ._◇_ m m′ k = m k ◇ m′ k
@@ -143,15 +159,15 @@ module _ ⦃ _ : Monoid V ⦄ ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws�
   ⟨ m₁ ◇ m₂ ⟩≡ m = m₁ ◇ m₂ ≈ m
 
   instance
-    SemigroupLaws-Map : SemigroupLaws Map _≈_
+    SemigroupLaws-Map : SemigroupLaws Map
     SemigroupLaws-Map = λ where
-      .◇-comm   → λ m m′ k   → ◇-comm (m k) (m′ k)
-      .◇-assocʳ → λ m₁ _ _ k → ◇-assocʳ (m₁ k) _ _
+      .◇-comm   → λ m m′ k   → ◇-comm≡ (m k) (m′ k)
+      .◇-assocʳ → λ m₁ _ _ k → ◇-assocʳ≡ (m₁ k) _ _
 
-    MonoidLaws-Map : MonoidLaws Map _≈_
+    MonoidLaws-Map : MonoidLaws Map
     MonoidLaws-Map .ε-identity = λ where
-      .proj₁ → λ m k → ε-identityˡ (m k)
-      .proj₂ → λ m k → ε-identityʳ (m k)
+      .proj₁ → λ m k → ε-identityˡ≡ (m k)
+      .proj₂ → λ m k → ε-identityʳ≡ (m k)
 
   ◇≡-comm : Symmetric (⟨_◇_⟩≡ m)
   ◇≡-comm {x = m₁}{m₂} ≈m = ≈-trans (◇-comm m₂ m₁) ≈m
@@ -249,20 +265,20 @@ module _ ⦃ _ : Monoid V ⦄ ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws�
     with s₁ k | k∈₁
   ... | just _  | refl
     with s₂ k
-  ... | nothing = -, refl , cong just (sym $ ε-identityʳ _)
+  ... | nothing = -, refl , cong just (sym $ ε-identityʳ≡ _)
   ... | just _  = -, refl , refl
 
   ↦-◇ʳ : s₂ [ k ↦ v ] → ∃ λ v′ → s₁ [ k ↦⁰ v′ ] × (s₁ ◇ s₂) [ k ↦ v′ ◇ v ]
   ↦-◇ʳ {s₂ = s₂} {k = k} {s₁ = s₁} k∈₂
     with s₂ k | k∈₂ | s₁ k
-  ... | just _  | refl | nothing = -, refl , cong just (sym $ ε-identityˡ _)
+  ... | just _  | refl | nothing = -, refl , cong just (sym $ ε-identityˡ≡ _)
   ... | just _  | refl | just _  = -, refl , refl
 
   ↦-◇⁺ˡ : k ∉ᵈ s₂ → s₁ k ≡ (s₁ ◇ s₂) k
   ↦-◇⁺ˡ {k = k}{s₂}{s₁} k∉ =
     begin
       s₁ k
-    ≡⟨ sym $ ε-identity .proj₂ (s₁ k) ⟩
+    ≡⟨ sym $ ε-identity≡ .proj₂ (s₁ k) ⟩
       s₁ k ◇ nothing
     ≡⟨ cong (s₁ k ◇_) (sym (Is-nothing≡ (∉ᵈ⁻ {s = s₂} k∉))) ⟩
       s₁ k ◇ s₂ k
@@ -274,7 +290,7 @@ module _ ⦃ _ : Monoid V ⦄ ⦃ _ : SemigroupLaws≡ V ⦄ ⦃ _ : MonoidLaws�
   ↦-◇⁺ʳ {k = k}{s₁}{s₂} k∉ =
     begin
       s₂ k
-    ≡⟨ sym $ ε-identity .proj₁ (s₂ k) ⟩
+    ≡⟨ sym $ ε-identity≡ .proj₁ (s₂ k) ⟩
       nothing ◇ s₂ k
     ≡⟨ cong (_◇ s₂ k) (sym (Is-nothing≡ (∉ᵈ⁻ {s = s₁} k∉))) ⟩
       s₁ k ◇ s₂ k

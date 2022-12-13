@@ -10,6 +10,7 @@ open import Prelude.Semigroup
 open import Prelude.Monoid
 open import Prelude.InferenceRules
 open import Prelude.Ord
+open import Prelude.Setoid
 
 module ValueSep.HoareProperties (Part : Type) ⦃ _ : DecEq Part ⦄ where
 

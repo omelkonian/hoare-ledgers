@@ -9,6 +9,7 @@ open import Prelude.Ord
 open import Prelude.Maps.Abstract; open CommandDSL
 open import Prelude.Apartness
 open import Prelude.Setoid
+open import Prelude.Semigroup
 open import Prelude.Monoid
 
 module ShallowHoare.Ledger

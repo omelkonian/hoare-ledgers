@@ -12,6 +12,7 @@ open import Prelude.Apartness
 open import Prelude.Semigroup
 open import Prelude.Functor
 open import Prelude.Monoid
+open import Prelude.Setoid
 
 module ValueSep.WeakSL (Part : Type) ⦃ _ : DecEq Part ⦄ where
 
