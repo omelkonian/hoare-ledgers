@@ -31,6 +31,13 @@ open import Deep.Main
 --   ∙ {P}l{Q} = ∀ s. P(s) → Q(⟦l⟧s)
 open import ShallowHoare.Main
 
+-- Simplest possible design: allowing negative values without explicit errors.
+-- ∙ S := K → ℤ
+-- ∙ ⟦_⟧ := S → S
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+open import ValueSepInt.Main
+
 -- Monoidal separatation on values instead of participants.
 -- ∙ S := Map⟨ K ↦ Value ⟩
 -- ∙ ⟦_⟧ := S → Maybe S

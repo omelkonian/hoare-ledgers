@@ -2,7 +2,7 @@ open import Prelude.Init; open SetAsType
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists
-open import Prelude.DecLists
+open import Prelude.Lists.Dec
 open import Prelude.Membership
 open import Prelude.ToList
 open import Prelude.FromList

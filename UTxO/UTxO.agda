@@ -9,7 +9,7 @@ open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.ToN
 open import Prelude.Lists
-open import Prelude.DecLists
+open import Prelude.Lists.Dec
 open import Prelude.Functor
 open import Prelude.Applicative
 open import Prelude.ToList

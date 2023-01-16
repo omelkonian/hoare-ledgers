@@ -2,6 +2,7 @@
 
 open import Prelude.Init; open SetAsType
 open import Prelude.General
+open import Prelude.Maybes
 open import Prelude.DecEq
 open import Prelude.Applicative
 open import Prelude.Decidable

@@ -4,7 +4,7 @@ open import Prelude.Init; open SetAsType
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
-open import Prelude.DecLists
+open import Prelude.Lists.Dec
 open import Prelude.Monoid
 
 data Part : Type where

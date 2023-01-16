@@ -86,8 +86,8 @@ data _—→_ : L × S → S → Type where
   step :
 
     ∙ IsValidTx t s
-    ∙ l , (s ─ stxoTx t ∪ utxoTx t) —→ s′
-      ───────────────────────────────────
+    ∙ l , ⟦ t ⟧₀ s —→ s′
+      ──────────────────
       t ∷ l , s —→ s′
 
 oper-comp :
