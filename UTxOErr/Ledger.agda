@@ -16,8 +16,9 @@ open import Prelude.Apartness
 open import Prelude.Monad
 open import Prelude.Membership
 
-open import UTxOErr.Maps
 open import UTxOErr.UTxO
+-- open import UTxOErr.Maps
+open import Prelude.Maps hiding (_⊣_)
 
 variable
   s s′ s″ s₁ s₁′ s₁″ s₂ s₂′ s₂″ s₃ s₃′ s₃″ s₂₃ s₂₃′ s₂₃″ : S
@@ -48,7 +49,7 @@ open Denotable₀ ⦃...⦄ public
 instance
   -- we denote a transaction as simply running the transaction based on the transfer operation above
   ⟦Tx⟧₀ : Denotable₀ Tx
-  ⟦Tx⟧₀ .⟦_⟧₀ tx utxos = (utxos ─ outputRefs tx) ∪ utxoTxS tx
+  ⟦Tx⟧₀ .⟦_⟧₀ tx utxos = (utxos ─ᵏˢ outputRefs tx) ∪ utxoTx tx
 
   ⟦Tx⟧ : Denotable Tx
   ⟦Tx⟧ .⟦_⟧ tx s = M.when (isValidTx tx s) (⟦ tx ⟧₀ s)
@@ -73,6 +74,17 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | nothing = refl
 ... | just s  = comp {l} s
 
+data VL : S → L → Type where
+  [] : VL s []
+  _⊣_∷_ : ∀ tx →
+    ∙ IsValidTx tx s
+    ∙ VL (⟦ tx ⟧₀ s) l
+      ────────────────
+      VL s (tx ∷ l)
+
+VL⇒Resolved : VL s l → All Resolved l
+VL⇒Resolved [] = []
+VL⇒Resolved (tx ⊣ p ∷ l) = resolved p ∷ VL⇒Resolved l
 
 -- ** Operational semantics
 
@@ -80,14 +92,13 @@ infix 0 _—→_
 data _—→_ : L × S → S → Type where
 
   base :
-    ────────────
-    ε , s —→ s
+    ───────────
+    [] , s —→ s
 
   step :
-
     ∙ IsValidTx t s
-    ∙ l , ((s ─ outputRefs t) ∪ utxoTxS t) —→ s′
-      ────────────────────────────────────────────
+    ∙ l , ⟦ t ⟧₀ s —→ s′
+      ──────────────────
       t ∷ l , s —→ s′
 
 oper-comp :

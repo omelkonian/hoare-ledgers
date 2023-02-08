@@ -16,7 +16,7 @@ open import Prelude.Apartness
 open import Prelude.Monad
 open import Prelude.Membership
 
-open import Prelude.Bags
+open import Prelude.Bags hiding (_⊣_)
 open import ValueSepUTxO.UTxO
 
 variable
@@ -73,6 +73,25 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | nothing = refl
 ... | just s  = comp {l} s
 
+data VL : S → L → Type where
+  [] : VL s []
+  _⊣_∷_ : ∀ tx →
+    ∙ IsValidTx tx s
+    ∙ VL (⟦ tx ⟧₀ s) l
+      ─────────────────
+      VL s (tx ∷ l)
+
+-- VL⇒L : VL s s′ → L
+-- VL⇒L = λ where
+--   [] → []
+--   (tx ⊣ _ ∷ l) → tx ∷ VL⇒L l
+
+-- data VL : S → L → Type where
+--   [] : VL s []
+--   _⊣_∷_ : ∀ tx
+--     → IsValidTx tx (⟦ l ⟧₀ s)
+--     → VL s l
+--     → VL s (tx ∷ l)
 
 -- ** Operational semantics
 

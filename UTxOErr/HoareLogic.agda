@@ -16,9 +16,12 @@ open import Prelude.Bifunctor
 open import Prelude.Monad
 open import Prelude.Apartness
 
-open import UTxOErr.Maps
 open import UTxOErr.UTxO
 open import UTxOErr.Ledger
+-- open import UTxOErr.Maps
+open import Prelude.Maps
+_[_↦_]∅ : S → TxOutputRef → TxOutput → Type
+m [ k ↦ v ]∅ = m [ k ↦ v ] × ∀ k′ → k′ ≢ k → k′ ∉ᵈ m
 
 -- ** Shallow embedding of logic formulas/propositions.
 Assertion = Pred₀ S

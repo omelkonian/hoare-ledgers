@@ -9,11 +9,29 @@ open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.InferenceRules
+open import Prelude.Apartness
+open import Prelude.Setoid
 
-open import UTxOErr.Maps
 open import UTxOErr.UTxO
 open import UTxOErr.Ledger
 open import UTxOErr.HoareLogic
+-- open import UTxOErr.Maps
+open import Prelude.Maps
+postulate
+  ⊎≡-comm : Symmetric (⟨_⊎_⟩≡ s)
+  ⊎≈-assocʳ :
+    ∙ ⟨ s₁ ⊎ s₂₃ ⟩≡ s
+    ∙ ⟨ s₂ ⊎ s₃  ⟩≡ s₂₃
+      ─────────────────────
+      ⟨ (s₁ ∪ s₂) ⊎ s₃ ⟩≡ s
+    × (s₁ ♯ s₂)
+  ⊎≈-assocˡ : ∀ {s₁₂} →
+    ∙ ⟨ s₁₂ ⊎ s₃ ⟩≡ s
+    ∙ ⟨ s₁ ⊎ s₂  ⟩≡ s₁₂
+      ───────────────────
+      ⟨ s₁ ⊎ (s₂ ∪ s₃) ⟩≡ s
+    × (s₂ ♯ s₃)
+
 
 -- ** Lemmas about separating conjunction.
 
@@ -34,7 +52,7 @@ open import UTxOErr.HoareLogic
 
 -- ** Useful lemmas when transferring a value between participants in the minimal context.
 transfer : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef} {rdm : DATA} {val : TxInfo → DATA → Bool} →
-  ∙ T (val (mkTxInfo tx) rdm)
+  ∙ T (val (mkTxInfo tx {!!}) rdm)
   ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]
                 ; outputs = [ v at B ]
                 ; forge   = 0 }
@@ -46,7 +64,7 @@ transfer = {!!}
 
 open HoareReasoning
 transferℝ : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef} {rdm : DATA} {val : TxInfo → DATA → Bool} →
-  ∙ T (val (mkTxInfo tx) rdm)
+  ∙ T (val (mkTxInfo tx {!!}) rdm)
   ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]
                 ; outputs = [ v at B ]
                 ; forge   = 0 }

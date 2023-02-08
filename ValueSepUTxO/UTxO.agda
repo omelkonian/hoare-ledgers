@@ -4,6 +4,7 @@
 module ValueSepUTxO.UTxO where
 
 open import Prelude.Init; open SetAsType
+open L.Mem
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
@@ -12,7 +13,7 @@ open import Prelude.Lists
 open import Prelude.Lists.Dec
 open import Prelude.Functor
 open import Prelude.Applicative
-open import Prelude.FromList
+open import Prelude.FromList; open import Prelude.ToList
 open import Prelude.Ord
 open import Prelude.Semigroup
 open import Prelude.Monoid
@@ -22,81 +23,21 @@ instance
   Sℕ  = Semigroup-ℕ-+; Sℕ⁺ = SemigroupLaws-ℕ-+
   Mℕ  = Monoid-ℕ-+;    Mℕ⁺ = MonoidLaws-ℕ-+
 
-Value   = ℕ
-HashId  = ℕ
-Address = HashId
-postulate _♯ : ∀ {A : Type ℓ} → A → HashId
-
-DATA = ℕ -- T0D0: more realistic data for redeemers
-
-record TxOutput : Type where
-  constructor _at_
-  field value   : Value
-        address : Address
-open TxOutput public
-unquoteDecl DecEq-TxO = DERIVE DecEq [ quote TxOutput , DecEq-TxO ]
-
-TxOutputRef : Type
-TxOutputRef = HashId
-
-record InputInfo : Type where
-  field outputRef     : TxOutputRef
-        validatorHash : HashId
-        redeemerHash  : HashId
-unquoteDecl DecEq-InputInfo = DERIVE DecEq [ quote InputInfo , DecEq-InputInfo ]
-
-record TxInfo : Type where
-  field inputs  : List InputInfo
-        outputs : List TxOutput
-        forge   : Value
-unquoteDecl DecEq-TxInfo = DERIVE DecEq [ quote TxInfo , DecEq-TxInfo ]
-
-record TxInput : Type where
-  field outputRef : TxOutput
-        validator : TxInfo → DATA → Bool
-        redeemer  : DATA
-open TxInput public
-
-mkInputInfo : TxInput → InputInfo
-mkInputInfo i = record
-  { outputRef     = i .outputRef ♯
-  ; validatorHash = i .validator ♯
-  ; redeemerHash  = i .redeemer ♯ }
-
-record Tx : Type where
-  field
-    inputs  : List TxInput
-    outputs : List TxOutput
-    forge   : Value
-open Tx public
-
-mkTxInfo : Tx → TxInfo
-mkTxInfo tx = record
-  { inputs  = mkInputInfo <$> tx .inputs
-  ; outputs = tx .outputs
-  ; forge   = tx .forge }
-
--- A ledger is a list of transactions.
-L = List Tx
+open import Common public
+TxOutputRef = TxOutput
+open CommonInfo TxOutputRef public
 
 -- The state of a ledger maps addresses to a value.
 
 S : Type
-S = Bag⟨ Address × Value ⟩
-
-instance
-  FromList-S : FromList TxOutput S
-  FromList-S .fromList = fromList ∘ map (λ txo → txo .address , txo .value)
-
-outputRefs : Tx → List TxOutput
-outputRefs = map outputRef ∘ inputs
+S = Bag⟨ TxOutput ⟩
 
 stxoTx utxoTx : Tx → S
 stxoTx = fromList ∘ outputRefs
 utxoTx = fromList ∘ outputs
 
-∑ : ∀ {A : Type} → List A → (A → Value) → Value
-∑ xs f = ∑ℕ (map f xs)
+resolved : ∀ tx → Resolved tx
+resolved _ {r} _ = r
 
 record IsValidTx (tx : Tx) (utxos : S) : Type where
   field
@@ -106,14 +47,17 @@ record IsValidTx (tx : Tx) (utxos : S) : Type where
     preservesValues :
       tx .forge + ∑ (tx .inputs) (value ∘ outputRef) ≡ ∑ (tx .outputs) value
 
-    -- noDoubleSpending :
-    --   Unique (outputRefs tx)
+  txInfo = mkTxInfo tx (resolved tx)
+
+  field
 
     allInputsValidate :
-      All (λ i → T (validator i (mkTxInfo tx) (i .redeemer))) (tx .inputs)
+      All (λ i → T (i .validator txInfo (i .redeemer)))
+          (tx .inputs)
 
     validateValidHashes :
-      All (λ i → i .outputRef .address ≡ i .validator ♯) (tx .inputs)
+      All (λ i → i .outputRef .address ≡ i .validator ♯)
+          (tx .inputs)
 
 open IsValidTx public
 

@@ -16,10 +16,13 @@ open import Prelude.Functor
 open import Prelude.Monoid
 open import Prelude.Membership
 
-open import UTxOErr.Maps
 open import UTxOErr.UTxO
 open import UTxOErr.Ledger
 open import UTxOErr.HoareLogic
+open import UTxOErr.HoareProperties
+-- open import UTxOErr.Maps
+open import Prelude.Maps
+open import Prelude.Setoid
 
 ⊎-⟦⟧ᵗ : ∀ s₁′ →
   ∙ ⟦ t ⟧ s₁ ≡ just s₁′
@@ -35,7 +38,7 @@ open import UTxOErr.HoareLogic
     { validOutputRefs = vor
     ; preservesValues = pv
     ; noDoubleSpending = valid-s₁ .noDoubleSpending
-    ; allInputsValidate = valid-s₁ .allInputsValidate
+    ; allInputsValidate = {!!} -- valid-s₁ .allInputsValidate
     ; validateValidHashes = vvh
     }
   where
@@ -53,13 +56,13 @@ open import UTxOErr.HoareLogic
 ... | yes valid-s
   = ret↑ (s₁♯s₂′ , ≡s′)
   where
-    s₁≡ : s₁′ ≡ (s₁ ─ outputRefs t) ∪ utxoTxS t
+    s₁≡ : s₁′ ≡ (s₁ ─ outputRefs t) ∪ utxoTx t
     s₁≡ = sym $ M.just-injective eq
 
     s₁♯s₂′ : s₁′ ♯ s₂
     s₁♯s₂′ = {!!}
 
-    ≡s′ : s₁′ ∪ s₂ ≈ ((s ─ outputRefs t) ∪ utxoTxS t)
+    ≡s′ : s₁′ ∪ s₂ ≈ ((s ─ outputRefs t) ∪ utxoTx t)
     ≡s′ = {!!}
 
 ⊎-⟦⟧ᵗ˘ : ∀ s₂′ →
@@ -97,7 +100,7 @@ open import UTxOErr.HoareLogic
 
 
 _-supports-_ : List TxOutputRef → Assertion → Type
-sup -supports- P = ∀ (s : S) → P s ↔ P (filterKeys (_∈? sup) s)
+sup -supports- P = ∀ (s : S) → P s ↔ P (filterK (_∈? sup) s)
 
 instance
   -- Apart-or : TxOutputRef // Assertion

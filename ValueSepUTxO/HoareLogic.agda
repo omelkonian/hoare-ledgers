@@ -31,7 +31,7 @@ _∗_ : Op₂ Assertion
 (P ∗ Q) s = ∃ λ s₁ → ∃ λ s₂ → ⟨ s₁ ◇ s₂ ⟩≡ s × P s₁ × Q s₂
 
 _↦_ : Address → Value → Assertion
-(f ↦ v) m = m ≈ˢ singleton (f , v)
+(f ↦ v) m = m ≈ˢ singleton (f at v)
 
 infixr 10 _∗_
 infix  11 _↦_
