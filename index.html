@@ -78,10 +78,13 @@
 <a id="1778" class="Comment">-- ∙ Separation := _⊎_</a>
 <a id="1801" class="Keyword">open</a> <a id="1806" class="Keyword">import</a> <a id="1813" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a>
 
-<a id="1827" class="Comment">-- Value-separated **abstract** UTxO.</a>
-<a id="1865" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
-<a id="1898" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
-<a id="1922" class="Comment">-- ∙ P := S → Set</a>
-<a id="1940" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="1963" class="Keyword">open</a> <a id="1968" class="Keyword">import</a> <a id="1975" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
+<a id="1827" class="Comment">-- Value-separated Abstract UTxO (AUTxO).</a>
+<a id="1869" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
+<a id="1902" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1926" class="Comment">-- ∙ P := S → Set</a>
+<a id="1944" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="1967" class="Keyword">open</a> <a id="1972" class="Keyword">import</a> <a id="1979" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
+
+<a id="1998" class="Comment">-- Sound abstraction for UTxO↔AUTxO.</a>
+<a id="2035" class="Keyword">open</a> <a id="2040" class="Keyword">import</a> <a id="2047" href="ConcreteToAbstract.html" class="Module">ConcreteToAbstract</a>
 </pre></body></html>

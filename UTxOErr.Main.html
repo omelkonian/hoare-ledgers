@@ -2,52 +2,46 @@
 <html><head><meta charset="utf-8"><title>UTxOErr.Main</title><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css'/><style>.github-fork-ribbon:before { background-color: #333; }</style><link rel="stylesheet" href="css/Agda.css"></head><body><a class='github-fork-ribbon'href='https://github.com/omelkonian/hoare-ledgers/tree/master/UTxOErr/Main.agda'data-ribbon='Source code on Github' title='Source code on Github'>Source code on Github</a><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--rewriting</a> <a id="25" class="Symbol">#-}</a>
 <a id="29" class="Keyword">module</a> <a id="36" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a> <a id="49" class="Keyword">where</a>
 
-<a id="56" class="Comment">-- ** Maps as `K → Maybe V`.</a>
-<a id="85" class="Keyword">open</a> <a id="90" class="Keyword">import</a> <a id="97" href="UTxOErr.Maps.html" class="Module">UTxOErr.Maps</a>
+<a id="56" class="Comment">-- ** Simplistic definition of the UTxO model.</a>
+<a id="103" class="Comment">-- S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="141" class="Keyword">open</a> <a id="146" class="Keyword">import</a> <a id="153" href="UTxOErr.UTxO.html" class="Module">UTxOErr.UTxO</a>
 
-<a id="111" class="Comment">-- ** Simplistic definition of the UTxO model.</a>
-<a id="158" class="Comment">-- S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
-<a id="196" class="Keyword">open</a> <a id="201" class="Keyword">import</a> <a id="208" href="UTxOErr.UTxO.html" class="Module">UTxOErr.UTxO</a>
+<a id="167" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="252" class="Comment">-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,</a>
+<a id="374" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="433" class="Comment">-- [Proofs]</a>
+<a id="445" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="515" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="592" class="Keyword">open</a> <a id="597" class="Keyword">import</a> <a id="604" href="UTxOErr.Ledger.html" class="Module">UTxOErr.Ledger</a>
 
-<a id="222" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
-<a id="307" class="Comment">-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,</a>
-<a id="429" class="Comment">-- and define both operational and denotational semantics.</a>
-<a id="488" class="Comment">-- [Proofs]</a>
-<a id="500" class="Comment">--    * correspondence between operational and denotational semantics</a>
-<a id="570" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
-<a id="647" class="Keyword">open</a> <a id="652" class="Keyword">import</a> <a id="659" href="UTxOErr.Ledger.html" class="Module">UTxOErr.Ledger</a>
+<a id="620" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="704" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="802" class="Comment">-- [Proofs]</a>
+<a id="814" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="909" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="973" class="Keyword">open</a> <a id="978" class="Keyword">import</a> <a id="985" href="UTxOErr.HoareLogic.html" class="Module">UTxOErr.HoareLogic</a>
+<a id="1004" class="Keyword">open</a> <a id="1009" class="Keyword">import</a> <a id="1016" href="UTxOErr.HoareProperties.html" class="Module">UTxOErr.HoareProperties</a>
 
-<a id="675" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
-<a id="759" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
-<a id="857" class="Comment">-- [Proofs]</a>
-<a id="869" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
-<a id="964" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
-<a id="1028" class="Keyword">open</a> <a id="1033" class="Keyword">import</a> <a id="1040" href="UTxOErr.HoareLogic.html" class="Module">UTxOErr.HoareLogic</a>
-<a id="1059" class="Keyword">open</a> <a id="1064" class="Keyword">import</a> <a id="1071" href="UTxOErr.HoareProperties.html" class="Module">UTxOErr.HoareProperties</a>
+<a id="1041" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="1160" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1231" class="Comment">-- [Proofs]</a>
+<a id="1243" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1309" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1436" class="Keyword">open</a> <a id="1441" class="Keyword">import</a> <a id="1448" href="UTxOErr.SL.html" class="Module">UTxOErr.SL</a>
 
-<a id="1096" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
-<a id="1215" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
-<a id="1286" class="Comment">-- [Proofs]</a>
-<a id="1298" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
-<a id="1364" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
-<a id="1491" class="Keyword">open</a> <a id="1496" class="Keyword">import</a> <a id="1503" href="UTxOErr.SL.html" class="Module">UTxOErr.SL</a>
+<a id="1460" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1567" class="Comment">-- [Proofs]</a>
+<a id="1579" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="1702" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="1797" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="1903" class="Keyword">open</a> <a id="1908" class="Keyword">import</a> <a id="1915" href="UTxOErr.CSL.html" class="Module">UTxOErr.CSL</a>
 
-<a id="1515" class="Comment">-- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.</a>
-<a id="1622" class="Comment">-- **SOLUTION** Change domain to incorporate failure, i.e. `S -&gt; S` to `S -&gt; Maybe S`.</a>
-
-<a id="1710" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
-<a id="1817" class="Comment">-- [Proofs]</a>
-<a id="1829" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
-<a id="1952" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
-<a id="2047" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
-<a id="2153" class="Keyword">open</a> <a id="2158" class="Keyword">import</a> <a id="2165" href="UTxOErr.CSL.html" class="Module">UTxOErr.CSL</a>
-
-<a id="2178" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
-<a id="2243" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
-<a id="2318" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
-<a id="2377" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
-<a id="2482" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
-<a id="2573" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
-<a id="2637" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
-<a id="2723" class="Keyword">open</a> <a id="2728" class="Keyword">import</a> <a id="2735" href="UTxOErr.Example.html" class="Module">UTxOErr.Example</a>
+<a id="1928" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="1993" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2068" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2127" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2232" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2323" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2387" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2473" class="Keyword">open</a> <a id="2478" class="Keyword">import</a> <a id="2485" href="UTxOErr.Example.html" class="Module">UTxOErr.Example</a>
 </pre></body></html>
