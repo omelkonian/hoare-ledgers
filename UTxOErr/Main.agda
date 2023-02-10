@@ -1,9 +1,6 @@
 {-# OPTIONS --rewriting #-}
 module UTxOErr.Main where
 
--- ** Maps as `K → Maybe V`.
-open import UTxOErr.Maps
-
 -- ** Simplistic definition of the UTxO model.
 -- S := Map⟨ TxOutputRef ↦ TxOutput ⟩
 open import UTxOErr.UTxO
@@ -30,9 +27,6 @@ open import UTxOErr.HoareProperties
 --  * useful lemmas about separation, transferring values, etc...
 --  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context
 open import UTxOErr.SL
-
--- **ISSUE** How do we formulate frame, seems incompatible with the semantics of a transaction that fails.
--- **SOLUTION** Change domain to incorporate failure, i.e. `S -> S` to `S -> Maybe S`.
 
 -- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).
 -- [Proofs]

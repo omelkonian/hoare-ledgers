@@ -54,6 +54,9 @@ map↑ = M.Any.map
 ⟨_⟩_⟨_⟩ : Assertion → L → Assertion → Type
 ⟨ P ⟩ l ⟨ Q ⟩ = P ⊢ Q ↑∘ ⟦ l ⟧
 
+⟨_⟩_⟨_⟩＠_ : Assertion → L → Assertion → S → Type
+⟨ P ⟩ l ⟨ Q ⟩＠ s = P s → (Q ↑∘ ⟦ l ⟧) s
+
 hoare-base :
   ──────────────
   ⟨ P ⟩ [] ⟨ P ⟩

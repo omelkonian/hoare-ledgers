@@ -74,6 +74,7 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | nothing = refl
 ... | just s  = comp {l} s
 
+-- valid ledgers w.r.t. a given initial state
 data VL : S → L → Type where
   [] : VL s []
   _⊣_∷_ : ∀ tx →
@@ -104,7 +105,7 @@ data _—→_ : L × S → S → Type where
 oper-comp :
   ∙ l       , s  —→ s′
   ∙ l′      , s′ —→ s″
-    ────────────────────
+    ──────────────────
     l ++ l′ , s  —→ s″
 oper-comp {l = []}    base              s′→s″ = s′→s″
 oper-comp {l = _ ∷ _} (step valid s→s′) s′→s″ = step valid (oper-comp s→s′ s′→s″)

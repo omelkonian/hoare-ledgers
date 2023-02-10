@@ -77,9 +77,12 @@ open import UTxO.Main
 -- ∙ Separation := _⊎_
 open import UTxOErr.Main
 
--- Value-separated **abstract** UTxO.
+-- Value-separated Abstract UTxO (AUTxO).
 -- ∙ S := Bag⟨ Address × Value ⟩
 -- ∙ ⟦_⟧ := S → Maybe S
 -- ∙ P := S → Set
 -- ∙ Separation := _◇_
 open import ValueSepUTxO.Main
+
+-- Sound abstraction for UTxO↔AUTxO.
+open import ConcreteToAbstract

@@ -73,6 +73,7 @@ comp {l = t ∷ l} x with ⟦ t ⟧ x
 ... | nothing = refl
 ... | just s  = comp {l} s
 
+-- valid ledgers w.r.t. a given initial state
 data VL : S → L → Type where
   [] : VL s []
   _⊣_∷_ : ∀ tx →
@@ -80,18 +81,6 @@ data VL : S → L → Type where
     ∙ VL (⟦ tx ⟧₀ s) l
       ─────────────────
       VL s (tx ∷ l)
-
--- VL⇒L : VL s s′ → L
--- VL⇒L = λ where
---   [] → []
---   (tx ⊣ _ ∷ l) → tx ∷ VL⇒L l
-
--- data VL : S → L → Type where
---   [] : VL s []
---   _⊣_∷_ : ∀ tx
---     → IsValidTx tx (⟦ l ⟧₀ s)
---     → VL s l
---     → VL s (tx ∷ l)
 
 -- ** Operational semantics
 
@@ -103,7 +92,6 @@ data _—→_ : L × S → S → Type where
     ε , s —→ s
 
   step :
-
     ∙ IsValidTx t s
     ∙ l , ⟦ t ⟧₀ s —→ s′
       ──────────────────

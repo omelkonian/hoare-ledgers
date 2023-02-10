@@ -10,6 +10,7 @@ open import Prelude.Functor
 open import Prelude.FromList; open import Prelude.ToList
 open import Prelude.DecEq
 open import Prelude.Monad
+open import Prelude.Maybes
 
 import Prelude.Bags as B
 import Prelude.Maps as M
@@ -25,49 +26,17 @@ import ValueSepUTxO.UTxO as A
 import UTxOErr.HoareLogic      as C
 import ValueSepUTxO.HoareLogic as A
 
-{- ** USE CASE
-
-We can compositionally reason about an *abstract* UTxO ledger,
-but can we transfer the results to an actual *concrete* UTxO ledger?
-
-Well, this would only be possible for properties that do not observe the concrete
-implementation details (such as the order of transaction outputs, c.f. set/list).
-This could be enforced by only considering predicates of the
-form: `Pᶜ = Pᵃ ∘ concrete→abstract` for some abstract predicate Pᵃ and a
-concrete→abstract translation which forgets about implementation details.
-
-At this point, we can use our reasoning framework on concrete ledgers,
-but can we prove that this procedure is sound?
-Is this even possible? Seems connected to parametricity and such...
-
-NB: might be worth just looking at the minimal example of sets/lists and figuring
-out the issue at this more simplistic setting first.
--}
-
-M-Any-∘ : ∀ {A B : Type} {P : Pred₀ B} {f : A → B} {mx : Maybe A} →
-  M.Any.Any P (f <$> mx)
-  ───────────────────
-  M.Any.Any (P ∘ f) mx
-M-Any-∘ {mx = just _} (M.Any.just p) = M.Any.just p
-
 -- ** abstracting away implementation details
 private variable
   s s′ : C.S
   l : C.L
   t : C.Tx
+  P Q : Pred₀ A.S
 
 absS : C.S → A.S
 absS = C.valuesˢ
 
 open ≡-Reasoning
-
-postulate
-  map∘mapWith∈ : ∀ {A B C : Type}
-     (g : B → C)  (xs : List A) (f : ∀ {x} → x ∈ xs → B)
-    → map g (mapWith∈ xs f) ≡ mapWith∈ xs (g ∘ f)
-  mapWith∈∘map : ∀ {A B C : Type}
-    (f : A → B) (xs : List A) (g : ∀ {x} → x ∈ map f xs → C)
-    → mapWith∈ (map f xs) g ≡ mapWith∈ xs (g ∘ ∈-map⁺ f)
 
 absVT : C.IsValidTx t s → ∃ (flip A.IsValidTx (absS s))
 absVT {t}{s} vt = t̂ , record
@@ -155,8 +124,6 @@ absVT {t}{s} vt = t̂ , record
 absT : C.IsValidTx t s → A.Tx
 absT = proj₁ ∘ absVT
 
-postulate to∘from : toList ∘ fromList {B = C.S} ≗ id
-
 absS-∪ : absS (s M.∪ s′) ≡ absS s B.∪ absS s′
 absS-∪ {s}{s′} = C.valuesˢ-∪ {m = s}{s′}
 
@@ -194,7 +161,7 @@ absS-stxo {t@record{outputs = os}}{s} vt@record{validOutputRefs = vor} =
     absS (s C.─ᵏˢ C.outputRefs t)
   ≡⟨⟩
     C.valuesˢ (s C.─ᵏˢ C.outputRefs t)
-  ≡⟨ C.valuesˢ-─ vor ⟩
+  ≡⟨ C.valuesˢ-─ s (-, vor) ⟩
     C.valuesˢ s B.─ C.values⊑ˢ s (-, vor)
   ≡˘⟨ cong (C.valuesˢ s B.─_) $ ∣absVT∣.stxo≡ vt ⟩
     C.valuesˢ s B.─ A.stxoTx t̂
@@ -223,9 +190,9 @@ denot-t̂ : ∀ {t : A.Tx} {s : A.S} (vt : A.IsValidTx t s) →
   A.⟦ t ⟧ s ≡ just (A.⟦ t ⟧₀ s)
 denot-t̂ {t}{s} vt rewrite dec-yes (A.isValidTx? t s) vt .proj₂ = refl
 
-denot-abs-t : ∀ {vt : C.IsValidTx t s} →
+denot-abs-t : ∀ (vt : C.IsValidTx t s) →
   A.⟦ absT vt ⟧ (absS s) ≡ (absS <$> C.⟦ t ⟧ s)
-denot-abs-t {t}{s}{vt} =
+denot-abs-t {t}{s} vt =
   begin
     A.⟦ absT vt ⟧ (absS s)
   ≡⟨ denot-t̂ (absVT vt .proj₂) ⟩
@@ -273,10 +240,10 @@ denot-l̂ : ∀ {l : A.L} {s : A.S} (vl : A.VL s l) →
 denot-l̂ [] = refl
 denot-l̂ (_ ⊣ vt ∷ vl) rewrite denot-t̂ vt | denot-l̂ vl = refl
 
-denot-abs : ∀ {vl : C.VL s l} →
+denot-abs : ∀ (vl : C.VL s l) →
   A.⟦ absL vl ⟧ (absS s) ≡ (absS <$> C.⟦ l ⟧ s)
-denot-abs {s} {[]} {[]} = refl
-denot-abs {s} {t ∷ l} {.t ⊣ vt ∷ vl}
+denot-abs [] = refl
+denot-abs {s} {t ∷ l} (.t ⊣ vt ∷ vl)
   rewrite denot-t vt | denot-t̂ (absVT vt .proj₂) =
   let ŝ = absS s; t̂ = absT vt; l̂ , vl̂ = absVL vl in
   begin
@@ -291,11 +258,20 @@ denot-abs {s} {t ∷ l} {.t ⊣ vt ∷ vl}
     (absS <$> C.⟦ l ⟧ (C.⟦ t ⟧₀ s))
   ∎
 
-postulate
-  MAny-map⁻ : ∀ {A B : Type} {f : A → B} {mx} (P : Pred₀ B) →
-    M.Any.Any P (M.map f mx)
-    ────────────────────────
-    M.Any.Any (P ∘ f) mx
+↑ = M.Any.Any
+
+denot-sound : ∀ (vl : C.VL s l) →
+  (P (absS s) → ↑ Q (A.⟦ absL vl ⟧ $ absS s))
+  ───────────────────────────────────────────
+  (P (absS s) → ↑ Q (absS <$> C.⟦ l ⟧ s))
+denot-sound vl PlQ Ps = subst (↑ _) (denot-abs vl) (PlQ Ps)
+
+denot-sound′ : ∀ (vl : C.VL s l) →
+  ∙ P (absS s)
+  ∙ ↑ Q (A.⟦ absL vl ⟧ $ absS s)
+    ─────────────────────────────
+    ↑ Q (absS <$> C.⟦ l ⟧ s)
+denot-sound′ vl Ps = subst (↑ _) (denot-abs vl)
 
 {- ** cannot formulate soundness without relating to a specific state
 soundness : ∀ {P Q : Pred₀ A.S} (vl : C.VL {!!} l) →
@@ -305,13 +281,13 @@ soundness : ∀ {P Q : Pred₀ A.S} (vl : C.VL {!!} l) →
 soundness = {!!}
 -}
 
--- ** universally quantifying abstractt ledgers
+-- ** universally quantifying abstract ledgers
 soundness-∀l̂ : ∀ {P Q : Pred₀ A.S} →
     (∀ l̂ → A.⟨ P ⟩ l̂ ⟨ Q ⟩)
-    ───────────────────────────────────────────────────
+    ─────────────────────────────────────────────
     C.⟨ (P ∘ absS) ∩ flip C.VL l ⟩ l ⟨ Q ∘ absS ⟩
 soundness-∀l̂ {l}{P}{Q} PlQ {s} (Ps , vl) =
-  MAny-map⁻ Q Qs
+  MAny-map⁻ Qs
   where
     ŝ = absS s
     l̂ = absL vl
@@ -320,15 +296,15 @@ soundness-∀l̂ {l}{P}{Q} PlQ {s} (Ps , vl) =
     Qŝ = PlQ l̂ Ps
 
     Qs : M.Any.Any Q (absS <$> C.⟦ l ⟧ s)
-    Qs = subst (M.Any.Any Q) (denot-abs {vl = vl}) Qŝ
+    Qs = subst (M.Any.Any Q) (denot-abs vl) Qŝ
 
 -- ** universally quantifying proofs of validity
 soundness-∀vl : ∀ {P Q : Pred₀ A.S} →
   (∀ {s} (vl : C.VL s l) → A.⟨ P ⟩ absL vl ⟨ Q ⟩)
-  ───────────────────────────────────────────────────
+  ───────────────────────────────────────────────
   C.⟨ (P ∘ absS) ∩ flip C.VL l ⟩ l ⟨ Q ∘ absS ⟩
 soundness-∀vl {l}{P}{Q} PlQ {s} (Ps , vl) =
-  MAny-map⁻ Q Qs
+  MAny-map⁻ Qs
   where
     ŝ = absS s
     l̂ = absL vl
@@ -337,96 +313,36 @@ soundness-∀vl {l}{P}{Q} PlQ {s} (Ps , vl) =
     Qŝ = PlQ vl Ps
 
     Qs : M.Any.Any Q (absS <$> C.⟦ l ⟧ s)
-    Qs = subst (M.Any.Any Q) (denot-abs {vl = vl}) Qŝ
+    Qs = subst (M.Any.Any Q) (denot-abs vl) Qŝ
 
 -- ** alternative formulation using "strong" abstract Hoare triples
-𝔸⟨_⟩_⊣_⟨_⟩ : (P : Pred₀ A.S) (l : C.L) → P ∘ absS ⊆¹ flip C.VL l → Pred₀ A.S → Type
+𝔸⟨_⟩_⊣_⟨_⟩ : ∀ P l →
+  (∀ s → P $ absS s → C.VL s l) → Pred₀ A.S → Type
 𝔸⟨ P ⟩ l ⊣ P⇒ ⟨ Q ⟩ =
-  (∀ {s} (p : (P ∘ absS) s) → (Q A.↑∘ A.⟦ absL (P⇒ p) ⟧) (absS s))
+  (∀ s (p : P $ absS s) → (Q A.↑∘ A.⟦ absL (P⇒ s p) ⟧) (absS s))
 
 semi-soundness : ∀ {P Q : Pred₀ A.S} →
-  ∀ (P⇒ : (P ∘ absS) ⊆¹ flip C.VL l) →
+  ∀ (P⇒ : ∀ s → P $ absS s → C.VL s l) →
   ∙ 𝔸⟨ P ⟩ l ⊣ P⇒ ⟨ Q ⟩
-    ───────────────────────────────────────────────────
+    ──────────────────────────────────
     C.⟨ P ∘ absS ⟩ l ⟨ Q ∘ absS ⟩
 semi-soundness {l}{P}{Q} P⇒ PlQ {s} Ps
-  = MAny-map⁻ Q $ subst (M.Any.Any Q) (denot-abs {vl = vl}) Qs
+  = MAny-map⁻ $ subst (M.Any.Any Q) (denot-abs vl) Qs
   where
-    vl = P⇒ Ps
+    vl = P⇒ _ Ps
 
     Qs : (Q A.↑∘ A.⟦ absL vl ⟧) (absS s)
+    Qs = PlQ _ Ps
+
+-- ** Reasoning on the abstract level is sound; proving an abstract Hoare triple
+-- is enough to prove a concrete Hoare triple (with abstract pre-/post-conditions).
+soundness :
+  ∀ (vl : C.VL s l) →
+  ∙ A.⟨ P ⟩ absL vl ⟨ Q ⟩＠ absS s
+    ────────────────────────────────
+    C.⟨ P ∘ absS ⟩ l ⟨ Q ∘ absS ⟩＠ s
+soundness {s}{l}{P}{Q} vl PlQ Ps
+  = MAny-map⁻ $ subst (M.Any.Any Q) (denot-abs vl) Qs
+  where
+    Qs : (Q A.↑∘ A.⟦ absL vl ⟧) (absS s)
     Qs = PlQ Ps
-
-
--- {P} lᵃ {Q}
--- ─────────────────────
--- {P ∘ abs} conc lᵃ {Q ∘ abs}
-
--- NB: conc either non-deterministic or canonical
-
-
-{- old scribbles
-
-abs : Pred₀ A.S → Pred₀ C.S
-(abs P) s = P (concrete→abstract s)
-
--- abstraction : ∀ {s : A.S} (P : Pred₀ A.S) →
---   P s
---   ═══════
---   abs P s
--- abstraction = ?
-
--- ** inverse direction (aka reification)
-abstract→concrete : A.S → C.S
-abstract→concrete = {!!}
-  where
-    goT : A.T → C.Tx
-    goT = {!!}
-
-rei : Pred₀ C.S → Pred₀ A.S
-(rei P) s = P (abstract→concrete s)
-
--- reification : ∀ {s : C.S} (P : Pred₀ C.S) →
---   P s
---   ════════════════════════
---   P (abstract→concrete s)
--- reification = ?
-
--- ** connecting both directions (although with abstract∘concrete≗id it's trivial)
-sound-abstraction : ∀ {s : A.S} (P : Pred₀ A.S) →
-  P s
-  ════════════════════════════
-  abs P (abstract→concrete s)
-sound-abstraction = {!!}
-
-sound-reification : ∀ {s : C.S} (P : Pred₀ C.S) →
-  P s
-  ════════════════════════════
-  rei P (concrete→abstract s)
-sound-reification = {!!}
-
--- sound : ∀ {s : C.S} (P : Pred₀ A.S) →
---   P (concrete→abstract s)
-
--- ** non-deterministic formulation
-abstract→concrete∗ : A.S → List C.S
-abstract→concrete∗ = {!!}
-  where
-    goT : A.T → List C.Tx
-    goT = {!!}
-
-rei∗ : Pred₀ C.S → Pred₀ A.S
-(rei∗ P) s = P (abstract→concrete s)
-
--- ** relational formulation
-
-data _-reifies-_ : C.S → A.S → Type where
-
-𝕣ei : Pred₀ A.S → Pred₀ C.S
-(𝕣ei P) cs = ∃ λ as → (cs -reifies- as) × P as
-
--- reification′ : ∀ {ss : A.S} {cs : C.S} (P : Pred₀ C.S)
---   → cs -reifies- as
---   → P s ↔ (𝕣ei P) cs
--- reification′ = ?
--}

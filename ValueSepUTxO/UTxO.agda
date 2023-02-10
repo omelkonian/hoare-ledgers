@@ -9,7 +9,7 @@ open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.ToN
-open import Prelude.Lists
+open import Prelude.Lists hiding (map↦)
 open import Prelude.Lists.Dec
 open import Prelude.Functor
 open import Prelude.Applicative
@@ -50,35 +50,30 @@ record IsValidTx (tx : Tx) (utxos : S) : Type where
   txInfo = mkTxInfo tx (resolved tx)
 
   field
-
     allInputsValidate :
-      All (λ i → T (i .validator txInfo (i .redeemer)))
-          (tx .inputs)
+      ∀[ i ∈ tx .inputs ]
+        T (i .validator txInfo (i .redeemer))
 
     validateValidHashes :
-      All (λ i → i .outputRef .address ≡ i .validator ♯)
-          (tx .inputs)
+      ∀[ i ∈ tx .inputs ]
+        (i .outputRef .address ≡ i .validator ♯)
 
 open IsValidTx public
 
 isValidTx? : ∀ tx s → Dec (IsValidTx tx s)
-isValidTx? tx utxos
-  with dec
+isValidTx? _ _ with dec
 ... | no ¬p = no (¬p ∘ validOutputRefs)
-... | yes p₁
-  with dec
+... | yes vor with dec
 ... | no ¬p = no (¬p ∘ preservesValues)
-... | yes p₂
---   with dec
--- ... | no ¬p = no (¬p ∘ noDoubleSpending)
--- ... | yes p₃
-  with dec
+... | yes pv with dec
 ... | no ¬p = no (¬p ∘ allInputsValidate)
-... | yes p₄
-  with dec
+... | yes aiv with dec
 ... | no ¬p = no (¬p ∘ validateValidHashes)
-... | yes p₅ = yes record { validOutputRefs = p₁; preservesValues = p₂
-                          ; allInputsValidate = p₄; validateValidHashes = p₅ }
+... | yes vvh = yes record
+  { validOutputRefs = vor
+  ; preservesValues = pv
+  ; allInputsValidate = aiv
+  ; validateValidHashes = vvh }
 
 isValidTx : Tx → S → Bool
 isValidTx tx s = ⌊ isValidTx? tx s ⌋

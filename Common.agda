@@ -114,3 +114,9 @@ module CommonInfo (TxOutputRef : Type) where
     { inputs  = mkInputInfo <$> resolveInputs tx resolvedTx
     ; outputs = tx .outputs
     ; forge   = tx .forge }
+
+All-syntax = All
+syntax All-syntax (λ i → P) xs = ∀[ i ∈ xs ] P
+
+Any-syntax = Any
+syntax Any-syntax (λ i → P) xs = ∃[ i ∈ xs ] P

@@ -38,31 +38,30 @@ open import Prelude.Setoid
     { validOutputRefs = vor
     ; preservesValues = pv
     ; noDoubleSpending = valid-s₁ .noDoubleSpending
-    ; allInputsValidate = {!!} -- valid-s₁ .allInputsValidate
+    ; allInputsValidate = aiv -- valid-s₁ .allInputsValidate
     ; validateValidHashes = vvh
     }
   where
-    pv : M.Any.Any (λ q → t .forge + q ≡ ∑ (t .outputs) value)
-                   (∑M (map (getSpentOutput s) (t .inputs)) value)
     pv = {!!}
+    aiv = {!!}
 
     vor : All (_∈ᵈ s) (outputRefs t)
     vor = {!!}
 
-    vvh : All (λ i → M.Any.Any (λ o → o .address ≡ i .validator ♯) (getSpentOutput s i))
-              (t .inputs)
+    -- vvh : All (λ i → M.Any.Any (λ o → o .address ≡ i .validator ♯) (getSpentOutput s i))
+    --           (t .inputs)
     vvh = {!!}
 
 ... | yes valid-s
   = ret↑ (s₁♯s₂′ , ≡s′)
   where
-    s₁≡ : s₁′ ≡ (s₁ ─ outputRefs t) ∪ utxoTx t
+    s₁≡ : s₁′ ≡ (s₁ ─ᵏˢ outputRefs t) ∪ utxoTx t
     s₁≡ = sym $ M.just-injective eq
 
     s₁♯s₂′ : s₁′ ♯ s₂
     s₁♯s₂′ = {!!}
 
-    ≡s′ : s₁′ ∪ s₂ ≈ ((s ─ outputRefs t) ∪ utxoTx t)
+    ≡s′ : s₁′ ∪ s₂ ≈ ((s ─ᵏˢ outputRefs t) ∪ utxoTx t)
     ≡s′ = {!!}
 
 ⊎-⟦⟧ᵗ˘ : ∀ s₂′ →

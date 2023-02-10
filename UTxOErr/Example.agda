@@ -11,7 +11,8 @@ open import Prelude.Lists hiding (_↦_)
 open import Prelude.Lists.Dec
 open import Prelude.Apartness
 
-open import UTxOErr.Maps
+-- open import UTxOErr.Maps
+open import Prelude.Maps
 open import UTxOErr.UTxO
 open import UTxOErr.Ledger
 open import UTxOErr.HoareLogic
@@ -45,8 +46,8 @@ t₁ t₂ t₃ t₄ : Tx
 t₁ = A —→⟨ 1 ∣ t₀₀ ⟩ B
 t₂ = D —→⟨ 1 ∣ t₀₁ ⟩ C
 postulate
-  val₁ : T $ mkValidator t₀₀ (mkTxInfo t₁) 0
-  val₂ : T $ mkValidator t₀₁ (mkTxInfo t₂) 0
+  vt₁ : Resolved t₁; val₁ : T $ mkValidator t₀₀ (mkTxInfo t₁ vt₁) 0
+  vt₂ : Resolved t₂; val₂ : T $ mkValidator t₀₁ (mkTxInfo t₂ vt₂) 0
 t₁₀ = (t₁ ♯) indexed-at 0
 t₂₀ = (t₂ ♯) indexed-at 0
 postulate
@@ -58,8 +59,8 @@ postulate
 t₃ = B —→⟨ 1 ∣ t₁₀ ⟩ A
 t₄ = C —→⟨ 1 ∣ t₂₀ ⟩ D
 postulate
-  val₃ : T $ mkValidator t₁₀ (mkTxInfo t₃) 0
-  val₄ : T $ mkValidator t₂₀ (mkTxInfo t₄) 0
+  vt₃ : Resolved t₃; val₃ : T $ mkValidator t₁₀ (mkTxInfo t₃ vt₃) 0
+  vt₄ : Resolved t₄; val₄ : T $ mkValidator t₂₀ (mkTxInfo t₄ vt₄) 0
 t₃₀ = (t₃ ♯) indexed-at 0
 t₄₀ = (t₄ ♯) indexed-at 0
 
@@ -87,13 +88,13 @@ _ : ⟨ t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ⟩
     t₁-₄
     ⟨ t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ⟩
 _ = begin
-  t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁ ∶- ℝ[FRAME] (t₀₁ ↦ 1 at D) t₁♯ (transferℝ val₁ refl) ⟩
+  t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁ ∶- ℝ[FRAME] (t₀₁ ↦ 1 at D) t₁♯ (transferℝ {vtx = vt₁} val₁ refl) ⟩
   t₁₀ ↦ 1 at B ∗ t₀₁ ↦ 1 at D ~⟪ ∗↔ ⟩
-  t₀₁ ↦ 1 at D ∗ t₁₀ ↦ 1 at B ~⟨ t₂ ∶- ℝ[FRAME] (t₁₀ ↦ 1 at B) t₂♯ (transferℝ val₂ refl) ⟩
+  t₀₁ ↦ 1 at D ∗ t₁₀ ↦ 1 at B ~⟨ t₂ ∶- ℝ[FRAME] (t₁₀ ↦ 1 at B) t₂♯ (transferℝ {vtx = vt₂} val₂ refl) ⟩
   t₂₀ ↦ 1 at C ∗ t₁₀ ↦ 1 at B ~⟪ ∗↔ ⟩
-  t₁₀ ↦ 1 at B ∗ t₂₀ ↦ 1 at C ~⟨ t₃ ∶- ℝ[FRAME] (t₂₀ ↦ 1 at C) t₃♯ (transferℝ val₃ refl) ⟩
+  t₁₀ ↦ 1 at B ∗ t₂₀ ↦ 1 at C ~⟨ t₃ ∶- ℝ[FRAME] (t₂₀ ↦ 1 at C) t₃♯ (transferℝ {vtx = vt₃} val₃ refl) ⟩
   t₃₀ ↦ 1 at A ∗ t₂₀ ↦ 1 at C ~⟪ ∗↔ ⟩
-  t₂₀ ↦ 1 at C ∗ t₃₀ ↦ 1 at A ~⟨ t₄ ∶- ℝ[FRAME] (t₃₀ ↦ 1 at A) t₄♯ (transferℝ val₄ refl) ⟩
+  t₂₀ ↦ 1 at C ∗ t₃₀ ↦ 1 at A ~⟨ t₄ ∶- ℝ[FRAME] (t₃₀ ↦ 1 at A) t₄♯ (transferℝ {vtx = vt₄} val₄ refl) ⟩
   t₄₀ ↦ 1 at D ∗ t₃₀ ↦ 1 at A ~⟪ ∗↔ ⟩
   t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ∎
   where postulate
@@ -110,13 +111,13 @@ _ = begin t₀₀ ↦ 1 at A ∗ t₀₁ ↦ 1 at D ~⟨ t₁-₄ ∶- ℝ[PAR] 
           t₃₀ ↦ 1 at A ∗ t₄₀ ↦ 1 at D ∎
   where
     H₁ : ℝ⟨ t₀₀ ↦ 1 at A ⟩ t₁ ∷ t₃ ∷ [] ⟨ t₃₀ ↦ 1 at A ⟩
-    H₁ = t₀₀ ↦ 1 at A ~⟨ t₁ ∶- transferℝ val₁ refl ⟩
-         t₁₀ ↦ 1 at B ~⟨ t₃ ∶- transferℝ val₃ refl ⟩
+    H₁ = t₀₀ ↦ 1 at A ~⟨ t₁ ∶- transferℝ {vtx = vt₁} val₁ refl ⟩
+         t₁₀ ↦ 1 at B ~⟨ t₃ ∶- transferℝ {vtx = vt₃} val₃ refl ⟩
          t₃₀ ↦ 1 at A ∎
 
     H₂ : ℝ⟨ t₀₁ ↦ 1 at D ⟩ t₂ ∷ t₄ ∷ [] ⟨ t₄₀ ↦ 1 at D ⟩
-    H₂ = t₀₁ ↦ 1 at D ~⟨ t₂ ∶- transferℝ val₂ refl ⟩
-         t₂₀ ↦ 1 at C ~⟨ t₄ ∶- transferℝ val₄ refl ⟩
+    H₂ = t₀₁ ↦ 1 at D ~⟨ t₂ ∶- transferℝ {vtx = vt₂} val₂ refl ⟩
+         t₂₀ ↦ 1 at C ~⟨ t₄ ∶- transferℝ {vtx = vt₄} val₄ refl ⟩
          t₄₀ ↦ 1 at D ∎
 
 {-

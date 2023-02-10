@@ -51,8 +51,9 @@ postulate
   s₁ , s₂ ∪ s₃ , ≡s₂₃ , Ps₁ , (s₂ , s₃ , (s₂♯s₃ , ≈-refl) , Qs₂ , Rs₃)
 
 -- ** Useful lemmas when transferring a value between participants in the minimal context.
-transfer : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef} {rdm : DATA} {val : TxInfo → DATA → Bool} →
-  ∙ T (val (mkTxInfo tx {!!}) rdm)
+transfer : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef}
+             {rdm : DATA} {val : TxInfo → DATA → Bool} {vtx : Resolved tx} →
+  ∙ T (val (mkTxInfo tx vtx) rdm)
   ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]
                 ; outputs = [ v at B ]
                 ; forge   = 0 }
@@ -63,8 +64,9 @@ transfer : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef} {rdm : DAT
 transfer = {!!}
 
 open HoareReasoning
-transferℝ : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef} {rdm : DATA} {val : TxInfo → DATA → Bool} →
-  ∙ T (val (mkTxInfo tx {!!}) rdm)
+transferℝ : ∀ {tx : Tx} {v : Value} {B : Address} {or : TxOutputRef}
+              {rdm : DATA} {val : TxInfo → DATA → Bool} {vtx : Resolved tx} →
+  ∙ T (val (mkTxInfo tx vtx) rdm)
   ∙ tx ≡ record { inputs  = [ record {outputRef = or; validator = val; redeemer = rdm} ]
                 ; outputs = [ v at B ]
                 ; forge   = 0 }

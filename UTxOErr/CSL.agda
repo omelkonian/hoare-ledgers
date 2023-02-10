@@ -9,7 +9,8 @@ open import Prelude.Decidable
 open import Prelude.Lists
 open import Prelude.InferenceRules
 
-open import UTxOErr.Maps
+-- open import UTxOErr.Maps
+open import Prelude.Maps
 open import UTxOErr.UTxO
 open import UTxOErr.Ledger
 open import UTxOErr.HoareLogic
