@@ -11,6 +11,7 @@ open import Prelude.FromList; open import Prelude.ToList
 open import Prelude.DecEq
 open import Prelude.Monad
 open import Prelude.Maybes
+open import Prelude.Membership using (_∉?_)
 
 import Prelude.Bags as B
 import Prelude.Maps as M
@@ -124,16 +125,13 @@ absVT {t}{s} vt = t̂ , record
 absT : C.IsValidTx t s → A.Tx
 absT = proj₁ ∘ absVT
 
-absS-∪ : absS (s M.∪ s′) ≡ absS s B.∪ absS s′
-absS-∪ {s}{s′} = C.valuesˢ-∪ {m = s}{s′}
-
 absS-utxo : ∀ (vt : C.IsValidTx t s) → absS (C.utxoTx t) ≡ A.utxoTx (absT vt)
 absS-utxo {t}{s} vt =
   begin
     absS (fromList $ mapWith∈ (t .C.outputs) (C.mkUtxo t))
   ≡⟨⟩
     C.valuesˢ (fromList $ mapWith∈ (t .C.outputs) (C.mkUtxo t))
-  ≡⟨ C.valuesˢ∘fromList ⟩
+  ≡⟨ C.valuesˢ∘fromList $ C.Unique-mkUtxo t ⟩
     fromList (proj₂ <$> mapWith∈ (t .C.outputs) (C.mkUtxo t))
   ≡⟨ cong fromList
    $ begin
@@ -174,7 +172,7 @@ denot-abs-t₀ : ∀ (vt : C.IsValidTx t s) →
 denot-abs-t₀ {t}{s} vt = let t̂ = absT vt in
   sym $ begin
     absS (s C.─ᵏˢ C.outputRefs t M.∪ C.utxoTx t)
-  ≡⟨ absS-∪ {s C.─ᵏˢ C.outputRefs t}{C.utxoTx t} ⟩
+  ≡⟨ C.valuesˢ-∪ (s C.─ᵏˢ C.outputRefs t) (C.utxoTx t) (C.s♯t vt) ⟩
     absS (s C.─ᵏˢ C.outputRefs t) B.∪ absS (C.utxoTx t)
   ≡⟨ cong (B._∪ _) (absS-stxo vt) ⟩
     absS s B.─ A.stxoTx t̂ B.∪ absS (C.utxoTx t)
