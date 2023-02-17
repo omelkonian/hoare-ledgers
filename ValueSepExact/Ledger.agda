@@ -127,9 +127,8 @@ data _—→_ : L × S → S → Type where
     ────────────
     ε , s —→ s
 
-  step : let t = A —→⟨ v ⟩ B in
-
-    ∙ v ≤ s A
+  step :
+    ∙ IsValidTx t s
     ∙ l , ⟦ t ⟧₀ s —→ s′
       ──────────────────
       t ∷ l , s —→ s′
@@ -137,10 +136,21 @@ data _—→_ : L × S → S → Type where
 oper-comp :
   ∙ l       , s  —→ s′
   ∙ l′      , s′ —→ s″
-    ────────────────────
+    ──────────────────
     l ++ l′ , s  —→ s″
 oper-comp {l = []}    base                   s′→s″ = s′→s″
 oper-comp {l = _ ∷ _} (step v≤ s→s′) s′→s″ = step v≤ (oper-comp s→s′ s′→s″)
+
+oper-comp˘ :
+    l ++ l′ , s  —→ s″
+    ────────────────────────
+    ∃ λ s′
+      → (l       , s  —→ s′)
+      × (l′      , s′ —→ s″)
+oper-comp˘ {l = []} {l′ = l′} p = -, base , p
+oper-comp˘ {l = _ ∷ l} {l′ = l′} (step v≤ s→s′) =
+  let _ , s→ , →s′ = oper-comp˘ {l}{l′} s→s′
+  in -, step v≤ s→ , →s′
 
 -- ** Relating denotational and operational semantics.
 denot⇒oper :
@@ -166,3 +176,10 @@ denot⇔oper :
   ═════════════════
   l , s —→ s′
 denot⇔oper = denot⇒oper , oper⇒denot
+
+oper⇒denot₀ :
+  l , s —→ s′
+  ─────────────
+  s′ ≡ ⟦ l ⟧₀ s
+oper⇒denot₀ {l = []} base = refl
+oper⇒denot₀ {l = _ ∷ _} (step _ l→) = oper⇒denot₀ l→
