@@ -1,0 +1,399 @@
+open import Prelude.Init; open SetAsType
+open import Prelude.General using (true⇒T)
+open import Prelude.DecEq
+open import Prelude.Decidable
+open import Prelude.Membership
+open import Prelude.Allable
+open import Prelude.InferenceRules
+
+open import EUTxOErr
+  hiding (S; s)
+  renaming (_‼_ to _‼ᵐ_)
+open import Prelude.Lists.Indexed using (_‼_)
+
+data S : Type where
+  ◇ ◆ : S
+
+toggleS : S → S
+toggleS = λ where
+  ◇ → ◆
+  ◆ → ◇
+
+instance
+  _ : ToData S
+  _ = record {serialise = ser; serialise-inj = serInj; deserialise = deser}
+    where
+    ser = λ where
+      ◇ → "◇"
+      ◆ → "◆"
+
+    deser : _
+    deser d =
+      Nullary.map′
+        Sum.[ ◇ ,_ , ◆ ,_ ]
+        (λ where (◇ , d≡) → inj₁ d≡; (◆ , d≡) → inj₂ d≡)
+        ¿ (d ≡ "◇") ⊎ (d ≡ "◆") ¿
+
+    serInj : Injective≡ ser
+    serInj {◇}{◇} refl = refl
+    serInj {◆}{◆} refl = refl
+    serInj {◇}{◆} ()
+    serInj {◆}{◇} ()
+
+toggle : Validator
+toggle toggle♯ record {inputs = is; outputs = os} _ d
+  with deserialise {A = S} d
+... | no _ = false
+... | yes (s , _) = ⌊ consume◇ ∈? is ⌋ ∧ ⌊ produce◆ ∈? os ⌋
+  where
+    consume◇ = record
+      { outputRef = ⦉ serialise ◇ ♯ ⦊ 1 € at toggle♯
+      ; validatorHash = toggle♯
+      ; redeemerHash = "" ♯ }
+    produce◆ = ⦉ serialise ◆ ♯ ⦊ 1 € at toggle♯
+toggle♯ = toggle ♯
+
+module _
+  {s : S}
+  {r : DATA}
+  {txi : TxInfo}
+  (let d = serialise s
+       consume◇ = record
+         { outputRef = ⦉ serialise ◇ ♯ ⦊ 1 € at toggle♯
+         ; validatorHash = toggle♯
+         ; redeemerHash = "" ♯ }
+       produce◆ = ⦉ serialise ◆ ♯ ⦊ 1 € at toggle♯
+       record {inputs = is; outputs = os} = txi)
+  where
+
+  toggle≡ :
+    ∙ consume◇ ∈ is
+    ∙ produce◆ ∈ os
+      ──────────────────────────
+      call toggle txi r d ≡ true
+  toggle≡ ◇∈is ◆∈os
+    rewrite deserialise∘serialise s
+          | dec-yes (consume◇ ∈? is) ◇∈is .proj₂
+          | dec-yes (produce◆ ∈? os) ◆∈os .proj₂
+          = refl
+
+t₀ : Tx
+t₀ = record
+  { inputs = []
+  ; outputs = [ ⦉ serialise ◇ ⦊ 1 € at toggle♯ ]
+  ; forge = 1 € }
+
+t₀₀ = (t₀ ♯) indexed-at 0
+
+t₁ : Tx
+t₁ = record
+  { inputs  = [ record { outputRef = t₀₀ ; validator = toggle ; redeemer = "" } ]
+  ; outputs = [ ⦉ serialise ◆ ⦊ 1 € at toggle♯ ]
+  ; forge   = 0 € }
+
+t₂ : Tx
+t₂ = record
+  { inputs  = [ record { outputRef = t₀₀ ; validator = toggle ; redeemer = "" } ]
+  ; outputs = [ ⦉ serialise ◆ ⦊ 1 at toggle♯ ]
+  ; forge   = 0 € }
+
+t₁₂ : Tx
+t₁₂ = record
+  { inputs  = [ record { outputRef = t₀₀ ; validator = toggle ; redeemer = "" } ]
+  ; outputs = ⦉ serialise ◆ ⦊ 1 € at toggle♯
+            ∷ ⦉ serialise ◆ ⦊ 0 € at toggle♯
+            ∷ []
+  ; forge   = 0 € }
+
+singleSat₁ singleSat₂ doubleSat : L
+singleSat₁ = t₀ ∷ t₁  ∷ []
+singleSat₂ = t₀ ∷ t₂  ∷ []
+doubleSat  = t₀ ∷ t₁₂ ∷ []
+
+v₀ : VL ∅ [ t₀ ]
+v₀ = t₀
+  ⊣ record { noDoubleSpending    = []
+           ; validOutputRefs     = []
+           ; preservesValues     = refl
+           ; allInputsValidate   = []
+           ; validateValidHashes = [] }
+  ∷ []
+
+i = TxInput  ∋ record { outputRef = t₀₀ ; validator = toggle ; redeemer = "" }
+o = TxOutput ∋ ⦉ serialise ◇ ⦊ 1 € at toggle♯
+
+s₀ = ⟦ t₀ ⟧₀ ∅
+
+_ = s₀ ≡ singleton (t₀₀ , o)
+  ∋ refl
+
+module ⦅1⦆ where
+  vor : ∀[ ref ∈ outputRefs t₁ ] (ref ∈ᵈ s₀)
+  vor = here refl ∷ []
+
+  rt₁ rt₁′ : Resolved t₁
+  rt₁  = L.All.map (s₀ ‼ᵐ_) vor
+  rt₁′ = o ∷ []
+
+  _ : mkUtxo t₀ (here refl) ≡ (t₀₀ , o)
+  _ = refl
+
+  ∈≡ : does (t₀₀ ∈ᵈ? s₀) ≡ true
+  ∈≡ rewrite ≟-refl t₀₀ = refl
+
+  rt≡ : rt₁ ≡ rt₁′
+  rt≡ = cong (_∷ []) $ ‼-singleton {k = t₀₀}{o}
+
+  txi  = mkTxInfo t₁ rt₁
+  is = txi .TxInfo.inputs
+  os = txi .TxInfo.outputs
+
+  ris ris′ : ResolvedInputs
+  ris  = resolveInputs t₁ rt₁
+  ris′ = [ i , o ]
+
+  postulate ris≡ : ris ≡ ris′
+  -- ris≡ rewrite ≟-refl 0 | ≟-refl "" | ≟-refl '◇' = cong [_] (cong (i ,_) refl)
+
+  _ : VL ∅ singleSat₁
+  _ = t₀
+    ⊣ record
+      { noDoubleSpending    = []
+      ; validOutputRefs     = []
+      ; preservesValues     = refl
+      ; allInputsValidate   = []
+      ; validateValidHashes = []
+      }
+    ∷ t₁
+    ⊣ record
+      { noDoubleSpending    = [] ∷ []
+      ; validOutputRefs     = vor
+      ; preservesValues     = pv
+      ; allInputsValidate   = aiv
+      ; validateValidHashes = vvh
+      }
+    ∷ []
+    where
+      open ≡-Reasoning
+
+      pv : t₁ .forge + ∑ ris (value ∘ proj₂) ≡ ∑ (t₁ .outputs) value
+      pv =
+        begin
+          t₁ .forge + ∑ ris (value ∘ proj₂)
+        ≡⟨ cong (λ ◆ → t₁ .forge + ∑ ◆ (value ∘ proj₂)) ris≡ ⟩
+          t₁ .forge + ∑ ris′ (value ∘ proj₂)
+        ≡⟨⟩
+          ∑ (t₁ .outputs) value
+        ∎
+
+      aiv : ∀[ (i , o) ∈ ris ]
+        T (call (i .validator) txi (i .redeemer) (o .datum))
+      aiv = subst (L.All.All _) (sym ris≡)
+          $ aiv₀ ∷ []
+        where
+          consume◇ = record
+            { outputRef = ⦉ serialise ◇ ♯ ⦊ 1 € at toggle♯
+            ; validatorHash = toggle♯
+            ; redeemerHash = "" ♯ }
+
+          aiv₀ : T (call (i .validator) txi (i .redeemer) (o .datum))
+          aiv₀ = true⇒T $
+            begin
+              call (i .validator) txi (i .redeemer) (o .datum)
+            ≡⟨⟩
+              toggle toggle♯ txi "" (serialise ◇)
+            ≡⟨ toggle≡ {◇}{""}{txi}
+                ( subst (Any (consume◇ ≡_) ∘ map mkInputInfo) (sym ris≡)
+                $ here refl
+                )
+                (here refl) ⟩
+              true
+            ∎
+
+      vvh : ∀[ (i , o) ∈ ris ]
+        (o .address ≡ i .validator ♯)
+      vvh = subst (L.All.All _) (sym ris≡)
+          $ refl ∷ []
+
+  t₁₀ = (t₁ ♯) indexed-at 0
+
+  _ : ⟨ t₀₀ ↦ ⦉ serialise ◇ ⦊ 1 € at toggle♯ ⟩
+      singleSat₁
+      ⟨ t₁₀ ↦ ⦉ serialise ◆ ⦊ 1 € at toggle♯ ⟩
+  _ = {!!}
+
+module ⦅2⦆ where
+  vor : ∀[ ref ∈ outputRefs t₂ ] (ref ∈ᵈ s₀)
+  vor = here refl ∷ []
+
+  rt₂ rt₂′ : Resolved t₂
+  rt₂  = L.All.map (s₀ ‼ᵐ_) vor
+  rt₂′ = o ∷ []
+
+  _ : mkUtxo t₀ (here refl) ≡ (t₀₀ , o)
+  _ = refl
+
+  ∈≡ : does (t₀₀ ∈ᵈ? s₀) ≡ true
+  ∈≡ rewrite ≟-refl t₀₀ = refl
+
+  rt≡ : rt₂ ≡ rt₂′
+  rt≡ = cong (_∷ []) $ ‼-singleton {k = t₀₀}{o}
+
+  txi  = mkTxInfo t₂ rt₂
+  is = txi .TxInfo.inputs
+  os = txi .TxInfo.outputs
+
+  ris ris′ : ResolvedInputs
+  ris  = resolveInputs t₂ rt₂
+  ris′ = [ i , o ]
+
+  postulate ris≡ : ris ≡ ris′
+  -- ris≡ rewrite ≟-refl 0 | ≟-refl "" | ≟-refl '◇' = cong [_] (cong (i ,_) refl)
+
+  _ : VL ∅ singleSat₂
+  _ = t₀
+    ⊣ record
+      { noDoubleSpending    = []
+      ; validOutputRefs     = []
+      ; preservesValues     = refl
+      ; allInputsValidate   = []
+      ; validateValidHashes = []
+      }
+    ∷ t₂
+    ⊣ record
+      { noDoubleSpending    = [] ∷ []
+      ; validOutputRefs     = vor
+      ; preservesValues     = pv
+      ; allInputsValidate   = aiv
+      ; validateValidHashes = vvh
+      }
+    ∷ []
+    where
+      open ≡-Reasoning
+
+      pv : t₂ .forge + ∑ ris (value ∘ proj₂) ≡ ∑ (t₂ .outputs) value
+      pv =
+        begin
+          t₂ .forge + ∑ ris (value ∘ proj₂)
+        ≡⟨ cong (λ ◆ → t₂ .forge + ∑ ◆ (value ∘ proj₂)) ris≡ ⟩
+          t₂ .forge + ∑ ris′ (value ∘ proj₂)
+        ≡⟨⟩
+          ∑ (t₂ .outputs) value
+        ∎
+
+      aiv : ∀[ (i , o) ∈ ris ]
+        T (call (i .validator) txi (i .redeemer) (o .datum))
+      aiv = subst (L.All.All _) (sym ris≡)
+          $ aiv₀ ∷ []
+        where
+          consume◇ = record
+            { outputRef = ⦉ serialise ◇ ♯ ⦊ 1 € at toggle♯
+            ; validatorHash = toggle♯
+            ; redeemerHash = "" ♯ }
+
+          aiv₀ : T (call (i .validator) txi (i .redeemer) (o .datum))
+          aiv₀ = true⇒T $
+            begin
+              call (i .validator) txi (i .redeemer) (o .datum)
+            ≡⟨⟩
+              toggle toggle♯ txi "" (serialise ◇)
+            ≡⟨ toggle≡ {◇}{""}{txi}
+                ( subst (Any (consume◇ ≡_) ∘ map mkInputInfo) (sym ris≡)
+                $ here refl
+                )
+                (here refl) ⟩
+              true
+            ∎
+
+      vvh : ∀[ (i , o) ∈ ris ]
+        (o .address ≡ i .validator ♯)
+      vvh = subst (L.All.All _) (sym ris≡)
+          $ refl ∷ []
+
+module ⦅12⦆ where
+  vor : ∀[ ref ∈ outputRefs t₁₂ ] (ref ∈ᵈ s₀)
+  vor = here refl ∷ []
+
+  rt₁₂ rt₁₂′ : Resolved t₁₂
+  rt₁₂  = L.All.map (s₀ ‼ᵐ_) vor
+  rt₁₂′ = o ∷ []
+
+  _ : mkUtxo t₀ (here refl) ≡ (t₀₀ , o)
+  _ = refl
+
+  ∈≡ : does (t₀₀ ∈ᵈ? s₀) ≡ true
+  ∈≡ rewrite ≟-refl t₀₀ = refl
+
+  rt≡ : rt₁₂ ≡ rt₁₂′
+  rt≡ = cong (_∷ []) $ ‼-singleton {k = t₀₀}{o}
+
+  txi  = mkTxInfo t₁₂ rt₁₂
+  is = txi .TxInfo.inputs
+  os = txi .TxInfo.outputs
+
+  ris ris′ : ResolvedInputs
+  ris  = resolveInputs t₁₂ rt₁₂
+  ris′ = [ i , o ]
+
+  postulate ris≡ : ris ≡ ris′
+  -- ris≡ rewrite ≟-refl 0 | ≟-refl "" | ≟-refl '◇' = cong [_] (cong (i ,_) refl)
+
+  _ : VL ∅ doubleSat
+  _ = t₀
+    ⊣ record
+      { noDoubleSpending    = []
+      ; validOutputRefs     = []
+      ; preservesValues     = refl
+      ; allInputsValidate   = []
+      ; validateValidHashes = []
+      }
+    ∷ t₁₂
+    ⊣ record
+      { noDoubleSpending    = [] ∷ []
+      ; validOutputRefs     = vor
+      ; preservesValues     = pv
+      ; allInputsValidate   = aiv
+      ; validateValidHashes = vvh
+      }
+    ∷ []
+    where
+      open ≡-Reasoning
+
+      pv : t₁₂ .forge + ∑ ris (value ∘ proj₂) ≡ ∑ (t₁₂ .outputs) value
+      pv =
+        begin
+          t₁₂ .forge + ∑ ris (value ∘ proj₂)
+        ≡⟨ cong (λ ◆ → t₁₂ .forge + ∑ ◆ (value ∘ proj₂)) ris≡ ⟩
+          t₁₂ .forge + ∑ ris′ (value ∘ proj₂)
+        ≡⟨⟩
+          ∑ (t₁₂ .outputs) value
+        ∎
+
+      aiv : ∀[ (i , o) ∈ ris ]
+        T (call (i .validator) txi (i .redeemer) (o .datum))
+      aiv = subst (L.All.All _) (sym ris≡)
+          $ aiv₀ ∷ []
+        where
+          consume◇ = record
+            { outputRef = ⦉ serialise ◇ ♯ ⦊ 1 € at toggle♯
+            ; validatorHash = toggle♯
+            ; redeemerHash = "" ♯ }
+
+          aiv₀ : T (call (i .validator) txi (i .redeemer) (o .datum))
+          aiv₀ = true⇒T $
+            begin
+              call (i .validator) txi (i .redeemer) (o .datum)
+            ≡⟨⟩
+              toggle toggle♯ txi "" (serialise ◇)
+            ≡⟨ toggle≡ {◇}{""}{txi}
+                ( subst (Any (consume◇ ≡_) ∘ map mkInputInfo) (sym ris≡)
+                $ here refl
+                )
+                (here refl) ⟩
+              true
+            ∎
+
+      vvh : ∀[ (i , o) ∈ ris ]
+        (o .address ≡ i .validator ♯)
+      vvh = subst (L.All.All _) (sym ris≡)
+          $ refl ∷ []

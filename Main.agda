@@ -61,7 +61,7 @@ open import ValueSepExact.Main
 
 -----------------------------
 -- ** UTxO blockchain ledgers
--------------------------
+-----------------------------
 
 -- Initial prototype for extending to the UTxO case.
 -- ∙ S := Set⟨ UTXO ⟩
@@ -86,3 +86,24 @@ open import ValueSepUTxO.Main
 
 -- Sound abstraction for UTxO↔AUTxO.
 open import ConcreteToAbstract
+
+------------------------------
+-- ** EUTxO blockchain ledgers
+------------------------------
+
+-- Extended UTXO (EUTXO) with explicit errors.
+-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩
+-- ∙ ⟦_⟧ := S → Maybe S
+-- ∙ P := S → Set
+-- ∙ Separation := _⊎_
+open import EUTxOErr.Main
+
+-- Value-separated Abstract EUTxO (AEUTxO).
+-- ∙ S := Bag⟨ Address × Value ⟩
+-- ∙ ⟦_⟧ := S → Maybe S
+-- ∙ P := S → Set
+-- ∙ Separation := _◇_
+-- open import ValueSepEUTxO.Main
+
+-- Sound abstraction for EUTxO↔AEUTxO.
+-- open import ConcreteToAbstractEutxo
