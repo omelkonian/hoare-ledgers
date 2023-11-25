@@ -17,6 +17,7 @@ open import Prelude.FromList; open import Prelude.ToList
 open import Prelude.Ord
 open import Prelude.Semigroup
 open import Prelude.Monoid
+open import Prelude.Allable
 
 open import Prelude.Bags
 instance

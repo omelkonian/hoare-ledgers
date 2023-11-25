@@ -1,4 +1,4 @@
-name: hoare-ledge
+name: hoare-ledgers
 depend:
   standard-library
   formal-prelude

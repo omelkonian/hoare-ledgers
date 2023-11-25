@@ -19,6 +19,7 @@ open import Prelude.FromList
 open import Prelude.Membership using (_∈?_; _∉?_)
 open import Prelude.Irrelevance
 open import Prelude.Apartness
+open import Prelude.Allable hiding (All)
 
 -- open import UTxOErr.Maps
 open import Prelude.Maps

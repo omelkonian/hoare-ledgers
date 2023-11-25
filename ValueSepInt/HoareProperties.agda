@@ -2,7 +2,7 @@
 -- ** Properties for Hoare triples.
 
 open import Prelude.Init hiding (_+_; +_); open SetAsType
-open Integer using (_+_; _-_; 0ℤ)
+open Integer using (_+_; _-_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable

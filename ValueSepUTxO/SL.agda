@@ -21,6 +21,7 @@ open import Prelude.Bags
 open import ValueSepUTxO.UTxO
 open import ValueSepUTxO.Ledger
 open import ValueSepUTxO.HoareLogic
+open import ValueSepUTxO.HoareProperties
 
 destruct-⟦t⟧≡ :
   ⟦ t ⟧ s ≡ just s′
@@ -136,6 +137,14 @@ IsValidTx-◇ʳ {t}{s′}{s} = IsValidTx-resp-≈ (◇-comm s′ s) ∘ IsValidT
   with ⟦ l ⟧ s in s≡ | ◇-⟦⟧ {l}{s₁}{s₂}{s} s₁′ s₁≡ ≡s
 ... | .just s′ | ret↑ ≡s′
   = ret↑ (s₁′ , s₂ , ≡s′ , Qs₁′ , Rs₂)
+
+[FRAME]˘ : ∀ R →
+  ⟨ P ⟩ l ⟨ Q ⟩
+  ─────────────────────
+  ⟨ R ∗ P ⟩ l ⟨ R ∗ Q ⟩
+[FRAME]˘ {P}{l}{Q} R
+  = consequence {l = l} (λ {x} → ∗↔ {x = x}) (λ {x} → ∗↔ {x = x})
+  ∘ [FRAME] {l = l} R
 
 open HoareReasoning
 ℝ[FRAME] : ∀ R →

@@ -3,12 +3,15 @@ module ValueSepUTxO.Example where
 
 open import Agda.Builtin.Equality.Rewrite
 
-open import Prelude.Init
+open import Prelude.Init; open SetAsType
+open Nat hiding (_≥_)
 open import Prelude.General
 open import Prelude.DecEq
 open import Prelude.Decidable
 open import Prelude.Lists hiding (_↦_)
 open import Prelude.Lists.Dec
+open import Prelude.Ord
+open import Prelude.InferenceRules
 
 open import Prelude.Bags
 open import ValueSepUTxO.UTxO
@@ -55,36 +58,36 @@ postulate
 t₃ = B —→⟨ 1 ∣ t₁₀ ⟩ A
 t₄ = C —→⟨ 1 ∣ t₂₀ ⟩ D
 
-t₁-₄ = List Tx ∋ t₁ ∷ t₂ ∷ t₃ ∷ t₄ ∷ []
+t₁-₄ = L ∋ t₁ ∷ t₂ ∷ t₃ ∷ t₄ ∷ []
 
 open HoareReasoning
-postulate
-  _↝_ : ∀ A B {or} → {_ : True ¿ A ≢ B ¿} → ℝ⟨ A ↦ 1 ∗ B ↦ 0 ⟩ [ A —→⟨ 1 ∣ or ⟩ B ] ⟨ A ↦ 0 ∗ B ↦ 1 ⟩
-  _↜_ : ∀ A B {or} → {_ : True ¿ A ≢ B ¿} → ℝ⟨ A ↦ 0 ∗ B ↦ 1 ⟩ [ B —→⟨ 1 ∣ or ⟩ A ] ⟨ A ↦ 1 ∗ B ↦ 0 ⟩
+module _ A B {or} {_ : auto∶ A ≢ B} where postulate
+  _↝_ : ℝ⟨ A ↦ 1 ∗ B ↦ 0 ⟩ [ A —→⟨ 1 ∣ or ⟩ B ] ⟨ A ↦ 0 ∗ B ↦ 1 ⟩
+  _↜_ : ℝ⟨ A ↦ 0 ∗ B ↦ 1 ⟩ [ B —→⟨ 1 ∣ or ⟩ A ] ⟨ A ↦ 1 ∗ B ↦ 0 ⟩
 
 -- proof using only SL.[FRAME]
 h : ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩
     t₁-₄
     ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩
-h = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ (λ {x} → ∗↝ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} {x}) ⟩
+h = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ (λ {x} → ∗↝ {x = x}) ⟩
           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟨ t₁ ∶- ℝ[FRAME] (C ↦ 0 ∗ D ↦ 1) (A ↝ B) ⟩
-          (A ↦ 0 ∗ B ↦ 1) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ∗↔ {A ↦ 0 ∗ B ↦ 1} {C ↦ 0 ∗ D ↦ 1} {x}) ⟩
+          (A ↦ 0 ∗ B ↦ 1) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
           (C ↦ 0 ∗ D ↦ 1) ∗ A ↦ 0 ∗ B ↦ 1 ~⟨ t₂ ∶- ℝ[FRAME] (A ↦ 0 ∗ B ↦ 1) (C ↜ D) ⟩
-          (C ↦ 1 ∗ D ↦ 0) ∗ A ↦ 0 ∗ B ↦ 1 ~⟪ (λ {x} → ∗↔ {C ↦ 1 ∗ D ↦ 0} {A ↦ 0 ∗ B ↦ 1} {x}) ⟩
+          (C ↦ 1 ∗ D ↦ 0) ∗ A ↦ 0 ∗ B ↦ 1 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
           (A ↦ 0 ∗ B ↦ 1) ∗ C ↦ 1 ∗ D ↦ 0 ~⟨ t₃ ∶- ℝ[FRAME] (C ↦ 1 ∗ D ↦ 0) (A ↜ B) ⟩
-          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 1 ∗ D ↦ 0 ~⟪ (λ {x} → ∗↔ {A ↦ 1 ∗ B ↦ 0} {C ↦ 1 ∗ D ↦ 0} {x}) ⟩
+          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 1 ∗ D ↦ 0 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
           (C ↦ 1 ∗ D ↦ 0) ∗ A ↦ 1 ∗ B ↦ 0 ~⟨ t₄ ∶- ℝ[FRAME] (A ↦ 1 ∗ B ↦ 0) (C ↝ D) ⟩
-          (C ↦ 0 ∗ D ↦ 1) ∗ A ↦ 1 ∗ B ↦ 0 ~⟪ (λ {x} → ∗↔ {C ↦ 0 ∗ D ↦ 1} {A ↦ 1 ∗ B ↦ 0} {x}) ⟩
-          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ↜∗ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} {x}) ⟩
+          (C ↦ 0 ∗ D ↦ 1) ∗ A ↦ 1 ∗ B ↦ 0 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
+          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ↜∗ {x = x}) ⟩
           A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ∎
 
 -- 1b) proof using CSL.[INTERLEAVE]
 _ : ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩
      t₁-₄
      ⟨ A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1 ⟩
-_ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ (λ {x} → ∗↝ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} {x}) ⟩
+_ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ (λ {x} → ∗↝ {x = x}) ⟩
           (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟨ t₁-₄ ∶- ℝ[PAR] (keepˡ keepʳ keepˡ keepʳ []) H₁ H₂ ⟩++
-          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ↜∗ {A ↦ 1} {B ↦ 0} {C ↦ 0 ∗ D ↦ 1} {x}) ⟩
+          (A ↦ 1 ∗ B ↦ 0) ∗ C ↦ 0 ∗ D ↦ 1 ~⟪ (λ {x} → ↜∗ {x = x}) ⟩
           A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ∎
   where
     H₁ : ℝ⟨ A ↦ 1 ∗ B ↦ 0 ⟩ t₁ ∷ t₃ ∷ [] ⟨ A ↦ 1 ∗ B ↦ 0 ⟩
@@ -96,3 +99,75 @@ _ = begin A ↦ 1 ∗ B ↦ 0 ∗ C ↦ 0 ∗ D ↦ 1   ~⟪ (λ {x} → ∗↝ 
     H₂ = C ↦ 0 ∗ D ↦ 1 ~⟨ t₂ ∶- C ↜ D ⟩
          C ↦ 1 ∗ D ↦ 0 ~⟨ t₄ ∶- C ↝ D ⟩
          C ↦ 0 ∗ D ↦ 1 ∎
+
+
+-- ** split example
+module _ (A : Address) (n : Value) where postulate
+  split : Tx
+  split-semantics : ⟨ A ↦ n ⟩ [ split ] ⟨ A ↦ ⌊ n /2⌋ ∗ A ↦ ⌈ n /2⌉ ⟩
+
+split-ex : ⟨ A ↦ 100 ⟩ [ split A 100 ] ⟨ A ↦ 50 ∗ A ↦ 50 ⟩
+split-ex = split-semantics A 100
+
+-- ** escrow example
+module ESCROW (A B : Address) (n m : Value) where postulate
+  init : Tx
+  init-semantics : ℝ⟨ P ⟩ [ init ] ⟨ P ⟩
+
+  contribute : Address → Value → Tx
+  contribute-semanticsA : ∀ {v} ⦃ _ : auto∶ v ≥ m ⦄ → ℝ⟨ A ↦ v ⟩ [ contribute A m ] ⟨ A ↦ (v ∸ m) ⟩
+  contribute-semanticsB : ℝ⟨ B ↦ n ⟩ [ contribute B n ] ⟨ B ↦ 0 ⟩
+
+  payout : Tx
+  payout-semantics : ∀ {v} → ℝ⟨ B ↦ v ⟩ [ payout ] ⟨ B ↦ (v + n + m) ⟩
+
+escrow-ex : let open ESCROW A B 10 20 in
+  ⟨ B ↦ 10 ∗ A ↦ 50 ⟩
+  init ∷ contribute B 10 ∷ contribute A 20 ∷ payout ∷ []
+  ⟨ B ↦ 30 ∗ A ↦ 30 ⟩
+escrow-ex = let open ESCROW A B 10 20 in begin
+  B ↦ 10 ∗ A ↦ 50 ~⟨ init ∶- init-semantics ⟩
+  B ↦ 10 ∗ A ↦ 50 ~⟨ contribute B 10 ∶- ℝ[FRAME] (A ↦ 50) contribute-semanticsB ⟩
+  B ↦  0 ∗ A ↦ 50 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
+  A ↦ 50 ∗ B ↦  0 ~⟨ contribute A 20 ∶- ℝ[FRAME] (B ↦ 0)  contribute-semanticsA ⟩
+  A ↦ 30 ∗ B ↦  0 ~⟪ (λ {x} → ∗↔ {x = x}) ⟩
+  B ↦ 0  ∗ A ↦ 30 ~⟨ payout ∶- ℝ[FRAME] (A ↦ 30) payout-semantics ⟩
+  B ↦ 30 ∗ A ↦ 30 ∎
+
+-- -- ** crowdfunding example
+
+-- -- ** final example
+-- postulate
+--   txs : Ledger
+--   -- ≈ [split(A,100,50,50)]
+--   -- ∥ ESCROW.[init(A,B,10,30), contribute(B,10), contribute(A,30), payout()]
+--   -- ∥ CROWDFUNDING.[contribute(A,50), contribute(C,1000)]
+--   final-ex : ⟨ B ↦ 10 ∗ A ↦ 100 ∗ C ↦ 1000 ⟩ txs ⟨ B ↦ 30 ∗ A → 0 ∗ C ↦ 0 ⟩
+--            -- ∩ CROWDFUNDING.state == SUCCESS
+
+-- ** fraud detection
+
+VL∅ : Pred₀ L
+VL∅ = VL ∅
+
+-- utxo : L → S
+-- utxo l = ⟦ l ⟧ ∅
+
+compress :
+  ∙ l₁ ∥ l₂ ≡ l
+  ∙ ⟨ P ⟩ l₁ ⟨ P ⟩
+  ∙ ⟨ Q ⟩ l₂ ⟨ Q′ ⟩
+    ──────────────────────
+    ⟨ P ∗ Q ⟩ l ⟨ P ∗ Q′ ⟩
+compress = [PAR]
+
+detect : ∀ (l₁ l₂ l : L) (vl : VL∅ l) →
+  ∙ l₁ ∥ l₂ ≡ l
+  ∙ ⟨ P ⟩ l₁ ⟨ P ⟩
+  ∙ ⟨ Q ⟩ l₂ ⟨ Q′ ⟩
+    ───────────────────────
+    ⟨ P ∗ Q ⟩ l₂ ⟨ P ∗ Q′ ⟩
+    -- ∙ ⟦ l₁ ⟧ ≈ ⟦ [] ⟧
+    -- ∙ ⟦ l ⟧ ≈ ⟦ l₁ ∥ l₂ ⟧ ≈ ⟦ l₂ ⟧
+    -- ∙ ⟨ P ∗ Q ⟩ l ⟨ P ∗ Q′ ⟩
+detect {P}{Q}{Q′} l₁ l₂ l vl ≡l Pl₁ = [FRAME]˘ {l = l₂} P
