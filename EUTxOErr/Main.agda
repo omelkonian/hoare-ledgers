@@ -1,4 +1,3 @@
-{-# OPTIONS --rewriting #-}
 module EUTxOErr.Main where
 
 -- ** Simplistic definition of the EUTxO model.

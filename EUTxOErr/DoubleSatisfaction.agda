@@ -1,3 +1,5 @@
+module EUTxOErr.DoubleSatisfaction where
+
 open import Prelude.Init; open SetAsType
 open import Prelude.General using (true⇒T)
 open import Prelude.DecEq

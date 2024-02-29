@@ -6,4 +6,5 @@ open import Prelude.Lists.Sums
 ∑ : ∀ {A : Type} → List A → (A → ℕ) → ℕ
 ∑ xs f = ∑ℕ (map f xs)
 
+_€ : ℕ → ℕ
 _€ = id
