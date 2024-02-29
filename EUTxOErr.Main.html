@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>EUTxOErr.Main</title><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css'/><style>.github-fork-ribbon:before { background-color: #333; }</style><link rel="stylesheet" href="css/Agda.css"></head><body><a class='github-fork-ribbon'href='https://github.com/omelkonian/hoare-ledgers/tree/master///EUTxOErr/Main.agda'data-ribbon='Source code on Github' title='Source code on Github'>Source code on Github</a><pre class="Agda"><a id="1" class="Keyword">module</a> <a id="8" href="EUTxOErr.Main.html" class="Module">EUTxOErr.Main</a> <a id="22" class="Keyword">where</a>
+
+<a id="29" class="Comment">-- ** Simplistic definition of the EUTxO model.</a>
+<a id="77" class="Comment">-- S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="115" class="Keyword">open</a> <a id="120" class="Keyword">import</a> <a id="127" href="EUTxOErr.EUTxO.html" class="Module">EUTxOErr.EUTxO</a>
+
+<a id="143" class="Comment">-- ** A simple definition of a bank ledger as a series of transactions: A —→⟨ v ⟩ B.</a>
+<a id="228" class="Comment">-- We model the ledger state as maps from participants to balances, using a concrete map implementation in ValueSep.Maps,</a>
+<a id="350" class="Comment">-- and define both operational and denotational semantics.</a>
+<a id="409" class="Comment">-- [Proofs]</a>
+<a id="421" class="Comment">--    * correspondence between operational and denotational semantics</a>
+<a id="491" class="Comment">--    * useful lemmas about the ledger-specific operation `transfer/[_∣_↦_]`</a>
+<a id="568" class="Keyword">open</a> <a id="573" class="Keyword">import</a> <a id="580" href="EUTxOErr.Ledger.html" class="Module">EUTxOErr.Ledger</a>
+
+<a id="597" class="Comment">-- ** A Hoare-style axiomatic semantics, based on a deep embedding of propositions.</a>
+<a id="681" class="Comment">-- We also provide some utilities for working with Hoare triples and convenient reasoning syntax.</a>
+<a id="779" class="Comment">-- [Proofs]</a>
+<a id="791" class="Comment">--   * correspondence with denotational semantics and, by transitivity, operational semantics.</a>
+<a id="886" class="Comment">--   * associativity/commutativity of separating conjuction _∗_</a>
+<a id="950" class="Keyword">open</a> <a id="955" class="Keyword">import</a> <a id="962" href="EUTxOErr.HoareLogic.html" class="Module">EUTxOErr.HoareLogic</a>
+
+<a id="983" class="Comment">-- ** Introduce the concept of disjointness for propositions, i.e. when the participants they refer to do not overlap,</a>
+<a id="1102" class="Comment">-- which allows us to express the frame rule of Separation Logic (SL).</a>
+<a id="1173" class="Comment">-- [Proofs]</a>
+<a id="1185" class="Comment">--  * useful lemmas about separation, transferring values, etc...</a>
+<a id="1251" class="Comment">--  * the [FRAME] inference rule, which allows us to reason about a sub-formula and then inject the result in a larger context</a>
+<a id="1378" class="Keyword">open</a> <a id="1383" class="Keyword">import</a> <a id="1390" href="EUTxOErr.SL.html" class="Module">EUTxOErr.SL</a>
+
+<a id="1403" class="Comment">-- ** Define interleaving of two ledgers and prove the parallel rule of Concurrent Separation Logic (CSL).</a>
+<a id="1510" class="Comment">-- [Proofs]</a>
+<a id="1522" class="Comment">--  * the [PAR] inference rule, which utilizes [FRAME] to let us reason about disjoint ledgers independently/concurrently,</a>
+<a id="1645" class="Comment">-- and then compose the proofs (given that the pre-/post-conditions are sufficiently disjoint)</a>
+<a id="1740" class="Comment">-- to conclude something of a larger ledgers, namely any ledger that is an interleaving of the first two.</a>
+<a id="1846" class="Keyword">open</a> <a id="1851" class="Keyword">import</a> <a id="1858" href="EUTxOErr.CSL.html" class="Module">EUTxOErr.CSL</a>
+
+<a id="1872" class="Comment">-- ** An example of a ledger consisting of 4 transactions t₁⋯t₄,</a>
+<a id="1937" class="Comment">--    recording that values are correctly updated in pre-/post-conditions.</a>
+<a id="2012" class="Comment">-- 1. the first proof h repeatively uses the [FRAME] rule,</a>
+<a id="2071" class="Comment">--    but it quickly gets tedious because we need to reason about the whole ledger (all 4 transactions),</a>
+<a id="2176" class="Comment">--    although t₁ and t₃ act on a completely different set of participants than t₂ and t₄.</a>
+<a id="2267" class="Comment">-- 2. the second proof h′ utilizes modular reasoning via [PAR];</a>
+<a id="2331" class="Comment">--    we only prove smaller/simpler proofs for t₁/t₃ and t₂/t₄ and then compose them.</a>
+<a id="2417" class="Comment">-- open import EUTxOErr.Example</a>
+
+<a id="2450" class="Comment">-- ** An example of using separation logic to detect and mitigate &quot;double-satisfaction&quot; bugs.</a>
+<a id="2544" class="Keyword">open</a> <a id="2549" class="Keyword">import</a> <a id="2556" href="EUTxOErr.DoubleSatisfaction.html" class="Module">EUTxOErr.DoubleSatisfaction</a>
+</pre></body></html>

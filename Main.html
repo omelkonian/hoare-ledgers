@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="utf-8"><title>Main</title><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css'/><style>.github-fork-ribbon:before { background-color: #333; }</style><link rel="stylesheet" href="css/Agda.css"></head><body><a class='github-fork-ribbon'href='https://github.com/omelkonian/hoare-ledgers/tree/master/Main.agda'data-ribbon='Source code on Github' title='Source code on Github'>Source code on Github</a><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--rewriting</a> <a id="25" class="Symbol">#-}</a> <a id="29" class="Comment">-- needed for UTxO hashing</a>
+<html><head><meta charset="utf-8"><title>Main</title><link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css'/><style>.github-fork-ribbon:before { background-color: #333; }</style><link rel="stylesheet" href="css/Agda.css"></head><body><a class='github-fork-ribbon'href='https://github.com/omelkonian/hoare-ledgers/tree/master///Main.agda'data-ribbon='Source code on Github' title='Source code on Github'>Source code on Github</a><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--rewriting</a> <a id="25" class="Symbol">#-}</a> <a id="29" class="Comment">-- needed for UTxO hashing</a>
 <a id="56" class="Keyword">module</a> <a id="63" href="Main.html" class="Module">Main</a> <a id="68" class="Keyword">where</a>
 
 <a id="75" class="Comment">-------------------------</a>
@@ -62,29 +62,50 @@
 
 <a id="1399" class="Comment">-----------------------------</a>
 <a id="1429" class="Comment">-- ** UTxO blockchain ledgers</a>
-<a id="1459" class="Comment">-------------------------</a>
+<a id="1459" class="Comment">-----------------------------</a>
 
-<a id="1486" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
-<a id="1539" class="Comment">-- ∙ S := Set⟨ UTXO ⟩</a>
-<a id="1561" class="Comment">-- ∙ ⟦_⟧ := S → S</a>
-<a id="1579" class="Comment">-- ∙ P := S → Set</a>
-<a id="1597" class="Comment">-- ∙ Separation := _⊎_</a>
-<a id="1620" class="Keyword">open</a> <a id="1625" class="Keyword">import</a> <a id="1632" href="UTxO.Main.html" class="Module">UTxO.Main</a>
+<a id="1490" class="Comment">-- Initial prototype for extending to the UTxO case.</a>
+<a id="1543" class="Comment">-- ∙ S := Set⟨ UTXO ⟩</a>
+<a id="1565" class="Comment">-- ∙ ⟦_⟧ := S → S</a>
+<a id="1583" class="Comment">-- ∙ P := S → Set</a>
+<a id="1601" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="1624" class="Keyword">open</a> <a id="1629" class="Keyword">import</a> <a id="1636" href="UTxO.Main.html" class="Module">UTxO.Main</a>
 
-<a id="1643" class="Comment">-- &lt;UTxO&gt; variant that explicitly errors/invalidity.</a>
-<a id="1696" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
-<a id="1736" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
-<a id="1760" class="Comment">-- ∙ P := S → Set</a>
-<a id="1778" class="Comment">-- ∙ Separation := _⊎_</a>
-<a id="1801" class="Keyword">open</a> <a id="1806" class="Keyword">import</a> <a id="1813" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a>
+<a id="1647" class="Comment">-- &lt;UTxO&gt; variant that explicitly errors/invalidity.</a>
+<a id="1700" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="1740" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1764" class="Comment">-- ∙ P := S → Set</a>
+<a id="1782" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="1805" class="Keyword">open</a> <a id="1810" class="Keyword">import</a> <a id="1817" href="UTxOErr.Main.html" class="Module">UTxOErr.Main</a>
 
-<a id="1827" class="Comment">-- Value-separated Abstract UTxO (AUTxO).</a>
-<a id="1869" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
-<a id="1902" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
-<a id="1926" class="Comment">-- ∙ P := S → Set</a>
-<a id="1944" class="Comment">-- ∙ Separation := _◇_</a>
-<a id="1967" class="Keyword">open</a> <a id="1972" class="Keyword">import</a> <a id="1979" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
+<a id="1831" class="Comment">-- Value-separated Abstract UTxO (AUTxO).</a>
+<a id="1873" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
+<a id="1906" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="1930" class="Comment">-- ∙ P := S → Set</a>
+<a id="1948" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="1971" class="Keyword">open</a> <a id="1976" class="Keyword">import</a> <a id="1983" href="ValueSepUTxO.Main.html" class="Module">ValueSepUTxO.Main</a>
 
-<a id="1998" class="Comment">-- Sound abstraction for UTxO↔AUTxO.</a>
-<a id="2035" class="Keyword">open</a> <a id="2040" class="Keyword">import</a> <a id="2047" href="ConcreteToAbstract.html" class="Module">ConcreteToAbstract</a>
+<a id="2002" class="Comment">-- Sound abstraction for UTxO↔AUTxO.</a>
+<a id="2039" class="Keyword">open</a> <a id="2044" class="Keyword">import</a> <a id="2051" href="ConcreteToAbstract.html" class="Module">ConcreteToAbstract</a>
+
+<a id="2071" class="Comment">------------------------------</a>
+<a id="2102" class="Comment">-- ** EUTxO blockchain ledgers</a>
+<a id="2133" class="Comment">------------------------------</a>
+
+<a id="2165" class="Comment">-- Extended UTXO (EUTXO) with explicit errors.</a>
+<a id="2212" class="Comment">-- ∙ S := Map⟨ TxOutputRef ↦ TxOutput ⟩</a>
+<a id="2252" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="2276" class="Comment">-- ∙ P := S → Set</a>
+<a id="2294" class="Comment">-- ∙ Separation := _⊎_</a>
+<a id="2317" class="Keyword">open</a> <a id="2322" class="Keyword">import</a> <a id="2329" href="EUTxOErr.Main.html" class="Module">EUTxOErr.Main</a>
+
+<a id="2344" class="Comment">-- Value-separated Abstract EUTxO (AEUTxO).</a>
+<a id="2388" class="Comment">-- ∙ S := Bag⟨ Address × Value ⟩</a>
+<a id="2421" class="Comment">-- ∙ ⟦_⟧ := S → Maybe S</a>
+<a id="2445" class="Comment">-- ∙ P := S → Set</a>
+<a id="2463" class="Comment">-- ∙ Separation := _◇_</a>
+<a id="2486" class="Comment">-- open import ValueSepEUTxO.Main</a>
+
+<a id="2521" class="Comment">-- Sound abstraction for EUTxO↔AEUTxO.</a>
+<a id="2560" class="Comment">-- open import ConcreteToAbstractEutxo</a>
 </pre></body></html>
